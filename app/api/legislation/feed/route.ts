@@ -21,6 +21,118 @@ type LegislationAiSnapshot = {
   cards?: LegislationCards;
 } & AiSnapshotMeta;
 
+const AG_SOY_PRIMARY_TERMS = [
+  "soybean oil",
+  "soy oil",
+  "soybean",
+  "soybeans",
+  "soyoil",
+  "bean oil",
+  "oilseed",
+  "palm oil",
+  "canola oil",
+  "rapeseed oil",
+  "sunflower oil",
+  "vegetable oil",
+  "vegetable oils",
+  "biofuel",
+  "biodiesel",
+  "renewable diesel",
+  "renewable fuel standard",
+  "rfs",
+  "biomass-based diesel",
+  "feedstock",
+  "crush margin",
+];
+
+const AG_SOY_CONTEXT_TERMS = [
+  "agriculture",
+  "agricultural",
+  "farm bill",
+  "farm",
+  "usda",
+  "epa",
+  "fats and oils",
+  "oilseed",
+  "commodity crop",
+  "clean fuel",
+  "lcfs",
+  "blender tax credit",
+  "carbon intensity",
+];
+
+const AG_SOY_POLICY_TERMS = [
+  "tariff",
+  "trade",
+  "import",
+  "export",
+  "duty",
+  "duties",
+  "quota",
+  "sanction",
+  "subsid",
+  "mandate",
+  "countervailing",
+  "antidumping",
+  "rule",
+  "program",
+  "appropriation",
+  "act",
+];
+
+const AG_SOY_TAG_HINTS = new Set(["crush", "biofuel", "palm", "tariff", "china", "energy"]);
+
+function includesAnyTerm(text: string, terms: readonly string[]): boolean {
+  return terms.some((term) => {
+    const normalized = term.trim().toLowerCase();
+    if (!normalized) return false;
+    const escaped = normalized
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\s+/g, "\\s+");
+    const pattern = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
+    return pattern.test(text);
+  });
+}
+
+function normalizeTags(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((tag) => String(tag).trim())
+    .filter((tag) => tag.length > 0);
+}
+
+function isAgSoyPolicyRelevant(params: {
+  title: string;
+  summary?: string | null;
+  tags?: string[];
+}): boolean {
+  const textBlob = `${params.title} ${params.summary ?? ""}`.toLowerCase();
+  const primaryMatch = includesAnyTerm(textBlob, AG_SOY_PRIMARY_TERMS);
+  const contextMatch = includesAnyTerm(textBlob, AG_SOY_CONTEXT_TERMS);
+  const policyMatch = includesAnyTerm(textBlob, AG_SOY_POLICY_TERMS);
+  const tagSet = new Set((params.tags ?? []).map((tag) => tag.toLowerCase()));
+  const tagHint = Array.from(tagSet).some((tag) => AG_SOY_TAG_HINTS.has(tag));
+
+  if (primaryMatch) return true;
+  if (contextMatch && (policyMatch || tagHint)) return true;
+  if (tagHint && includesAnyTerm(textBlob, ["usda", "epa", "farm", "agricult", "renewable", "biofuel"])) {
+    return true;
+  }
+  return false;
+}
+
+function dedupeLegislationItems(items: LegislationItem[]): LegislationItem[] {
+  const seen = new Set<string>();
+  const deduped: LegislationItem[] = [];
+  for (const item of items) {
+    const key = `${item.source}::${item.title}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+  }
+  return deduped;
+}
+
 const LEGISLATION_INSTRUCTIONS: Record<keyof LegislationCards, StrategicSpecialInstructions> = {
   feedSummary: {
     cardTopic: "Policy Feed Procurement Impact Synthesis",
@@ -150,19 +262,19 @@ export async function GET() {
       supabase
         .schema("alt")
         .from("legislation_1d")
-        .select("title, source, published_at, payload")
+        .select("title, summary, source, published_at, payload")
         .order("published_at", { ascending: false })
         .limit(20),
       supabase
         .schema("alt")
         .from("executive_actions")
-        .select("title, source, published_at, payload")
+        .select("title, summary, source, published_at, payload")
         .order("published_at", { ascending: false })
         .limit(10),
       supabase
         .schema("alt")
         .from("congress_bills")
-        .select("title, source, published_at, payload")
+        .select("title, summary, source, published_at, payload")
         .order("published_at", { ascending: false })
         .limit(10),
     ]);
@@ -170,13 +282,34 @@ export async function GET() {
     const allRows = [...(legRes.data ?? []), ...(execRes.data ?? []), ...(billsRes.data ?? [])];
     allRows.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
 
-    const dbItems: LegislationItem[] = allRows.slice(0, 30).map((row) => ({
-      source: row.source,
-      title: row.title,
-      publishedAt: row.published_at,
-      tags: ((row.payload as Record<string, unknown>)?.tags as string[] | undefined) ?? [],
+    const filteredRows = allRows.filter((row) => {
+      const payload = (row.payload as Record<string, unknown> | null) ?? null;
+      const tags = normalizeTags(payload?.tags);
+      return isAgSoyPolicyRelevant({
+        title: String(row.title ?? ""),
+        summary: row.summary as string | null | undefined,
+        tags,
+      });
+    });
+
+    const dbItems = dedupeLegislationItems(filteredRows.slice(0, 30).map((row) => {
+      const payload = (row.payload as Record<string, unknown> | null) ?? null;
+      return {
+        source: row.source,
+        title: row.title,
+        publishedAt: row.published_at,
+        tags: normalizeTags(payload?.tags),
+      };
     }));
-    const items: LegislationItem[] = aiSnapshot?.items?.length ? aiSnapshot.items : dbItems;
+
+    const snapshotItems = dedupeLegislationItems((aiSnapshot?.items ?? []).filter((item) =>
+      isAgSoyPolicyRelevant({
+        title: item.title,
+        summary: "",
+        tags: item.tags ?? [],
+      }),
+    ));
+    const items: LegislationItem[] = dbItems.length > 0 ? dbItems : snapshotItems;
     const generatedAt = aiSnapshot?.generatedAt ?? new Date().toISOString();
     const asOf = items[0]?.publishedAt ?? trustedMarket.fetchedAt;
 
@@ -210,8 +343,8 @@ export async function GET() {
       feedSummary: {
         title: "Live Policy Feed",
         body: latestItem
-          ? `Most recent verified policy item: "${latestItem.title}" from ${latestItem.source}. Primary watch themes are ${topTagSet || "not yet tagged"} with procurement impact evaluated on implementation timing and enforcement likelihood.`
-          : "Hard stop: no verified policy rows are available across legislation, executive, or congressional feeds.",
+          ? `Most recent verified agriculture/soy policy item: "${latestItem.title}" from ${latestItem.source}. Primary watch themes are ${topTagSet || "not yet tagged"} with procurement impact evaluated on implementation timing and enforcement likelihood.`
+          : "Hard stop: no verified agriculture/soy policy rows are available across legislation, executive, or congressional feeds.",
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.feedSummary,
         provenance: buildProvenance(generatedAt, asOf, "feedSummary", trustedUrls),
       },

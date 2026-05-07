@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T11:07:28-04:00",
+  "generatedAt": "2026-05-07T13:39:50-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,7 +7,7 @@
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "Loaded 10 policy items from Federal Register, White House, and Congress feeds; latest source is Congress.gov.",
+      "body": "Loaded 2 agriculture/soy policy items from Federal Register, White House, and Congress feeds; latest source is Congress.gov.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Procurement Impact Synthesis",
         "strategicObjective": "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
@@ -50,7 +50,7 @@
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Most active policy source in current pull: Congress.gov (6 items).",
+      "body": "Most active policy source in current pull: Congress.gov (1 items).",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Concentration and Signal Reliability",
         "strategicObjective": "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
@@ -99,7 +99,7 @@
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "Top policy themes: policy, energy, tariff.",
+      "body": "Top policy themes: policy.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify which policy themes carry the highest procurement risk contribution in the current window.",
@@ -144,82 +144,18 @@
   "items": [
     {
       "source": "Congress.gov",
-      "title": "H.R.4818 (118th) - Treat and Reduce Obesity Act of 2023",
-      "publishedAt": "2026-05-07T15:07:28.252388Z",
-      "tags": [
-        "policy"
-      ]
-    },
-    {
-      "source": "Congress.gov",
       "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
-      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "publishedAt": "2026-05-07T17:39:50.310158Z",
       "tags": [
         "policy"
       ]
     },
     {
-      "source": "Congress.gov",
-      "title": "H.R.22 (119th) - SAVE Act",
-      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "source": "Labor Department",
+      "title": "Joint Employer Status Under the Fair Labor Standards Act, Family and Medical Leave Act, and Migrant and Seasonal Agricultural Worker Protection Act",
+      "publishedAt": "2026-04-23T00:00:00Z",
       "tags": [
         "policy"
-      ]
-    },
-    {
-      "source": "Congress.gov",
-      "title": "H.R.1 (119th) - An act to provide for reconciliation pursuant to title II of H. Con. Res. 14.",
-      "publishedAt": "2026-05-07T15:07:28.252388Z",
-      "tags": [
-        "policy"
-      ]
-    },
-    {
-      "source": "Congress.gov",
-      "title": "H.R.8445 (118th) - To amend title 38, United States Code, and the Servicemembers Civil Relief Act to provide for the eligibility of United States citizens who serve in the Israeli Defense Forces for certain protections relating to such service.",
-      "publishedAt": "2026-05-07T15:07:28.252388Z",
-      "tags": [
-        "policy"
-      ]
-    },
-    {
-      "source": "Congress.gov",
-      "title": "H.R.7147 (119th) - Homeland Security and Further Additional Continuing Appropriations Act, 2026.",
-      "publishedAt": "2026-05-07T15:07:28.252388Z",
-      "tags": [
-        "policy"
-      ]
-    },
-    {
-      "source": "Securities and Exchange Commission",
-      "title": "Semiannual Reporting",
-      "publishedAt": "2026-05-07T00:00:00Z",
-      "tags": [
-        "policy"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
-      "title": "United States Standards for Grades of Nectarines",
-      "publishedAt": "2026-05-07T00:00:00Z",
-      "tags": [
-        "policy"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
-      "title": "Spearmint Oil Produced in the Far West; Salable Quantities and Allotment Percentages for the 2025-2026 Marketing Year",
-      "publishedAt": "2026-05-07T00:00:00Z",
-      "tags": [
-        "energy"
-      ]
-    },
-    {
-      "source": "Securities and Exchange Commission",
-      "title": "Self-Regulatory Organizations; LCH SA; Notice of an Application for an Exemption Pursuant to Section 36 of the Securities Exchange Act of 1934 Relating to Rule Filing Requirements and Request for Comment",
-      "publishedAt": "2026-05-06T00:00:00Z",
-      "tags": [
-        "tariff"
       ]
     }
   ]

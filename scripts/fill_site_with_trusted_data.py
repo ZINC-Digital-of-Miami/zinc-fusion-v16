@@ -350,6 +350,102 @@ def classify_tags(text: str) -> list[str]:
     return sorted(tags)
 
 
+AG_SOY_PRIMARY_TERMS = (
+    "soybean oil",
+    "soy oil",
+    "soybean",
+    "soybeans",
+    "soyoil",
+    "bean oil",
+    "oilseed",
+    "palm oil",
+    "canola oil",
+    "rapeseed oil",
+    "sunflower oil",
+    "vegetable oil",
+    "vegetable oils",
+    "biofuel",
+    "biodiesel",
+    "renewable diesel",
+    "renewable fuel standard",
+    "rfs",
+    "biomass-based diesel",
+    "feedstock",
+    "crush margin",
+)
+
+AG_SOY_CONTEXT_TERMS = (
+    "agriculture",
+    "agricultural",
+    "farm bill",
+    "farm",
+    "usda",
+    "epa",
+    "fats and oils",
+    "oilseed",
+    "commodity crop",
+    "clean fuel",
+    "lcfs",
+    "blender tax credit",
+    "carbon intensity",
+)
+
+AG_SOY_POLICY_TERMS = (
+    "tariff",
+    "trade",
+    "import",
+    "export",
+    "duty",
+    "duties",
+    "quota",
+    "sanction",
+    "subsid",
+    "mandate",
+    "countervailing",
+    "antidumping",
+    "rule",
+    "program",
+    "appropriation",
+    "act",
+)
+
+AG_SOY_TAG_HINTS = {"crush", "biofuel", "palm", "tariff", "china", "energy"}
+
+
+def contains_any_term(text: str, terms: tuple[str, ...]) -> bool:
+    for term in terms:
+        normalized = term.strip().lower()
+        if not normalized:
+            continue
+        escaped = re.escape(normalized).replace(r"\ ", r"\s+")
+        pattern = rf"(?<![a-z0-9]){escaped}(?![a-z0-9])"
+        if re.search(pattern, text):
+            return True
+    return False
+
+
+def is_ag_soy_policy_relevant(
+    *,
+    title: str,
+    summary: str = "",
+    tags: list[str] | None = None,
+) -> bool:
+    blob = f"{title} {summary}".lower()
+    primary_match = contains_any_term(blob, AG_SOY_PRIMARY_TERMS)
+    context_match = contains_any_term(blob, AG_SOY_CONTEXT_TERMS)
+    policy_match = contains_any_term(blob, AG_SOY_POLICY_TERMS)
+    tag_set = {str(tag).strip().lower() for tag in (tags or []) if str(tag).strip()}
+    tag_hint = bool(tag_set & AG_SOY_TAG_HINTS)
+
+    if primary_match:
+        return True
+    if context_match and (policy_match or tag_hint):
+        return True
+    if tag_hint and contains_any_term(blob, ("usda", "epa", "farm", "agricult", "renewable", "biofuel")):
+        return True
+    return False
+
+
 def make_external_id(source: str, title: str, published_at: str, link: str = "") -> str:
     base = f"{source}|{title}|{published_at}|{link}".encode("utf-8", errors="ignore")
     return hashlib.sha1(base).hexdigest()
@@ -429,6 +525,7 @@ def fetch_congress_bills() -> list[dict[str, str]]:
     xml_text = request_text("https://www.congress.gov/rss/most-viewed-bills.xml")
     items = parse_rss_items(xml_text)
     bills: list[dict[str, str]] = []
+    seen_titles: set[str] = set()
     bill_link_re = re.compile(
         r"href='(https://www\.congress\.gov/bill/[^']+)'>([^<]+)</a>\s*\[(\d+th)\]\s*-\s*([^<]+)",
         re.IGNORECASE,
@@ -437,15 +534,26 @@ def fetch_congress_bills() -> list[dict[str, str]]:
         desc = item.get("description", "")
         for match in bill_link_re.finditer(desc):
             link, bill_id, congress, title = match.groups()
+            bill_title = f"{bill_id} ({congress}) - {title.strip()}"
+            tags = classify_tags(bill_title)
+            if not is_ag_soy_policy_relevant(title=bill_title, tags=tags):
+                continue
             bills.append(
                 {
-                    "title": f"{bill_id} ({congress}) - {title.strip()}",
+                    "title": bill_title,
                     "link": link.strip(),
                     "pubDate": item.get("pubDate", ""),
                     "source": "Congress.gov",
                 }
             )
-    return bills[:20]
+    deduped: list[dict[str, str]] = []
+    for bill in bills:
+        title_key = bill.get("title", "")
+        if title_key in seen_titles:
+            continue
+        seen_titles.add(title_key)
+        deduped.append(bill)
+    return deduped[:20]
 
 
 def fetch_eia_items() -> list[dict[str, str]]:
@@ -735,6 +843,8 @@ def main() -> None:
         source = agencies[0] if agencies else "Federal Register"
         text_blob = f"{title} {summary}"
         tags = classify_tags(text_blob)
+        if not is_ag_soy_policy_relevant(title=title, summary=summary, tags=tags):
+            continue
         legislation_rows.append(
             {
                 "external_id": f"fr-{row.get('document_number')}",
@@ -754,6 +864,8 @@ def main() -> None:
         title = item.get("title", "").strip()
         summary = item.get("description", "").strip()
         tags = classify_tags(f"{title} {summary}")
+        if not is_ag_soy_policy_relevant(title=title, summary=summary, tags=tags):
+            continue
         executive_rows.append(
             {
                 "external_id": make_external_id("White House", title, to_iso_z(dt) or "", item.get("link", "")),
@@ -771,6 +883,8 @@ def main() -> None:
         title = item.get("title", "").strip()
         summary = "Most-viewed congressional bill feed item from Congress.gov."
         tags = classify_tags(title)
+        if not is_ag_soy_policy_relevant(title=title, summary=summary, tags=tags):
+            continue
         congress_rows.append(
             {
                 "external_id": make_external_id("Congress.gov", title, to_iso_z(dt) or "", item.get("link", "")),
@@ -1574,7 +1688,7 @@ def main() -> None:
             key=lambda r: r["published_at"],
             reverse=True,
         )[:10]
-        legislation_snapshot["items"] = [
+        snapshot_items = [
             {
                 "source": row["source"],
                 "title": row["title"],
@@ -1583,6 +1697,20 @@ def main() -> None:
             }
             for row in top_leg_items
         ]
+        seen_snapshot_keys: set[tuple[str, str]] = set()
+        deduped_snapshot_items: list[dict[str, Any]] = []
+        for item in snapshot_items:
+            if not is_ag_soy_policy_relevant(
+                title=item["title"],
+                tags=item.get("tags", []),
+            ):
+                continue
+            key = (item["source"], item["title"])
+            if key in seen_snapshot_keys:
+                continue
+            seen_snapshot_keys.add(key)
+            deduped_snapshot_items.append(item)
+        legislation_snapshot["items"] = deduped_snapshot_items
         leg_cards = legislation_snapshot.setdefault("cards", {})
         leg_cards.setdefault("feedSummary", {})
         leg_cards.setdefault("sourcePressure", {})
@@ -1598,7 +1726,7 @@ def main() -> None:
         top_tags = [k for k, _ in sorted(tag_counts.items(), key=lambda kv: kv[1], reverse=True)[:4]]
         leg_cards["feedSummary"]["title"] = "Live Policy Feed"
         leg_cards["feedSummary"]["body"] = (
-            f"Loaded {len(legislation_snapshot['items'])} policy items from Federal Register, White House, and Congress feeds; "
+            f"Loaded {len(legislation_snapshot['items'])} agriculture/soy policy items from Federal Register, White House, and Congress feeds; "
             f"latest source is {legislation_snapshot['items'][0]['source'] if legislation_snapshot['items'] else 'n/a'}."
         )
         leg_cards["sourcePressure"]["title"] = "Source Activity"
