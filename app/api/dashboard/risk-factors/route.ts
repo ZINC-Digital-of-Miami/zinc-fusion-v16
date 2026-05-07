@@ -9,6 +9,16 @@ type DriverKey =
   | "tariff_threat"
   | "energy_stress";
 
+type WhatsHappening = {
+  whatsHappening: string;
+  macroContext: string;
+  supplyDemand: string;
+  geopolitical: string;
+  investorSentiment: string;
+  nearTermOutlook: string;
+  zlImplication: string;
+};
+
 type DriverData = {
   name: string;
   score: number | null;
@@ -16,6 +26,7 @@ type DriverData = {
   regime: string;
   headline: string;
   components: Record<string, number | null>;
+  whatsHappening?: WhatsHappening;
   aiPowered: boolean;
   dataDate: string | null;
 };
@@ -136,6 +147,88 @@ function getMetric(metrics: Map<string, number | null>, keys: string[]): number 
     if (value !== undefined) return value;
   }
   return null;
+}
+
+function formatMetric(value: number | null, mode: "fixed1" | "fixed2" | "int" | "pct" | "usd2"): string {
+  if (value === null) return "unavailable";
+  if (mode === "fixed1") return value.toFixed(1);
+  if (mode === "fixed2") return value.toFixed(2);
+  if (mode === "int") return value.toFixed(0);
+  if (mode === "pct") return `${value >= 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
+  return `$${value.toFixed(2)}`;
+}
+
+function scoreState(score: number | null): string {
+  if (score === null) return "data pending";
+  if (score >= 70) return "elevated pressure";
+  if (score >= 45) return "watch zone";
+  return "calm zone";
+}
+
+function driverFocus(driver: DriverKey): string {
+  if (driver === "vix_stress") return "volatility transmission into procurement timing";
+  if (driver === "crush_pressure") return "processor margin pressure and oil-share economics";
+  if (driver === "china_tension") return "China demand and trade-flow displacement";
+  if (driver === "tariff_threat") return "policy shocks and geopolitical tariff channels";
+  return "energy complex pass-through into ZL";
+}
+
+function buildDriverWhatsHappening(
+  driver: DriverKey,
+  payload: DriverData,
+  aggregateSummary: string,
+  topDriverName: string,
+  averagePressure: number,
+): WhatsHappening {
+  const scoreText = payload.score === null ? "No scored signal yet" : `Score ${Math.round(payload.score)}`;
+  const commonState = scoreState(payload.score);
+  const focus = driverFocus(driver);
+
+  const c = payload.components;
+  let supplyDemand = "Underlying supply/demand metrics are waiting on the next promoted dataset."
+  let geopolitical = "No explicit geopolitical pulse is dominating this driver in the current snapshot."
+  let sentiment = `Market posture is ${commonState}; regime tag is ${payload.regime}.`
+
+  if (driver === "vix_stress") {
+    supplyDemand = `VIX ${formatMetric(c.vix_value ?? null, "fixed1")} and OVX ${formatMetric(c.ovx_value ?? null, "fixed1")} define the current volatility envelope.`
+    geopolitical = "Cross-asset stress is being monitored as an early warning for procurement-cost spikes."
+    sentiment = `Volatility regime is ${commonState}; defensive hedging usually increases as this score rises.`
+  } else if (driver === "crush_pressure") {
+    supplyDemand = `Crush margin ${formatMetric(c.board_crush_value ?? null, "usd2")} and oil share ${formatMetric(c.oil_share_value ?? null, "fixed1")} describe processing economics.`
+    geopolitical = "Crush behavior is primarily a microstructure signal unless macro shocks force abrupt repricing."
+    sentiment = `Crush pressure is ${commonState}; buyers should watch processing spreads for timing risk.`
+  } else if (driver === "china_tension") {
+    supplyDemand = `CNY ${formatMetric(c.cny_rate ?? null, "fixed2")} with ${formatMetric(c.soy_china_news_count ?? null, "int")} China/soy headlines tracks demand-flow tension.`
+    geopolitical = "Trade-friction headlines and import-flow shifts remain the key geopolitical amplifier here."
+    sentiment = `China-linked risk is ${commonState}; abrupt headline shifts can reprice demand assumptions quickly.`
+  } else if (driver === "tariff_threat") {
+    supplyDemand = `Uncertainty index ${formatMetric(c.uncertainty_value ?? null, "int")} and crude 5D ${formatMetric(c.oil_change_5d ?? null, "pct")} frame policy-to-price transmission.`
+    geopolitical = `${formatMetric(c.iran_war_news_count ?? null, "int")} Iran/war headlines and ${formatMetric(c.macro_news_count ?? null, "int")} macro headlines are feeding this channel.`
+    sentiment = `Policy risk is ${commonState}; this is the macro/geopolitical lane most likely to force schedule adjustments.`
+  } else {
+    supplyDemand = `CL ${formatMetric(c.cl_price ?? null, "usd2")}, 5D change ${formatMetric(c.cl_change_5d ?? null, "pct")}, and OVX ${formatMetric(c.ovx_value ?? null, "fixed1")} define energy stress.`
+    geopolitical = `Energy headline count is ${formatMetric(c.energy_news_count ?? null, "int")}; supply-shock sensitivity remains active.`
+    sentiment = `Energy pass-through is ${commonState}; sustained pressure can lift procurement urgency.`
+  }
+
+  const zlImplication =
+    payload.score === null
+      ? "Keep standard buying cadence while waiting for fresh promoted metrics."
+      : payload.score >= 70
+        ? "Increase execution vigilance, shorten decision windows, and preserve optionality on contract timing."
+        : payload.score >= 45
+          ? "Maintain normal execution with tighter monitoring around upcoming refresh windows."
+          : "Pressure is contained; continue schedule-based procurement unless another driver escalates."
+
+  return {
+    whatsHappening: `${payload.name} is currently ${commonState}. ${scoreText} with level ${payload.level} keeps focus on ${focus}.`,
+    macroContext: `${aggregateSummary} Top pressure is ${topDriverName} and average pressure is ${averagePressure.toFixed(1)}.`,
+    supplyDemand,
+    geopolitical,
+    investorSentiment: sentiment,
+    nearTermOutlook: payload.score === null ? "Awaiting next signal update." : payload.score >= 70 ? "High-risk posture likely to persist near term." : payload.score >= 45 ? "Mixed posture with event-driven volatility risk." : "Low-pressure posture unless headline regime changes.",
+    zlImplication,
+  };
 }
 
 export async function GET() {
@@ -260,8 +353,12 @@ export async function GET() {
         headline: headlineFor("Trade policy", scoreCandidates.tariff_threat),
         components: {
           tpu_value: getMetric(metricMap, ["tpu_value", "trade_policy_uncertainty"]),
+          uncertainty_value: getMetric(metricMap, ["uncertainty_value", "tpu_value", "trade_policy_uncertainty"]),
           emv_value: getMetric(metricMap, ["emv_value", "trade_policy_index"]),
           soy_tariff_news_count: getMetric(metricMap, ["soy_tariff_news_count", "tariff_news_count"]),
+          oil_change_5d: getMetric(metricMap, ["oil_change_5d", "cl_change_5d", "crude_oil_change_5d"]),
+          iran_war_news_count: getMetric(metricMap, ["iran_war_news_count", "soy_tariff_news_count", "tariff_news_count"]),
+          macro_news_count: getMetric(metricMap, ["macro_news_count", "soy_tariff_news_count", "tariff_news_count"]),
         },
         aiPowered: false,
         dataDate: dateFor("tariff_threat"),
@@ -308,7 +405,68 @@ export async function GET() {
       as_of_date_min: asOfDateMin,
       as_of_date_max: asOfDateMax,
       mixed_vintage: mixedVintage,
-      drivers,
+      drivers: {
+        vix_stress: {
+          ...drivers.vix_stress,
+          whatsHappening: buildDriverWhatsHappening(
+            "vix_stress",
+            drivers.vix_stress,
+            scoredEntries.length === 0
+              ? "Awaiting promoted analytics rows."
+              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
+            topName,
+            average,
+          ),
+        },
+        crush_pressure: {
+          ...drivers.crush_pressure,
+          whatsHappening: buildDriverWhatsHappening(
+            "crush_pressure",
+            drivers.crush_pressure,
+            scoredEntries.length === 0
+              ? "Awaiting promoted analytics rows."
+              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
+            topName,
+            average,
+          ),
+        },
+        china_tension: {
+          ...drivers.china_tension,
+          whatsHappening: buildDriverWhatsHappening(
+            "china_tension",
+            drivers.china_tension,
+            scoredEntries.length === 0
+              ? "Awaiting promoted analytics rows."
+              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
+            topName,
+            average,
+          ),
+        },
+        tariff_threat: {
+          ...drivers.tariff_threat,
+          whatsHappening: buildDriverWhatsHappening(
+            "tariff_threat",
+            drivers.tariff_threat,
+            scoredEntries.length === 0
+              ? "Awaiting promoted analytics rows."
+              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
+            topName,
+            average,
+          ),
+        },
+        energy_stress: {
+          ...drivers.energy_stress,
+          whatsHappening: buildDriverWhatsHappening(
+            "energy_stress",
+            drivers.energy_stress,
+            scoredEntries.length === 0
+              ? "Awaiting promoted analytics rows."
+              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
+            topName,
+            average,
+          ),
+        },
+      },
       summary: {
         average_pressure: average,
         highest_pressure: { name: topName, score: topScore },

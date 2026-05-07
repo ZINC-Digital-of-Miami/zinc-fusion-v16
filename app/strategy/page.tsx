@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { TrendingUp } from "lucide-react"
+
 import { BackendShell } from "@/components/backend-shell"
 
 interface StrategyPosture {
@@ -22,8 +24,15 @@ export default function StrategyPage() {
   return (
     <BackendShell>
       <div className="w-full space-y-6">
-        <h1 className="text-2xl font-bold text-white">Strategy</h1>
-        <p className="text-slate-400">Procurement posture and contract recommendations</p>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <TrendingUp className="w-8 h-8" />
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">Strategy</h1>
+            </div>
+            <p className="text-slate-400 text-sm font-mono">Procurement posture and contract recommendations</p>
+          </div>
+        </header>
 
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
           <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">Market Posture</div>

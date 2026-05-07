@@ -85,7 +85,8 @@ const DRIVER_NAMES: Record<string, string> = {
   "VIX Stress": "Market Volatility",
   "Crush Pressure": "Crush Margins",
   "China Tension": "China / Trade Risk",
-  "Tariff Threat": "Policy Risk",
+  "Tariff Threat": "Macro / Geopolitical",
+  "Macro Threat": "Macro / Geopolitical",
   "Energy Stress": "Energy / Oil",
 }
 
@@ -100,6 +101,10 @@ const LEVEL_LABELS: Record<string, string> = {
   "Monitor Flows": "Watch Closely", "Brazil Favored": "Low Risk",
   "Brazil Dominates": "Stable", "Trade Diversion": "Trade Diversion",
   "Active Conflict": "Active Conflict",
+  "Systemic Shock": "Systemic Shock",
+  "Elevated Risk": "Elevated",
+  Watch: "Watch",
+  Contained: "Contained",
   "Active War": "Active Trade War", "Retaliation Risk": "High Risk",
   "Elevated Noise": "Elevated", "Background Noise": "Background",
   "Minimal Threat": "Quiet",
@@ -113,9 +118,21 @@ const LEVEL_LABELS: Record<string, string> = {
 function getScoreColor(score: number): { stroke: string; glow: string } {
   const s = Math.max(0, Math.min(100, score))
   if (s <= 25) return { stroke: "#22C55E", glow: "rgba(34,197,94,0.5)" }
-  if (s <= 40) return { stroke: "#EAB308", glow: "rgba(234,179,8,0.5)" }
+  if (s <= 40) {
+    const t = (s - 25) / 15
+    return {
+      stroke: `rgb(${Math.round(34 + (234 - 34) * t)}, ${Math.round(197 - (197 - 179) * t)}, ${Math.round(94 - (94 - 8) * t)})`,
+      glow: `rgba(${Math.round(34 + (234 - 34) * t)}, ${Math.round(197 - (197 - 179) * t)}, ${Math.round(94 - (94 - 8) * t)}, 0.5)`,
+    }
+  }
   if (s <= 55) return { stroke: "#EAB308", glow: "rgba(234,179,8,0.5)" }
-  if (s <= 70) return { stroke: "#EF7300", glow: "rgba(239,115,0,0.5)" }
+  if (s <= 70) {
+    const t = (s - 55) / 15
+    return {
+      stroke: `rgb(${Math.round(234 + (239 - 234) * t)}, ${Math.round(179 - (179 - 115) * t)}, ${Math.round(8 + (0 - 8) * t)})`,
+      glow: `rgba(${Math.round(234 + (239 - 234) * t)}, ${Math.round(179 - (179 - 115) * t)}, ${Math.round(8 + (0 - 8) * t)}, 0.5)`,
+    }
+  }
   if (s <= 85) return { stroke: "#EF7300", glow: "rgba(239,115,0,0.5)" }
   return { stroke: "#EF4444", glow: "rgba(239,68,68,0.6)" }
 }
@@ -247,7 +264,7 @@ function DriverCard({
       )}
 
       {expanded && wh && (
-        <div className="mt-4 w-full text-left space-y-3">
+        <div className="mt-4 w-full text-left space-y-3 animate-in slide-in-from-top-2 duration-200">
           <div className="text-sm text-slate-300 leading-relaxed border-l-2 pl-3" style={{ borderColor: colors.stroke }}>
             {wh.whatsHappening}
           </div>
@@ -349,12 +366,13 @@ export function MarketRiskFactors() {
           loading={loading}
         />
         <DriverCard
-          label="Tariff Threat"
+          label="Macro Threat"
           data={d?.tariff_threat ?? null}
           metrics={[
-            { key: "tpu_value", label: "Policy Uncertainty", format: (v) => v?.toFixed(0) ?? "--" },
-            { key: "emv_value", label: "Trade Policy Index", format: (v) => v?.toFixed(0) ?? "--" },
-            { key: "soy_tariff_news_count", label: "Tariff Headlines", format: (v) => v != null ? `${v} this week` : "--" },
+            { key: "uncertainty_value", label: "Uncertainty Index", format: (v) => v?.toFixed(0) ?? "--" },
+            { key: "oil_change_5d", label: "Crude Oil (5D)", format: (v) => v != null ? `${(v * 100) >= 0 ? "+" : ""}${(v * 100).toFixed(1)}%` : "--" },
+            { key: "iran_war_news_count", label: "Iran/War Headlines", format: (v) => v != null ? `${v} this week` : "--" },
+            { key: "macro_news_count", label: "Macro Headlines", format: (v) => v != null ? `${v} this week` : "--" },
           ]}
           loading={loading}
         />

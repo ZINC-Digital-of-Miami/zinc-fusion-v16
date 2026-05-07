@@ -159,10 +159,13 @@ export default function SentimentPage() {
       <div className="w-full space-y-8">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-white/5">
           <div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-              Market Psychology
-            </h1>
-            <p className="text-slate-400 text-sm font-mono mt-1">
+            <div className="flex items-center gap-3 mb-1">
+              <Brain className="w-8 h-8" />
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">
+                Market Psychology
+              </h1>
+            </div>
+            <p className="text-slate-400 text-sm font-mono">
               Quantitative sentiment, narrative clustering, and positioning context
             </p>
           </div>

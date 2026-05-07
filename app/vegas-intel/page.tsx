@@ -1,13 +1,24 @@
 "use client"
 
+import { Building2 } from "lucide-react"
+
 import { BackendShell } from "@/components/backend-shell"
 
 export default function VegasIntelPage() {
   return (
     <BackendShell>
       <div className="w-full space-y-6">
-        <h1 className="text-2xl font-bold text-white">Vegas Intel</h1>
-        <p className="text-slate-400">Sales strategy, event intelligence, and account recommendations for Las Vegas restaurant operations</p>
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <Building2 className="w-8 h-8" />
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">Vegas Intel</h1>
+            </div>
+            <p className="text-slate-400 text-sm font-mono">
+              Sales strategy, event intelligence, and account recommendations for Las Vegas restaurant operations
+            </p>
+          </div>
+        </header>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
