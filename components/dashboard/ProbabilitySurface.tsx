@@ -13,6 +13,14 @@ interface ForecastTarget {
 }
 
 const BIN_COUNT = 11
+const AG_HORIZON_DAYS = [30, 90, 180] as const
+
+function horizonLabel(days: number): string {
+  if (days === 30) return "1M"
+  if (days === 90) return "3M"
+  if (days === 180) return "6M"
+  return `${days}d`
+}
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v))
@@ -54,11 +62,16 @@ export function ProbabilitySurface() {
           (json.targets ?? [])
             .filter(
               (t: ForecastTarget) =>
+                AG_HORIZON_DAYS.includes(t?.horizonDays as (typeof AG_HORIZON_DAYS)[number]) &&
                 typeof t?.horizonDays === "number" &&
                 typeof t?.priceLow === "number" &&
                 typeof t?.priceHigh === "number" &&
                 typeof t?.oofPrice === "number",
             )
+            .map((t: ForecastTarget) => ({
+              ...t,
+              horizonLabel: horizonLabel(t.horizonDays),
+            }))
             .sort((a: ForecastTarget, b: ForecastTarget) => a.horizonDays - b.horizonDays),
         )
         setAsOfDate(json.asOfDate ?? null)
@@ -101,7 +114,7 @@ export function ProbabilitySurface() {
             L3 Probability Surface
           </h3>
           <p className="text-xs text-slate-500">
-            Real target zone density from latest production forecast
+            Real target zone density from latest AG trading-model forecast (1M/3M/6M)
             {asOfDate ? ` (as of ${asOfDate})` : ""}
           </p>
         </div>

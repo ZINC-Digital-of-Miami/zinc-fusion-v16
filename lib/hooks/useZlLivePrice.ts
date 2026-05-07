@@ -15,7 +15,7 @@ export function useZlLivePrice() {
 
     async function fetchLive() {
       try {
-        const res = await fetch("/api/zl/live");
+        const res = await fetch("/api/zl/live", { cache: "no-store" });
         if (!res.ok) {
           setError(`HTTP ${res.status}`);
           return;

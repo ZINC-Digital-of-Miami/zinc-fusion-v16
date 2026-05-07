@@ -168,7 +168,10 @@ export function calculateFibonacciMultiPeriod(candles: CandleData[]): FibResult 
     }
 
     const score = confluenceCount * anchor.range;
-    if (score > bestScore) {
+    const sameScore = Math.abs(score - bestScore) < 1e-9;
+    const widerRange = anchor.range > bestAnchor.range;
+    const longerWindow = anchor.period > bestAnchor.period;
+    if (score > bestScore || (sameScore && (widerRange || (Math.abs(anchor.range - bestAnchor.range) < 1e-9 && longerWindow)))) {
       bestScore = score;
       bestAnchor = anchor;
     }

@@ -22,32 +22,34 @@ import type { CanvasRenderingTarget2D } from "fancy-canvas";
 import type { FibResult } from "@/lib/chart/autofib";
 
 const COLORS = {
-  anchor: "#FFFFFF",
-  retracement: "#808080",
-  pivot: "#FF9800",
-  target: "#4CAF50",
+  anchor: "#F3F4F6",
+  retracement: "#E5E7EB",
+  pivot: "#E5E7EB",
+  target: "#22D3EE",
+  zone: "#9CA3AF",
 } as const;
 
-const ALL_LEVELS: { ratio: number; label: string; color: string; width: number }[] = [
-  { ratio: 0, label: "ZERO", color: COLORS.anchor, width: 1 },
+const ALL_LEVELS: { ratio: number; label: string; color: string; width: number; lineDash?: number[] }[] = [
+  { ratio: 0, label: "ZERO", color: COLORS.anchor, width: 1.5 },
   { ratio: 0.236, label: ".236", color: COLORS.retracement, width: 1 },
   { ratio: 0.382, label: ".382", color: COLORS.retracement, width: 1 },
-  { ratio: 0.5, label: "Pivot", color: COLORS.pivot, width: 2 },
+  { ratio: 0.5, label: "Pivot", color: COLORS.pivot, width: 1, lineDash: [5, 5] },
   { ratio: 0.618, label: ".618", color: COLORS.retracement, width: 1 },
-  { ratio: 0.786, label: ".786", color: COLORS.retracement, width: 1 },
-  { ratio: 1.0, label: "1", color: COLORS.anchor, width: 1 },
-  { ratio: 1.236, label: "TARGET 1", color: COLORS.target, width: 2 },
-  { ratio: 1.618, label: "TARGET 2", color: COLORS.target, width: 2 },
-  { ratio: 2.0, label: "TARGET 3", color: COLORS.target, width: 2 },
+  { ratio: 0.786, label: ".786", color: COLORS.target, width: 1.25 },
+  { ratio: 1.0, label: "1", color: COLORS.target, width: 1.5 },
+  { ratio: 1.236, label: "TARGET 1", color: COLORS.target, width: 1.25 },
+  { ratio: 1.618, label: "TARGET 2", color: COLORS.target, width: 1.25 },
+  { ratio: 2.0, label: "TARGET 3", color: COLORS.target, width: 1.25 },
 ];
 
-const PIVOT_FILL_OPACITY = 0.08;
+const PIVOT_FILL_OPACITY = 0.22;
 
 interface FibElement {
   price: number;
   label: string;
   color: string;
   lineWidth: number;
+  lineDash: number[];
 }
 
 interface ZoneBand {
@@ -97,9 +99,9 @@ class PivotRenderer implements IPrimitivePaneRenderer {
         if (y == null) continue;
         if (y < -30 || y > mediaSize.height + 30) continue;
 
-        ctx.strokeStyle = hexToRgba(el.color, 0.85);
+        ctx.strokeStyle = hexToRgba(el.color, 0.9);
         ctx.lineWidth = el.lineWidth;
-        ctx.setLineDash([]);
+        ctx.setLineDash(el.lineDash);
         ctx.beginPath();
         ctx.moveTo(x0, y);
         ctx.lineTo(mediaSize.width, y);
@@ -121,8 +123,8 @@ class PivotPaneView implements IPrimitivePaneView {
     this._renderer.update(elements, zone, priceToY, anchorStartX);
   }
 
-  zOrder(): "bottom" {
-    return "bottom";
+  zOrder(): "top" {
+    return "top";
   }
 
   renderer(): IPrimitivePaneRenderer {
@@ -226,13 +228,14 @@ export class PivotLinesPrimitive implements ISeriesPrimitive<Time> {
         label: level.label,
         color: level.color,
         lineWidth: level.width,
+        lineDash: level.lineDash ?? [],
       });
     }
 
     const zoneBand: ZoneBand = {
       topPrice: Math.max(priceAt(0.382), priceAt(0.618)),
       botPrice: Math.min(priceAt(0.382), priceAt(0.618)),
-      color: COLORS.pivot,
+      color: COLORS.zone,
     };
 
     this._paneView.update(elements, zoneBand, priceToY, anchorStartX);

@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-05-07T11:07:28-04:00",
+  "generatedAt": "2026-05-07T13:39:50-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture ACCUMULATE from cross-driver average 42.6; top pressure channel is energy_stress at 80.8.",
-    "updatedAt": "2026-05-07T11:07:28-04:00"
+    "rationale": "Buyer posture ACCUMULATE from cross-driver average 39.4; top pressure channel is energy_stress at 67.9.",
+    "updatedAt": "2026-05-07T13:39:50-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
@@ -61,7 +61,7 @@
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Driver order (highest to lowest pressure): energy stress (80.8), vix stress (44.1), china tension (38.0), tariff threat (27.4), crush pressure (22.9).",
+      "body": "Driver order (highest to lowest pressure): energy stress (67.9), vix stress (44.1), china tension (37.9), tariff threat (27.4), crush pressure (19.6).",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
@@ -110,7 +110,7 @@
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Average risk 42.6; top channel energy_stress 80.8. Regime NEUTRAL at confidence 0.90.",
+      "body": "Average risk 39.4; top channel energy_stress 67.9. Regime NEUTRAL at confidence 0.90.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",

@@ -12,6 +12,15 @@ type ForecastTarget = {
   coveragePct: number | null;
 };
 
+const AG_HORIZON_DAYS = [30, 90, 180] as const;
+
+function horizonLabel(days: number): string {
+  if (days === 30) return "1M";
+  if (days === 90) return "3M";
+  if (days === 180) return "6M";
+  return `${days}d`;
+}
+
 export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
@@ -39,13 +48,14 @@ export async function GET() {
 
     const asOfDate = rows[0].forecast_date;
     const latestRows = rows.filter((r) => r.forecast_date === asOfDate);
+    const agRows = latestRows.filter((r) => AG_HORIZON_DAYS.includes(r.horizon_days as (typeof AG_HORIZON_DAYS)[number]));
 
-    const targets: ForecastTarget[] = latestRows
+    const targets: ForecastTarget[] = agRows
       .sort((a, b) => a.horizon_days - b.horizon_days)
       .map((r) => ({
         id: `${r.forecast_date}-${r.horizon_days}`,
         horizonDays: r.horizon_days,
-        horizonLabel: `${r.horizon_days}d`,
+        horizonLabel: horizonLabel(r.horizon_days),
         priceLow: Number(r.p30),
         priceHigh: Number(r.p70),
         oofPrice: Number(r.p50),

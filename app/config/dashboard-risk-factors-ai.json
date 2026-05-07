@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T11:07:28-04:00",
+  "generatedAt": "2026-05-07T13:39:50-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -10,7 +10,7 @@
       "level": "Calm",
       "whatsHappening": {
         "whatsHappening": "Volatility channel is contained: VIX 17.39 / OVX 72.34.",
-        "macroContext": "Cross-driver average pressure is 42.6 with top channel energy_stress.",
+        "macroContext": "Cross-driver average pressure is 39.4 with top channel energy_stress.",
         "supplyDemand": "Signal classification is generated from trusted market and policy datasets, not placeholders.",
         "geopolitical": "Policy and event-sensitive channels are refreshed from .gov and official exchange/market feeds.",
         "investorSentiment": "CFTC managed-money bias is bullish for soybean oil.",
@@ -45,11 +45,11 @@
       }
     },
     "crush_pressure": {
-      "headline": "Board crush at 3.25 and oil-share 53.53% define processor pressure.",
+      "headline": "Board crush at 3.27 and oil-share 53.91% define processor pressure.",
       "level": "Strong",
       "whatsHappening": {
-        "whatsHappening": "Board crush at 3.25 and oil-share 53.53% define processor pressure.",
-        "macroContext": "Cross-driver average pressure is 42.6 with top channel energy_stress.",
+        "whatsHappening": "Board crush at 3.27 and oil-share 53.91% define processor pressure.",
+        "macroContext": "Cross-driver average pressure is 39.4 with top channel energy_stress.",
         "supplyDemand": "Signal classification is generated from trusted market and policy datasets, not placeholders.",
         "geopolitical": "Policy and event-sensitive channels are refreshed from .gov and official exchange/market feeds.",
         "investorSentiment": "CFTC managed-money bias is bullish for soybean oil.",
@@ -77,19 +77,19 @@
           "Cite margin/oil-share metrics with short-window deltas."
         ]
       },
-      "score": 22.9,
+      "score": 19.6,
       "components": {
-        "board_crush_value": 3.254001,
-        "oil_share_value": 53.525338,
-        "oil_share_5d_change": -0.699916
+        "board_crush_value": 3.267,
+        "oil_share_value": 53.907381,
+        "oil_share_5d_change": -0.317873
       }
     },
     "china_tension": {
-      "headline": "China-flow sensitivity remains active with CNY at 6.8009.",
+      "headline": "China-flow sensitivity remains active with CNY at 6.8014.",
       "level": "Brazil Favored",
       "whatsHappening": {
-        "whatsHappening": "China-flow sensitivity remains active with CNY at 6.8009.",
-        "macroContext": "Cross-driver average pressure is 42.6 with top channel energy_stress.",
+        "whatsHappening": "China-flow sensitivity remains active with CNY at 6.8014.",
+        "macroContext": "Cross-driver average pressure is 39.4 with top channel energy_stress.",
         "supplyDemand": "Signal classification is generated from trusted market and policy datasets, not placeholders.",
         "geopolitical": "Policy and event-sensitive channels are refreshed from .gov and official exchange/market feeds.",
         "investorSentiment": "CFTC managed-money bias is bullish for soybean oil.",
@@ -117,9 +117,9 @@
           "Include confirmation/deconfirmation triggers."
         ]
       },
-      "score": 38.0,
+      "score": 37.9,
       "components": {
-        "cny_rate": 6.8009
+        "cny_rate": 6.8014
       }
     },
     "tariff_threat": {
@@ -127,7 +127,7 @@
       "level": "Contained",
       "whatsHappening": {
         "whatsHappening": "Policy uncertainty index is 282.79, keeping macro shock risk on watch.",
-        "macroContext": "Cross-driver average pressure is 42.6 with top channel energy_stress.",
+        "macroContext": "Cross-driver average pressure is 39.4 with top channel energy_stress.",
         "supplyDemand": "Signal classification is generated from trusted market and policy datasets, not placeholders.",
         "geopolitical": "Policy and event-sensitive channels are refreshed from .gov and official exchange/market feeds.",
         "investorSentiment": "CFTC managed-money bias is bullish for soybean oil.",
@@ -158,15 +158,15 @@
       "score": 27.4,
       "components": {
         "uncertainty_value": 282.79,
-        "oil_change_5d": -0.132673
+        "oil_change_5d": -0.078329
       }
     },
     "energy_stress": {
-      "headline": "Crude is 91.13 with 5-day change -13.27% and OVX 72.34.",
+      "headline": "Crude is 96.84 with 5-day change -7.83% and OVX 72.34.",
       "level": "Supply Shock",
       "whatsHappening": {
-        "whatsHappening": "Crude is 91.13 with 5-day change -13.27% and OVX 72.34.",
-        "macroContext": "Cross-driver average pressure is 42.6 with top channel energy_stress.",
+        "whatsHappening": "Crude is 96.84 with 5-day change -7.83% and OVX 72.34.",
+        "macroContext": "Cross-driver average pressure is 39.4 with top channel energy_stress.",
         "supplyDemand": "Signal classification is generated from trusted market and policy datasets, not placeholders.",
         "geopolitical": "Policy and event-sensitive channels are refreshed from .gov and official exchange/market feeds.",
         "investorSentiment": "CFTC managed-money bias is bullish for soybean oil.",
@@ -194,17 +194,17 @@
           "Include concrete monitoring triggers for downgrade/upgrade."
         ]
       },
-      "score": 80.8,
+      "score": 67.9,
       "components": {
-        "cl_price": 91.129997,
-        "cl_change_5d": -0.132673,
+        "cl_price": 96.839996,
+        "cl_change_5d": -0.078329,
         "ovx_value": 72.34
       }
     }
   },
   "intelligence": {
     "headline": "BALANCED NETWORK PRESSURE - staged accumulation",
-    "summary": "Trusted-source synthesis as of 2026-05-07 11:07 EDT: average pressure 42.6; top concern energy_stress at 80.8. Signals are computed from Yahoo/FRED/CFTC plus policy/news feeds.",
+    "summary": "Trusted-source synthesis as of 2026-05-07 13:39 EDT: average pressure 39.4; top concern energy_stress at 67.9. Signals are computed from Yahoo/FRED/CFTC plus policy/news feeds.",
     "drivers": [
       {
         "label": "Volatility Transmission",
@@ -214,12 +214,12 @@
       {
         "label": "Crush Economics",
         "outlook": "MIXED",
-        "detail": "Board crush at 3.25 and oil-share 53.53% define processor pressure."
+        "detail": "Board crush at 3.27 and oil-share 53.91% define processor pressure."
       },
       {
         "label": "China Flow Risk",
         "outlook": "CALM",
-        "detail": "China-flow sensitivity remains active with CNY at 6.8009."
+        "detail": "China-flow sensitivity remains active with CNY at 6.8014."
       },
       {
         "label": "Macro / Geopolitical",
@@ -229,7 +229,7 @@
       {
         "label": "Energy Pass-Through",
         "outlook": "PRESSURE",
-        "detail": "Crude is 91.13 with 5-day change -13.27% and OVX 72.34."
+        "detail": "Crude is 96.84 with 5-day change -7.83% and OVX 72.34."
       }
     ],
     "zlOutlook": "NEUTRAL",
@@ -258,7 +258,7 @@
     },
     "provenance": {
       "asOf": "2026-05-07",
-      "generatedAt": "2026-05-07T11:07:28-04:00",
+      "generatedAt": "2026-05-07T13:39:50-04:00",
       "method": "trusted-source-refresh",
       "sourceFeeds": [
         "analytics.dashboard_metrics",

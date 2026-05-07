@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   createChart,
   CandlestickSeries,
+  LineSeries,
   ColorType,
   LineStyle,
   type IChartApi,
@@ -36,6 +37,10 @@ const RIGHT_PADDING_BARS = 16;
 const BAR_SPACING = 10;
 const MIN_BAR_SPACING = 8;
 const REFRESH_MS = 300_000;
+const SHOW_FORECAST_TARGET_OVERLAY = false;
+const SMA_PERIOD = 200;
+const SMA_COLOR = "#FFFFFF";
+const SMA_WIDTH = 2;
 
 function toChartDay(dateStr: string): Time {
   return dateStr.slice(0, 10) as unknown as Time;
@@ -52,6 +57,28 @@ function computeVolatility(bars: ZlPriceBar[]): string {
   const variance =
     returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
   return (Math.sqrt(variance) * Math.sqrt(252) * 100).toFixed(1) + "%";
+}
+
+function computeSmaData(candles: CandlestickData<Time>[], period: number): { time: Time; value: number }[] {
+  if (candles.length < period) return [];
+
+  const result: { time: Time; value: number }[] = [];
+  let rollingSum = 0;
+
+  for (let i = 0; i < candles.length; i += 1) {
+    rollingSum += candles[i].close;
+    if (i >= period) {
+      rollingSum -= candles[i - period].close;
+    }
+    if (i >= period - 1) {
+      result.push({
+        time: candles[i].time,
+        value: rollingSum / period,
+      });
+    }
+  }
+
+  return result;
 }
 
 export function ZlCandlestickChart({
@@ -78,7 +105,7 @@ export function ZlCandlestickChart({
   useEffect(() => {
     async function fetchBars() {
       try {
-        const res = await fetch("/api/zl/price-1d");
+        const res = await fetch("/api/zl/price-1d", { cache: "no-store" });
         if (!res.ok) return;
         const json = await res.json();
         if (!json.data || json.data.length === 0) return;
@@ -213,15 +240,33 @@ export function ZlCandlestickChart({
 
     series.setData(candleData);
     seriesRef.current = series;
+
+    const smaData = computeSmaData(candleData, SMA_PERIOD);
+    if (smaData.length > 0) {
+      const smaSeries = chart.addSeries(LineSeries, {
+        color: SMA_COLOR,
+        lineWidth: SMA_WIDTH,
+        lineStyle: LineStyle.Solid,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+      smaSeries.setData(smaData);
+    }
+
     const pivotPrimitive = new PivotLinesPrimitive();
     const forecastTargetsPrimitive = new ForecastTargetsPrimitive();
     series.attachPrimitive(pivotPrimitive);
-    series.attachPrimitive(forecastTargetsPrimitive);
+    if (SHOW_FORECAST_TARGET_OVERLAY) {
+      series.attachPrimitive(forecastTargetsPrimitive);
+    }
 
     // Forecast target zones should be projected near the most recent bars, not full-width.
-    const targetStartIndex = Math.max(0, candleData.length - 16);
-    const targetStartTime = candleData[targetStartIndex]?.time;
-    forecastTargetsPrimitive.setTargetZones(targetZones, targetStartTime);
+    if (SHOW_FORECAST_TARGET_OVERLAY) {
+      const targetStartIndex = Math.max(0, candleData.length - 16);
+      const targetStartTime = candleData[targetStartIndex]?.time;
+      forecastTargetsPrimitive.setTargetZones(targetZones, targetStartTime);
+    }
 
     // Fib rendering: anchored start, pivot zone fill, and structural-break lock.
     const fibCandles: CandleData[] = bars.map((b, idx) => ({
@@ -284,7 +329,9 @@ export function ZlCandlestickChart({
       disposed = true;
       observer.disconnect();
       try {
-        series.detachPrimitive(forecastTargetsPrimitive);
+        if (SHOW_FORECAST_TARGET_OVERLAY) {
+          series.detachPrimitive(forecastTargetsPrimitive);
+        }
         series.detachPrimitive(pivotPrimitive);
         chart.remove();
       } catch {
@@ -385,6 +432,10 @@ export function ZlCandlestickChart({
 
       {/* Legend */}
       <div className="flex-shrink-0 flex items-center justify-center gap-6 px-4 py-1.5 border-t border-white/5 bg-black/20">
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-0.5" style={{ backgroundColor: SMA_COLOR }} />
+          <span className="text-[9px] text-white/40 uppercase">200 SMA</span>
+        </div>
         <div className="flex items-center gap-1.5">
           <div
             className="w-2.5 h-3 rounded-sm"

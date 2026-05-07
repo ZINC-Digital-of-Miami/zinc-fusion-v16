@@ -30,7 +30,7 @@ const TARGET_COLORS = {
   p30: "#EF4444",
   p50: "#EF7300",
   p70: "#FFFFFF",
-  band: "#EF7300",
+  band: "#26C6DA",
 } as const;
 
 class ForecastTargetsRenderer implements IPrimitivePaneRenderer {
@@ -100,8 +100,8 @@ class ForecastTargetsPaneView implements IPrimitivePaneView {
     this._renderer.update(lines, bands, priceToY, startX);
   }
 
-  zOrder(): "top" {
-    return "top";
+  zOrder(): "bottom" {
+    return "bottom";
   }
 
   renderer(): IPrimitivePaneRenderer {
@@ -155,7 +155,7 @@ export class ForecastTargetsPrimitive implements ISeriesPrimitive<Time> {
       topPrice: Math.max(zone.p70, zone.p30),
       bottomPrice: Math.min(zone.p70, zone.p30),
       color: TARGET_COLORS.band,
-      opacity: Math.max(0.05, 0.12 - idx * 0.03),
+      opacity: Math.max(0.02, 0.05 - idx * 0.01),
     }));
 
     const lines: TargetLine[] = [];
