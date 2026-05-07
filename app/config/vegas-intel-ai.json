@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "model": "gpt-5.5-fast",
+  "reasoningEffort": "high-think",
+  "source": "ai-daily-refresh",
+  "refreshScheduleEt": "07:00 America/New_York daily",
+  "snapshot": {
+    "activeEvents": 42,
+    "highPriorityAccounts": 118,
+    "updatedAt": "2026-05-07T13:52:00-04:00"
+  },
+  "cards": {
+    "upcomingEvents": {
+      "title": "Upcoming Events",
+      "body": "Event pressure remains concentrated in convention and sports windows; prioritize pre-event outreach where projected fryer load and traffic elasticity are highest.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Event-Driven Demand Window Risk",
+        "strategicObjective": "Map near-term event concentration to procurement and service-demand timing so account outreach aligns with real demand spikes.",
+        "neuralConnectionThesis": "Convention and sports clusters create synchronized demand surges; timing outreach and service readiness before peak windows improves conversion and operational resilience.",
+        "quantResearchProtocol": [
+          "Count upcoming events by window and expected demand intensity.",
+          "Identify overlap windows with highest load concentration.",
+          "Rank event clusters by likely account impact and urgency.",
+          "Translate event pressure into scheduling and outreach priorities."
+        ],
+        "inferenceConstraints": [
+          "Do not treat all events as equal demand impact.",
+          "Do not issue urgency without timing-window evidence.",
+          "Do not separate event insight from account execution impact."
+        ],
+        "outputRequirements": [
+          "State highest-pressure event windows.",
+          "Describe expected demand behavior by window.",
+          "Provide specific outreach timing recommendation."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "vegas.events"
+        ],
+        "sourceRecords": [
+          {
+            "source": "vegas.events",
+            "table": "vegas.events",
+            "recordHint": "future event_date rows",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "aiSalesStrategy": {
+      "title": "AI Sales Strategy",
+      "body": "Lead with cost-control certainty: pair contract timing guidance with account-level demand calendars and service-readiness positioning per venue cluster.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Account-Level Sales Execution Strategy",
+        "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer’s demand timing and service profile.",
+        "neuralConnectionThesis": "Sales conversion improves when procurement certainty messaging is synchronized with account-specific volume pressure and event exposure.",
+        "quantResearchProtocol": [
+          "Segment accounts by event sensitivity and service-cycle urgency.",
+          "Prioritize high-volume and high-volatility accounts first.",
+          "Align pitch angle to cost-certainty and operational continuity outcomes.",
+          "Sequence recommendations by conversion probability and timing risk."
+        ],
+        "inferenceConstraints": [
+          "Do not output generic sales copy detached from account context.",
+          "Do not prioritize low-impact accounts over high-pressure accounts.",
+          "Do not omit operational readiness implications."
+        ],
+        "outputRequirements": [
+          "State primary strategy theme for current cycle.",
+          "Explain why sequencing supports conversion.",
+          "Provide actionable outreach order or cadence guidance."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "vegas.events",
+          "vegas.restaurants"
+        ],
+        "sourceRecords": [
+          {
+            "source": "vegas.restaurants",
+            "table": "vegas.restaurants",
+            "recordHint": "active accounts and tier segments",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "restaurantAccounts": {
+      "title": "Restaurant Accounts",
+      "body": "Highest-opportunity accounts still show recurring high-volume event sensitivity; sequence outreach by demand-spike probability and service-cycle timing.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Account Priority and Opportunity Concentration",
+        "strategicObjective": "Identify highest-value account opportunities with explicit reasoning tied to event sensitivity, volume pattern, and service window alignment.",
+        "neuralConnectionThesis": "Opportunity concentration is maximized when account priority scores combine event exposure, expected throughput, and current service-cycle state.",
+        "quantResearchProtocol": [
+          "Rank accounts by implied demand spike probability.",
+          "Incorporate service-cycle timing into priority score.",
+          "Separate near-term close opportunities from longer-horizon nurture accounts.",
+          "Attach rationale in buyer and sales operations language."
+        ],
+        "inferenceConstraints": [
+          "Do not use one-dimensional priority scoring.",
+          "Do not omit service-cycle timing from recommendations.",
+          "Do not overstate certainty without data recency context."
+        ],
+        "outputRequirements": [
+          "State top account cluster focus.",
+          "Explain priority rationale with timing context.",
+          "Provide next-action guidance for field execution."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "vegas.restaurants",
+          "vegas.events"
+        ],
+        "sourceRecords": [
+          {
+            "source": "vegas.restaurants",
+            "table": "vegas.restaurants",
+            "recordHint": "active-account and priority segments",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "fryerTracking": {
+      "title": "Fryer Equipment Tracking",
+      "body": "Fryer lifecycle risk remains elevated in high-throughput accounts; align proactive service windows to event cadence to reduce emergency downtime.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Fryer Lifecycle and Service Risk",
+        "strategicObjective": "Assess fryer lifecycle risk against demand windows to prevent service disruption and emergency replacement cost exposure.",
+        "neuralConnectionThesis": "High-throughput accounts with stressed fryer lifecycle profiles become operational bottlenecks during demand spikes; pre-emptive service alignment reduces failure risk.",
+        "quantResearchProtocol": [
+          "Classify fryer risk by lifecycle stage and utilization pressure.",
+          "Map lifecycle risk to upcoming demand windows.",
+          "Prioritize service interventions by downtime-impact severity.",
+          "Convert risk rank to scheduling actions for operations teams."
+        ],
+        "inferenceConstraints": [
+          "Do not treat lifecycle risk independently from demand timing.",
+          "Do not downplay high-throughput failure exposure.",
+          "Do not provide guidance without actionable service prioritization."
+        ],
+        "outputRequirements": [
+          "State current lifecycle risk posture.",
+          "Highlight accounts needing proactive service first.",
+          "Provide timing recommendation relative to event calendar."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "vegas.restaurants",
+          "vegas.events"
+        ],
+        "sourceRecords": [
+          {
+            "source": "vegas.restaurants",
+            "table": "vegas.restaurants",
+            "recordHint": "fryer lifecycle and service cycle fields",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,12 +1,21 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Activity, Brain, Newspaper, TrendingUp } from "lucide-react"
+import { Activity, Brain, Clock3, TrendingUp } from "lucide-react"
 
 import { BackendShell } from "@/components/backend-shell"
+import type { AiCardContent } from "@/lib/contracts/ai-card"
 import type { ApiEnvelope, SentimentOverview, ZlLivePrice } from "@/lib/contracts/api"
 
 type BiasTone = "bullish" | "bearish" | "neutral"
+
+type SentimentCardContent = Pick<AiCardContent, "title" | "body"> & Partial<AiCardContent>
+
+type SentimentCards = {
+  narratives: SentimentCardContent[]
+  positioningFlow: SentimentCardContent
+  headlineFlow: SentimentCardContent
+}
 
 function normalizeBias(raw: string): BiasTone {
   const value = raw.trim().toLowerCase()
@@ -81,6 +90,7 @@ function MetricCard({
 export default function SentimentPage() {
   const [overview, setOverview] = useState<SentimentOverview | null>(null)
   const [live, setLive] = useState<ZlLivePrice | null>(null)
+  const [cards, setCards] = useState<SentimentCards | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -94,6 +104,7 @@ export default function SentimentPage() {
         ])
 
         const overviewBody = (await overviewRes.json()) as ApiEnvelope<SentimentOverview | null> & {
+          cards?: SentimentCards
           error?: string
         }
         const liveBody = (await liveRes.json()) as ApiEnvelope<ZlLivePrice | null> & {
@@ -104,8 +115,10 @@ export default function SentimentPage() {
 
         if (overviewRes.ok && overviewBody.ok && overviewBody.data) {
           setOverview(overviewBody.data)
+          setCards(overviewBody.cards ?? null)
         } else {
           setOverview(null)
+          setCards(null)
         }
 
         if (liveRes.ok && liveBody.ok && liveBody.data) {
@@ -117,6 +130,7 @@ export default function SentimentPage() {
         if (active) {
           setOverview(null)
           setLive(null)
+          setCards(null)
         }
       } finally {
         if (active) setLoading(false)
@@ -136,23 +150,23 @@ export default function SentimentPage() {
   const cot = biasStyle(cotTone)
   const scoreLabelText = scoreLabel(clampedScore)
 
-  const narrativeItems = useMemo(
-    () => [
+  const narrativeItems = useMemo(() => {
+    if (cards?.narratives?.length) return cards.narratives
+    return [
       {
         title: "Macro Narrative",
-        body: "Awaiting GPT-driven narrative classification for macro and policy context.",
+        body: "Awaiting daily AI pull for macro and policy narrative classification.",
       },
       {
         title: "Flow Narrative",
-        body: "Awaiting positioning and participation narrative from CFTC-linked sentiment signals.",
+        body: "Awaiting daily AI pull for participation and positioning narrative synthesis.",
       },
       {
         title: "Procurement Narrative",
-        body: "Awaiting buyer-facing interpretation for contract timing and risk posture.",
+        body: "Awaiting daily AI pull for buyer-facing contract timing interpretation.",
       },
-    ],
-    [],
-  )
+    ]
+  }, [cards])
 
   return (
     <BackendShell>
@@ -183,10 +197,10 @@ export default function SentimentPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
-            title="Headlines (7d)"
-            value={overview?.headlineCount ?? "—"}
-            subtext="Count from approved source feed"
-            icon={Newspaper}
+            title="AI Refresh"
+            value={overview?.updatedAt ? formatTimestamp(overview.updatedAt) : "—"}
+            subtext="Daily 07:00 ET target refresh cadence"
+            icon={Clock3}
           />
           <MetricCard
             title="Sentiment Score"
@@ -270,22 +284,20 @@ export default function SentimentPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-black/20 border border-white/10 rounded-xl p-6">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                Managed Money Positioning
+                {cards?.positioningFlow?.title ?? "Managed Money Positioning"}
               </div>
               <div className={`text-2xl font-bold ${cot.text}`}>{cot.label}</div>
               <p className="text-sm text-slate-500 mt-2">
-                Bias is derived from the latest CFTC-linked positioning payload.
+                {cards?.positioningFlow?.body ?? "Bias is derived from the latest CFTC-linked positioning payload."}
               </p>
             </div>
             <div className="bg-black/20 border border-white/10 rounded-xl p-6">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                Headline Flow
+                {cards?.headlineFlow?.title ?? "Headline Flow"}
               </div>
-              <div className="text-2xl font-bold text-white">
-                {overview ? overview.headlineCount : "—"}
-              </div>
+              <div className="text-2xl font-bold text-white">{scoreLabelText}</div>
               <p className="text-sm text-slate-500 mt-2">
-                Active feed count used to drive sentiment update cadence.
+                {cards?.headlineFlow?.body ?? "Active feed count used to drive sentiment update cadence."}
               </p>
             </div>
           </div>

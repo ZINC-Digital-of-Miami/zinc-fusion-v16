@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T08:56:18-04:00",
+  "generatedAt": "2026-05-07T13:52:00-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -37,6 +37,11 @@
           "Quantify expected execution-risk impact in near-term procurement windows.",
           "Provide trigger thresholds for escalation and de-escalation."
         ]
+      },
+      "score": 78,
+      "components": {
+        "vix_value": 24.7,
+        "ovx_value": 41.3
       }
     },
     "crush_pressure": {
@@ -71,6 +76,12 @@
           "Attach concrete pacing guidance for procurement windows.",
           "Cite margin/oil-share metrics with short-window deltas."
         ]
+      },
+      "score": 69,
+      "components": {
+        "board_crush_value": 1.42,
+        "oil_share_value": 43.6,
+        "oil_share_5d_change": 1.8
       }
     },
     "china_tension": {
@@ -105,6 +116,10 @@
           "Translate regime into procurement latency guidance.",
           "Include confirmation/deconfirmation triggers."
         ]
+      },
+      "score": 58,
+      "components": {
+        "cny_rate": 7.24
       }
     },
     "tariff_threat": {
@@ -139,6 +154,11 @@
           "Specify procurement optionality posture and trigger points.",
           "Cite uncertainty and transmission metrics explicitly."
         ]
+      },
+      "score": 63,
+      "components": {
+        "uncertainty_value": 184,
+        "oil_change_5d": 0.029
       }
     },
     "energy_stress": {
@@ -173,12 +193,18 @@
           "Tie recommendation to procurement timing and hedge stance.",
           "Include concrete monitoring triggers for downgrade/upgrade."
         ]
+      },
+      "score": 67,
+      "components": {
+        "cl_price": 81.74,
+        "cl_change_5d": 0.034,
+        "ovx_value": 41.3
       }
     }
   },
   "intelligence": {
     "headline": "ELEVATED NETWORK PRESSURE - prioritize optionality and tighter execution cadence",
-    "summary": "Cross-driver synthesis shows the highest risk concentration in volatility transmission, crush economics fragility, and macro-policy tail channels. Regime is not singular panic, but it is decisively above neutral. The correct posture is controlled aggression: preserve optionality, avoid oversized single-window buys, and run confirmation-based scaling. Refreshed 2026-05-07 08:56 ET.",
+    "summary": "Cross-driver synthesis shows the highest risk concentration in volatility transmission, crush economics fragility, and macro-policy tail channels. Regime is not singular panic, but it is decisively above neutral. The correct posture is controlled aggression: preserve optionality, avoid oversized single-window buys, and run confirmation-based scaling. Refreshed 2026-05-07 13:52 ET.",
     "drivers": [
       {
         "label": "Volatility Transmission",

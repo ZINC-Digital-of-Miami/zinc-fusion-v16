@@ -1,0 +1,161 @@
+{
+  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "model": "gpt-5.5-fast",
+  "reasoningEffort": "high-think",
+  "source": "ai-daily-refresh",
+  "refreshScheduleEt": "07:00 America/New_York daily",
+  "posture": {
+    "posture": "ACCUMULATE",
+    "rationale": "Current risk network remains elevated but not disorderly. For a buyer, staged accumulation reduces timing error while preserving optionality against macro and energy shock persistence.",
+    "updatedAt": "2026-05-07T13:52:00-04:00"
+  },
+  "cards": {
+    "contractImpactCalculator": {
+      "title": "Contract Impact Calculator",
+      "body": "Contract-impact math remains in favor of staged execution: tranche sequencing reduces adverse fill risk versus one-shot commitment while volatility/macro tail coupling remains elevated.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Buyer-Side Contract Window Impact",
+        "strategicObjective": "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
+        "neuralConnectionThesis": "Execution cost dispersion increases non-linearly when volatility transmission and macro-policy stress co-align; tranche-based timing reduces adverse selection probability for buyers.",
+        "quantResearchProtocol": [
+          "Estimate scenario-weighted cost outcomes across staggered execution windows.",
+          "Compare one-shot entry slippage risk versus staged entry variance reduction.",
+          "Include downside tail amplification under volatility and macro co-escalation states.",
+          "Frame recommendation as buyer-side cost-control, not directional speculation."
+        ],
+        "inferenceConstraints": [
+          "Do not recommend one-shot execution when volatility and macro channels remain elevated.",
+          "Do not present strategy guidance without explicit downside-tail treatment.",
+          "Do not use generic timing language without quantified window tradeoffs."
+        ],
+        "outputRequirements": [
+          "State preferred execution structure and why.",
+          "Report cost-control logic in buyer terms.",
+          "Include trigger conditions that would invalidate the recommendation."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "analytics.market_posture",
+          "analytics.dashboard_metrics",
+          "analytics.driver_attribution_1d"
+        ],
+        "sourceRecords": [
+          {
+            "source": "analytics.market_posture",
+            "table": "analytics.market_posture",
+            "recordHint": "latest trade_date row",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "table": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "latest risk-factor network payload",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "factorWaterfall": {
+      "title": "Factor Waterfall",
+      "body": "Current driver ordering remains: volatility transmission first, then crush-margin pressure and macro-policy shock, followed by energy pass-through; China-flow remains meaningful but secondary.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Cross-Driver Procurement Pressure Ranking",
+        "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
+        "neuralConnectionThesis": "Procurement risk emerges from driver ordering and interaction effects; ranking volatility, crush, macro, energy, and China channels clarifies which signals should drive immediate action.",
+        "quantResearchProtocol": [
+          "Rank each driver by current pressure, persistence, and transmission intensity.",
+          "Test interaction pairs for escalation pathways and conflict states.",
+          "Separate dominant drivers from secondary contextual drivers.",
+          "Preserve directional uncertainty labels when channels diverge."
+        ],
+        "inferenceConstraints": [
+          "Do not collapse all drivers into a single undifferentiated summary.",
+          "Do not hide conflict between top-ranked channels.",
+          "Do not assign confidence without data freshness context."
+        ],
+        "outputRequirements": [
+          "Provide ordered driver stack with concise rationale.",
+          "Call out interaction risk explicitly.",
+          "Translate ranking into procurement monitoring priorities."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "analytics.dashboard_metrics",
+          "analytics.driver_attribution_1d",
+          "app/config/dashboard-risk-factors-ai.json"
+        ],
+        "sourceRecords": [
+          {
+            "source": "analytics.driver_attribution_1d",
+            "table": "analytics.driver_attribution_1d",
+            "recordHint": "latest ranked factors",
+            "observedAt": "2026-05-07"
+          },
+          {
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "table": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "drivers[*].score and level",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "riskMetrics": {
+      "title": "Risk Metrics",
+      "body": "Risk asymmetry is still upside-cost skewed for buyers; decision-latency risk remains larger than disciplined over-hedge risk while multi-driver coherence stays elevated.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Buyer Risk Math and Tail Exposure",
+        "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",
+        "neuralConnectionThesis": "For buyers, decision latency under elevated risk networks is often more expensive than controlled over-hedging; quantified asymmetry clarifies when faster action is warranted.",
+        "quantResearchProtocol": [
+          "Assess near-term tail asymmetry from active driver network state.",
+          "Measure decision-latency risk versus controlled execution-risk tradeoff.",
+          "Classify exposure state as contained, elevated, or escalation-prone.",
+          "Tie risk statements to buyer-side cost outcomes and cadence impact."
+        ],
+        "inferenceConstraints": [
+          "Do not report neutral risk when asymmetry is elevated.",
+          "Do not describe risk posture without latency implications.",
+          "Do not omit confidence qualifiers when metrics are stale or sparse."
+        ],
+        "outputRequirements": [
+          "State risk regime and asymmetry in plain buyer terms.",
+          "Explain latency risk versus hedge risk comparison.",
+          "Provide specific cadence/monitoring recommendation."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "analytics.market_posture",
+          "analytics.dashboard_metrics",
+          "analytics.driver_attribution_1d"
+        ],
+        "sourceRecords": [
+          {
+            "source": "analytics.market_posture",
+            "table": "analytics.market_posture",
+            "recordHint": "latest posture row",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "table": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "summary.average_pressure + highest_pressure",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    }
+  }
+}

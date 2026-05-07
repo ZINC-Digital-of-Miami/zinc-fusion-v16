@@ -1,0 +1,246 @@
+{
+  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "model": "gpt-5.5-fast",
+  "reasoningEffort": "high-think",
+  "source": "ai-daily-refresh",
+  "refreshScheduleEt": "07:00 America/New_York daily",
+  "overview": {
+    "headlineCount": 127,
+    "sentimentScore": -18,
+    "cotBias": "defensive-neutral",
+    "updatedAt": "2026-05-07T13:52:00-04:00"
+  },
+  "cards": {
+    "narratives": [
+      {
+        "title": "Macro Narrative",
+        "body": "Macro-policy narrative remains in elevated transmission state; energy-policy co-clustering is still the key regime amplifier for buyer timing risk.",
+        "strategicSpecialInstructions": {
+          "cardTopic": "Macro Policy Sentiment Transmission",
+          "strategicObjective": "Classify macro and policy narrative pressure regimes that can change soybean oil procurement timing risk before hard price confirmation.",
+          "neuralConnectionThesis": "Macro-policy narrative clusters alter risk-premium expectations and can accelerate commodity repricing when volatility and energy channels confirm.",
+          "quantResearchProtocol": [
+            "Track macro-policy narrative density and persistence over rolling windows.",
+            "Segment narrative shocks into transient versus regime-shift classes.",
+            "Cross-check narrative regime against volatility and energy coherence.",
+            "Translate narrative class into buyer-side procurement urgency levels."
+          ],
+          "inferenceConstraints": [
+            "Do not classify regime shifts from isolated stories.",
+            "Do not ignore conflicting channel evidence.",
+            "Do not emit generic sentiment language without buyer impact."
+          ],
+          "outputRequirements": [
+            "State macro sentiment regime and persistence horizon.",
+            "Report risk implication for procurement timing.",
+            "Provide confirm/deconfirm triggers for escalation."
+          ]
+        },
+        "provenance": {
+          "asOf": "2026-05-07T13:52:00-04:00",
+          "generatedAt": "2026-05-07T13:52:00-04:00",
+          "method": "daily-ai-card-refresh",
+          "sourceFeeds": [
+            "alt.news_events",
+            "mkt.cftc_1w"
+          ],
+          "sourceRecords": [
+            {
+              "source": "alt.news_events",
+              "table": "alt.news_events",
+              "recordHint": "macro/policy tags, last 7d",
+              "observedAt": "2026-05-07T13:52:00-04:00"
+            },
+            {
+              "source": "mkt.cftc_1w",
+              "table": "mkt.cftc_1w",
+              "recordHint": "symbol=ZL latest payload",
+              "observedAt": "2026-05-07"
+            }
+          ]
+        }
+      },
+      {
+        "title": "Flow Narrative",
+        "body": "Positioning flow remains cautious with intermittent risk-on pulses, but conviction follow-through stays fragile when volatility and policy channels re-intensify.",
+        "strategicSpecialInstructions": {
+          "cardTopic": "Positioning and Participation Flow Sentiment",
+          "strategicObjective": "Interpret whether current positioning flow supports stable price discovery or increases fragility for procurement execution windows.",
+          "neuralConnectionThesis": "When managed-money and participation flow become conditional, markets exhibit lower follow-through and higher reversal risk, increasing decision-latency cost for buyers.",
+          "quantResearchProtocol": [
+            "Evaluate flow persistence versus burstiness in recent sessions.",
+            "Map flow state to sentiment score drift and volatility context.",
+            "Detect conviction fragility under mixed channel alignment.",
+            "Express flow implications in buyer execution-risk language."
+          ],
+          "inferenceConstraints": [
+            "Do not infer conviction from one-day flow bursts.",
+            "Do not overfit flow to direction without regime context.",
+            "Do not suppress uncertainty when flow signals conflict."
+          ],
+          "outputRequirements": [
+            "Classify flow state with confidence qualifier.",
+            "Explain likely impact on execution slippage risk.",
+            "Provide near-term monitoring focus."
+          ]
+        },
+        "provenance": {
+          "asOf": "2026-05-07T13:52:00-04:00",
+          "generatedAt": "2026-05-07T13:52:00-04:00",
+          "method": "daily-ai-card-refresh",
+          "sourceFeeds": [
+            "alt.news_events",
+            "mkt.cftc_1w",
+            "analytics.driver_attribution_1d"
+          ],
+          "sourceRecords": [
+            {
+              "source": "mkt.cftc_1w",
+              "table": "mkt.cftc_1w",
+              "recordHint": "bias + positioning context",
+              "observedAt": "2026-05-07"
+            },
+            {
+              "source": "alt.news_events",
+              "table": "alt.news_events",
+              "recordHint": "flow/positioning related narrative clusters",
+              "observedAt": "2026-05-07T13:52:00-04:00"
+            }
+          ]
+        }
+      },
+      {
+        "title": "Procurement Narrative",
+        "body": "Buyer-optimal sentiment posture remains staged execution with shorter reassessment windows; avoid large one-shot exposure while cross-channel correlation stays elevated.",
+        "strategicSpecialInstructions": {
+          "cardTopic": "Buyer Procurement Psychology",
+          "strategicObjective": "Convert sentiment and flow conditions into buyer-ready pacing guidance that minimizes timing regret under uncertainty.",
+          "neuralConnectionThesis": "Procurement outcomes improve when psychological regime cues are converted into explicit pacing and reassessment cadence rules rather than ad-hoc reaction.",
+          "quantResearchProtocol": [
+            "Combine sentiment score, flow state, and macro regime into a buyer posture.",
+            "Score decision-latency risk versus over-hedge risk under current regime.",
+            "Align guidance to staged-execution logic when channel correlation is high.",
+            "State invalidation conditions for posture changes."
+          ],
+          "inferenceConstraints": [
+            "Do not recommend static cadence in elevated mixed-risk states.",
+            "Do not issue binary buy/wait calls without uncertainty framing.",
+            "Do not ignore asymmetric downside scenarios."
+          ],
+          "outputRequirements": [
+            "Provide concrete pacing guidance.",
+            "State why buyer psychology risk is elevated or contained.",
+            "Include explicit reassessment triggers."
+          ]
+        },
+        "provenance": {
+          "asOf": "2026-05-07T13:52:00-04:00",
+          "generatedAt": "2026-05-07T13:52:00-04:00",
+          "method": "daily-ai-card-refresh",
+          "sourceFeeds": [
+            "alt.news_events",
+            "mkt.cftc_1w",
+            "analytics.market_posture"
+          ],
+          "sourceRecords": [
+            {
+              "source": "analytics.market_posture",
+              "table": "analytics.market_posture",
+              "recordHint": "latest buyer posture row",
+              "observedAt": "2026-05-07T13:52:00-04:00"
+            },
+            {
+              "source": "app/config/dashboard-risk-factors-ai.json",
+              "table": "app/config/dashboard-risk-factors-ai.json",
+              "recordHint": "cross-driver pressure synthesis",
+              "observedAt": "2026-05-07T13:52:00-04:00"
+            }
+          ]
+        }
+      }
+    ],
+    "positioningFlow": {
+      "title": "Managed Money Positioning",
+      "body": "Managed-money positioning is defensive-neutral: participation exists, but conviction remains conditional on volatility decay and policy stability.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Managed Money Bias Regime",
+        "strategicObjective": "Determine whether managed-money bias contributes to stabilizing or destabilizing procurement-cost expectations.",
+        "neuralConnectionThesis": "Managed-money bias influences the persistence of commodity moves and can widen procurement timing error when conviction is fragile and volatility is elevated.",
+        "quantResearchProtocol": [
+          "Read latest CoT-linked bias state and classify confidence.",
+          "Cross-map bias state to sentiment score and volatility regime.",
+          "Differentiate supportive participation from reflexive positioning risk.",
+          "Translate bias regime into buyer-facing caution level."
+        ],
+        "inferenceConstraints": [
+          "Do not equate position size with conviction durability.",
+          "Do not treat stale CoT inputs as real-time certainty.",
+          "Do not omit confidence caveats."
+        ],
+        "outputRequirements": [
+          "State bias class and confidence.",
+          "Explain procurement risk implication.",
+          "Specify what would change the bias interpretation."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "mkt.cftc_1w",
+          "alt.news_events"
+        ],
+        "sourceRecords": [
+          {
+            "source": "mkt.cftc_1w",
+            "table": "mkt.cftc_1w",
+            "recordHint": "latest COT payload",
+            "observedAt": "2026-05-07"
+          }
+        ]
+      }
+    },
+    "headlineFlow": {
+      "title": "Headline Flow",
+      "body": "Headline velocity remains above calm baseline; actionable signal is concentrated in persistent macro-policy and energy clusters rather than one-off stories.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Headline Velocity and Regime Coherence",
+        "strategicObjective": "Assess whether headline velocity is producing actionable regime signal or noisy churn for procurement decisions.",
+        "neuralConnectionThesis": "Headline velocity only becomes actionable when persistence and cross-channel coherence are present; otherwise it inflates noise and overreaction risk.",
+        "quantResearchProtocol": [
+          "Measure 24h and 7d headline velocity and cluster concentration.",
+          "Classify cluster persistence by macro, policy, and energy channels.",
+          "Validate coherence with sentiment score directionality.",
+          "Link outcome to procurement monitoring frequency."
+        ],
+        "inferenceConstraints": [
+          "Do not infer regime shifts from velocity alone.",
+          "Do not ignore channel concentration effects.",
+          "Do not provide cadence advice without coherence check."
+        ],
+        "outputRequirements": [
+          "State whether velocity is signal or noise.",
+          "Describe expected persistence horizon.",
+          "Provide monitoring cadence recommendation."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "alt.news_events"
+        ],
+        "sourceRecords": [
+          {
+            "source": "alt.news_events",
+            "table": "alt.news_events",
+            "recordHint": "last_7d clustered feed set",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    }
+  }
+}

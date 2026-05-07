@@ -33,6 +33,21 @@
 - Snapshot metadata must include `model`, `reasoningEffort`, `source`, `generatedAt`, and daily `refreshScheduleEt`.
 - Current locked runtime target: `gpt-5.5-fast` with `high-think`, refreshed daily at `07:00 America/New_York`.
 
+## AI Daily Card Pull Contract (All Pages)
+- Daily AI pull is the default source for card content on all primary pages.
+- Snapshot files are committed in-repo under `app/config/` and must be refreshed daily:
+  - `dashboard-risk-factors-ai.json`
+  - `strategy-posture-ai.json`
+  - `sentiment-overview-ai.json`
+  - `legislation-feed-ai.json`
+  - `vegas-intel-ai.json`
+- API routes must read their page snapshot and expose AI-derived card payloads, while preserving controlled DB fallback behavior.
+- AI card payloads should include market prices, reasoning, risk framing, and math-oriented interpretation wherever applicable.
+- Every AI-powered card on every page must include:
+  - `strategicSpecialInstructions` (topic-specific, quant-research, non-generic)
+  - `provenance` with table/source feeds and record hints
+- Card-level provenance must identify the source tables/feeds used for the AI narrative and include `asOf` + `generatedAt`.
+
 ## Operational Contracts
 - `ops.ingest_run`: mandatory ingest lifecycle logging for batch and price paths.
 - `ops.pipeline_alerts`: freshness and pipeline alerting.

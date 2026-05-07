@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { TrendingUp } from "lucide-react"
 
 import { BackendShell } from "@/components/backend-shell"
+import type { AiCardContent } from "@/lib/contracts/ai-card"
+import type { ApiEnvelope } from "@/lib/contracts/api"
 
 interface StrategyPosture {
   posture: "ACCUMULATE" | "WAIT" | "DEFER"
@@ -11,13 +13,23 @@ interface StrategyPosture {
   updatedAt: string
 }
 
+interface StrategyCards {
+  contractImpactCalculator: AiCardContent
+  factorWaterfall: AiCardContent
+  riskMetrics: AiCardContent
+}
+
 export default function StrategyPage() {
   const [posture, setPosture] = useState<StrategyPosture | null>(null)
+  const [cards, setCards] = useState<StrategyCards | null>(null)
 
   useEffect(() => {
     fetch("/api/strategy/posture")
-      .then((r) => r.json())
-      .then((res) => { if (res.data) setPosture(res.data) })
+      .then((r) => r.json() as Promise<ApiEnvelope<StrategyPosture | null> & { cards?: StrategyCards }>)
+      .then((res) => {
+        if (res.data) setPosture(res.data)
+        if (res.cards) setCards(res.cards)
+      })
       .catch(() => {})
   }, [])
 
@@ -51,18 +63,30 @@ export default function StrategyPage() {
         </div>
 
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">Contract Impact Calculator</div>
-          <p className="text-slate-500">Awaiting forecast and pricing data</p>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">
+            {cards?.contractImpactCalculator.title ?? "Contract Impact Calculator"}
+          </div>
+          <p className="text-slate-300">
+            {cards?.contractImpactCalculator.body ?? "Awaiting forecast and pricing data"}
+          </p>
         </div>
 
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">Factor Waterfall</div>
-          <p className="text-slate-500">Awaiting driver attribution data</p>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">
+            {cards?.factorWaterfall.title ?? "Factor Waterfall"}
+          </div>
+          <p className="text-slate-300">
+            {cards?.factorWaterfall.body ?? "Awaiting driver attribution data"}
+          </p>
         </div>
 
         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
-          <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">Risk Metrics</div>
-          <p className="text-slate-500">Awaiting risk calculation data</p>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mb-4">
+            {cards?.riskMetrics.title ?? "Risk Metrics"}
+          </div>
+          <p className="text-slate-300">
+            {cards?.riskMetrics.body ?? "Awaiting risk calculation data"}
+          </p>
         </div>
       </div>
     </BackendShell>

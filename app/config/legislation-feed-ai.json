@@ -1,0 +1,182 @@
+{
+  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "model": "gpt-5.5-fast",
+  "reasoningEffort": "high-think",
+  "source": "ai-daily-refresh",
+  "refreshScheduleEt": "07:00 America/New_York daily",
+  "cards": {
+    "feedSummary": {
+      "title": "Live Policy Feed",
+      "body": "Daily AI pull ranks policy items by procurement impact velocity, implementation horizon, and likely cost-transmission path into buyer execution windows.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Policy Feed Procurement Impact Synthesis",
+        "strategicObjective": "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
+        "neuralConnectionThesis": "Policy updates influence soybean oil procurement through compliance, trade, and subsidy pathways; impact depends on implementation horizon and enforcement likelihood.",
+        "quantResearchProtocol": [
+          "Rank items by urgency, implementation lag, and likely cost pass-through channel.",
+          "Separate market-moving policy from informational noise.",
+          "Classify each top item by immediate, near-term, or deferred impact horizon.",
+          "Translate item-level impact into buyer execution guidance."
+        ],
+        "inferenceConstraints": [
+          "Do not treat all feed items as equal impact.",
+          "Do not issue urgent posture without implementation evidence.",
+          "Do not omit policy-to-procurement transmission explanation."
+        ],
+        "outputRequirements": [
+          "Identify top policy risks and their impact horizons.",
+          "State likely procurement consequence per top risk.",
+          "Provide monitoring trigger for each high-impact item class."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "alt.legislation_1d",
+          "alt.executive_actions",
+          "alt.congress_bills"
+        ],
+        "sourceRecords": [
+          {
+            "source": "Federal Register",
+            "table": "alt.legislation_1d",
+            "recordHint": "latest published policy rows",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "sourcePressure": {
+      "title": "Source Activity",
+      "body": "Source concentration remains elevated enough to increase interpretation risk; federal energy, trade, and executive channels are still the dominant pressure contributors.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Source Concentration and Signal Reliability",
+        "strategicObjective": "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
+        "neuralConnectionThesis": "When policy flow clusters in a narrow source set, narrative volatility can increase and degrade confidence unless corroborated by independent channels.",
+        "quantResearchProtocol": [
+          "Count source concentration and compare with multi-day baseline.",
+          "Detect sudden source dominance shifts and classify reliability risk.",
+          "Cross-check high-pressure sources against corroborating outlets.",
+          "Score confidence based on breadth and consistency of source coverage."
+        ],
+        "inferenceConstraints": [
+          "Do not overstate confidence when source breadth is narrow.",
+          "Do not ignore corroboration gaps on high-impact claims.",
+          "Do not reduce source analysis to raw count only."
+        ],
+        "outputRequirements": [
+          "State concentration regime and confidence impact.",
+          "Highlight top active sources by relevance.",
+          "Explain how source structure affects buyer decision certainty."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "alt.legislation_1d",
+          "alt.executive_actions",
+          "alt.congress_bills"
+        ],
+        "sourceRecords": [
+          {
+            "source": "Congress",
+            "table": "alt.congress_bills",
+            "recordHint": "latest committee/hearing rows",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "Executive Action",
+            "table": "alt.executive_actions",
+            "recordHint": "latest directives",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    },
+    "tagPressure": {
+      "title": "Policy Tag Pressure",
+      "body": "Highest-pressure policy themes remain tariff, biofuel, logistics, and export-control pathways due to direct transmission into procurement-cost and timing assumptions.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Policy Theme Pressure Ranking",
+        "strategicObjective": "Identify which policy themes carry the highest procurement risk contribution in the current window.",
+        "neuralConnectionThesis": "Theme pressure predicts where policy risk is likely to propagate first; concentrated tag clusters can front-run contract-cost repricing.",
+        "quantResearchProtocol": [
+          "Rank tags by frequency, persistence, and transmission relevance.",
+          "Group related tags into coherent risk themes.",
+          "Differentiate structural themes from transient bursts.",
+          "Map top themes to buyer-facing procurement actions."
+        ],
+        "inferenceConstraints": [
+          "Do not equate high frequency with high impact without context.",
+          "Do not collapse distinct theme channels into one generic category.",
+          "Do not provide posture without horizon classification."
+        ],
+        "outputRequirements": [
+          "Report top pressure themes with impact horizon.",
+          "Explain transmission pathway to procurement cost or timing.",
+          "Provide concrete watchlist priorities."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "method": "daily-ai-card-refresh",
+        "sourceFeeds": [
+          "alt.legislation_1d",
+          "alt.executive_actions",
+          "alt.congress_bills"
+        ],
+        "sourceRecords": [
+          {
+            "source": "USDA",
+            "table": "alt.legislation_1d",
+            "recordHint": "tagged oilseed/reporting policy rows",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          }
+        ]
+      }
+    }
+  },
+  "items": [
+    {
+      "source": "Federal Register",
+      "title": "Biofuel blend compliance clarification with downstream credit accounting revision",
+      "publishedAt": "2026-05-07T08:05:00-04:00",
+      "tags": ["biofuel", "compliance", "credit-market"]
+    },
+    {
+      "source": "Congress",
+      "title": "Committee hearing schedules update on agricultural trade and export resilience",
+      "publishedAt": "2026-05-07T07:20:00-04:00",
+      "tags": ["trade", "exports", "ag-policy"]
+    },
+    {
+      "source": "Executive Action",
+      "title": "Supply-chain resilience directive expands critical-input monitoring scope",
+      "publishedAt": "2026-05-06T16:40:00-04:00",
+      "tags": ["supply-chain", "critical-inputs", "monitoring"]
+    },
+    {
+      "source": "USDA",
+      "title": "Oilseed market reporting cadence adjustment for weekly publication windows",
+      "publishedAt": "2026-05-06T13:10:00-04:00",
+      "tags": ["oilseeds", "reporting", "cadence"]
+    },
+    {
+      "source": "DOE",
+      "title": "Energy market stability briefing adds refined product risk commentary",
+      "publishedAt": "2026-05-06T10:25:00-04:00",
+      "tags": ["energy", "stability", "market-risk"]
+    },
+    {
+      "source": "Federal Register",
+      "title": "Port logistics capacity notice with temporary throughput procedural changes",
+      "publishedAt": "2026-05-05T14:50:00-04:00",
+      "tags": ["logistics", "ports", "throughput"]
+    }
+  ]
+}

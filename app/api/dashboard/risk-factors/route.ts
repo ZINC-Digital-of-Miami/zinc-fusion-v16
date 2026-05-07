@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import type { AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 
 type DriverKey =
@@ -11,20 +12,14 @@ type DriverKey =
   | "tariff_threat"
   | "energy_stress";
 
-type StrategicSpecialInstructions = {
-  cardTopic: string;
-  strategicObjective: string;
-  neuralConnectionThesis: string;
-  quantResearchProtocol: string[];
-  inferenceConstraints: string[];
-  outputRequirements: string[];
-};
-
 type AiDriverContent = {
+  score?: number | null;
   headline?: string;
   level?: string;
+  components?: Record<string, number | null>;
   whatsHappening?: WhatsHappening;
   strategicSpecialInstructions?: StrategicSpecialInstructions;
+  provenance?: AiCardProvenance;
 };
 
 type AiIntelligenceContent = {
@@ -35,6 +30,7 @@ type AiIntelligenceContent = {
   zlColor?: string;
   tradingImplication?: string;
   strategicSpecialInstructions?: StrategicSpecialInstructions;
+  provenance?: AiCardProvenance;
 };
 
 type AiRiskFactorsSnapshot = {
@@ -66,6 +62,7 @@ type DriverData = {
   components: Record<string, number | null>;
   whatsHappening?: WhatsHappening;
   strategicSpecialInstructions?: StrategicSpecialInstructions;
+  provenance?: AiCardProvenance;
   aiPowered: boolean;
   dataDate: string | null;
 };
@@ -90,6 +87,7 @@ type MarketDriversResponse = {
     tradingImplication?: string;
     aiPowered?: boolean;
     strategicSpecialInstructions?: StrategicSpecialInstructions;
+    provenance?: AiCardProvenance;
   };
   ai: {
     enabled: boolean;
@@ -356,6 +354,50 @@ function scoreState(score: number | null): string {
   return "calm zone";
 }
 
+function mergeDriverComponents(
+  base: Record<string, number | null>,
+  ai?: Record<string, number | null>,
+): Record<string, number | null> {
+  if (!ai) return base;
+  const merged: Record<string, number | null> = { ...base };
+  for (const [key, value] of Object.entries(ai)) {
+    if (value === null || value === undefined) continue;
+    const n = Number(value);
+    if (!Number.isFinite(n)) continue;
+    merged[key] = n;
+  }
+  return merged;
+}
+
+function summarizeDrivers(drivers: Record<DriverKey, DriverData>): {
+  average: number;
+  topName: string;
+  topScore: number;
+  alertCount: number;
+} {
+  const scoredEntries = (Object.values(drivers) as DriverData[]).filter(
+    (d) => d.score !== null,
+  ) as Array<DriverData & { score: number }>;
+
+  const average =
+    scoredEntries.length > 0
+      ? Math.round(
+          (scoredEntries.reduce((acc, d) => acc + d.score, 0) / scoredEntries.length) * 10,
+        ) / 10
+      : 0;
+
+  const highest =
+    scoredEntries.length > 0
+      ? scoredEntries.slice().sort((a, b) => b.score - a.score)[0]
+      : null;
+
+  const topScore = highest?.score ?? 0;
+  const topName = highest?.name ?? "No Data";
+  const alertCount = scoredEntries.filter((d) => d.score >= 65).length;
+
+  return { average, topName, topScore, alertCount };
+}
+
 const AI_RISK_FACTORS_SNAPSHOT_PATH = path.join(
   process.cwd(),
   "app/config/dashboard-risk-factors-ai.json",
@@ -382,6 +424,81 @@ function driverFocus(driver: DriverKey): string {
   if (driver === "china_tension") return "China demand and trade-flow displacement";
   if (driver === "tariff_threat") return "policy shocks and geopolitical tariff channels";
   return "energy complex pass-through into ZL";
+}
+
+function buildDriverProvenance(
+  key: DriverKey,
+  dataDate: string | null,
+  generatedAt: string | null,
+): AiCardProvenance {
+  const asOf = dataDate ?? generatedAt ?? new Date().toISOString();
+  return {
+    asOf,
+    generatedAt: generatedAt ?? asOf,
+    method: "daily-ai-card-refresh",
+    sourceFeeds: [
+      "analytics.dashboard_metrics",
+      "analytics.driver_attribution_1d",
+      "app/config/dashboard-risk-factors-ai.json",
+    ],
+    sourceRecords: [
+      {
+        source: "analytics.dashboard_metrics",
+        table: "analytics.dashboard_metrics",
+        recordHint: `driver=${key}`,
+        observedAt: dataDate ?? undefined,
+      },
+      {
+        source: "analytics.driver_attribution_1d",
+        table: "analytics.driver_attribution_1d",
+        recordHint: `mapped_driver=${key}`,
+        observedAt: dataDate ?? undefined,
+      },
+      {
+        source: "ai-daily-refresh",
+        table: "app/config/dashboard-risk-factors-ai.json",
+        recordHint: `driver=${key}`,
+        observedAt: generatedAt ?? undefined,
+      },
+    ],
+  };
+}
+
+function buildIntelligenceProvenance(
+  asOf: string | null,
+  generatedAt: string | null,
+): AiCardProvenance {
+  const resolvedAsOf = asOf ?? generatedAt ?? new Date().toISOString();
+  return {
+    asOf: resolvedAsOf,
+    generatedAt: generatedAt ?? resolvedAsOf,
+    method: "daily-ai-card-refresh",
+    sourceFeeds: [
+      "analytics.dashboard_metrics",
+      "analytics.driver_attribution_1d",
+      "app/config/dashboard-risk-factors-ai.json",
+    ],
+    sourceRecords: [
+      {
+        source: "analytics.dashboard_metrics",
+        table: "analytics.dashboard_metrics",
+        recordHint: "latest driver metric set",
+        observedAt: resolvedAsOf,
+      },
+      {
+        source: "analytics.driver_attribution_1d",
+        table: "analytics.driver_attribution_1d",
+        recordHint: "latest factor attribution set",
+        observedAt: resolvedAsOf,
+      },
+      {
+        source: "ai-daily-refresh",
+        table: "app/config/dashboard-risk-factors-ai.json",
+        recordHint: "intelligence",
+        observedAt: generatedAt ?? undefined,
+      },
+    ],
+  };
 }
 
 function buildDriverWhatsHappening(
@@ -593,17 +710,6 @@ export async function GET() {
       },
     };
 
-    const scoredEntries = (Object.values(drivers) as DriverData[]).filter((d) => d.score !== null) as Array<DriverData & { score: number }>;
-    const average = scoredEntries.length > 0
-      ? Math.round((scoredEntries.reduce((acc, d) => acc + d.score, 0) / scoredEntries.length) * 10) / 10
-      : 0;
-    const highest = scoredEntries.length > 0
-      ? scoredEntries.slice().sort((a, b) => b.score - a.score)[0]
-      : null;
-    const topScore = highest?.score ?? 0;
-    const topName = highest?.name ?? "No Data";
-    const alertCount = scoredEntries.filter((d) => d.score >= 65).length;
-
     const allDates = (Object.values(drivers) as DriverData[])
       .map((d) => d.dataDate)
       .filter((d): d is string => Boolean(d))
@@ -613,140 +719,138 @@ export async function GET() {
     const asOfDate = asOfDateMin;
     const mixedVintage = Boolean(asOfDateMin && asOfDateMax && asOfDateMin !== asOfDateMax);
 
+    const mergeDriver = (
+      key: DriverKey,
+      base: DriverData,
+      defaultHeadlineName: string,
+      defaultInstructions: StrategicSpecialInstructions,
+    ): DriverData => {
+      const ai = aiSnapshot?.drivers?.[key];
+      const aiScoreRaw = ai?.score;
+      const aiScore = aiScoreRaw === null || aiScoreRaw === undefined ? null : coerceScore(Number(aiScoreRaw));
+      const mergedScore = aiScore ?? base.score;
+      const mergedLevel = ai?.level ?? levelFor(key, mergedScore);
+      const mergedComponents = mergeDriverComponents(base.components, ai?.components);
+
+      const mergedPayload: DriverData = {
+        ...base,
+        score: mergedScore,
+        level: mergedLevel,
+        regime: regimeFor(mergedScore),
+        headline: ai?.headline ?? headlineFor(defaultHeadlineName, mergedScore),
+        components: mergedComponents,
+        strategicSpecialInstructions:
+          ai?.strategicSpecialInstructions ?? defaultInstructions,
+        provenance:
+          ai?.provenance ??
+          buildDriverProvenance(key, base.dataDate, aiSnapshot?.generatedAt ?? null),
+        aiPowered: Boolean(ai),
+        dataDate: base.dataDate,
+      };
+
+      return {
+        ...mergedPayload,
+        whatsHappening: ai?.whatsHappening,
+      };
+    };
+
+    const mergedDrivers: Record<DriverKey, DriverData> = {
+      vix_stress: mergeDriver(
+        "vix_stress",
+        drivers.vix_stress,
+        "Market volatility",
+        DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.vix_stress,
+      ),
+      crush_pressure: mergeDriver(
+        "crush_pressure",
+        drivers.crush_pressure,
+        "Crush margins",
+        DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.crush_pressure,
+      ),
+      china_tension: mergeDriver(
+        "china_tension",
+        drivers.china_tension,
+        "China demand/trade",
+        DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.china_tension,
+      ),
+      tariff_threat: mergeDriver(
+        "tariff_threat",
+        drivers.tariff_threat,
+        "Macro/geopolitical",
+        DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.tariff_threat,
+      ),
+      energy_stress: mergeDriver(
+        "energy_stress",
+        drivers.energy_stress,
+        "Energy complex",
+        DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.energy_stress,
+      ),
+    };
+
+    const mergedSummary = summarizeDrivers(mergedDrivers);
+    const mergedAverage = mergedSummary.average;
+    const mergedTopName = mergedSummary.topName;
+    const mergedTopScore = mergedSummary.topScore;
+    const mergedAlertCount = mergedSummary.alertCount;
+
+    for (const key of Object.keys(mergedDrivers) as DriverKey[]) {
+      const driver = mergedDrivers[key];
+      if (driver.whatsHappening) continue;
+      const instructions =
+        driver.strategicSpecialInstructions ?? DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS[key];
+      driver.whatsHappening = buildDriverWhatsHappening(
+        key,
+        driver,
+        mergedTopScore === 0 && mergedTopName === "No Data"
+          ? "Awaiting promoted analytics rows."
+          : `Top concern is ${mergedTopName} at ${Math.round(mergedTopScore)}.`,
+        mergedTopName,
+        mergedAverage,
+        instructions,
+      );
+    }
+
     const response: MarketDriversResponse = {
       as_of_date: asOfDate,
       as_of_date_min: asOfDateMin,
       as_of_date_max: asOfDateMax,
       mixed_vintage: mixedVintage,
-      drivers: {
-        vix_stress: {
-          ...drivers.vix_stress,
-          headline: aiSnapshot?.drivers?.vix_stress?.headline ?? drivers.vix_stress.headline,
-          level: aiSnapshot?.drivers?.vix_stress?.level ?? drivers.vix_stress.level,
-          strategicSpecialInstructions:
-            aiSnapshot?.drivers?.vix_stress?.strategicSpecialInstructions ??
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.vix_stress,
-          whatsHappening: aiSnapshot?.drivers?.vix_stress?.whatsHappening ?? buildDriverWhatsHappening(
-            "vix_stress",
-            drivers.vix_stress,
-            scoredEntries.length === 0
-              ? "Awaiting promoted analytics rows."
-              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
-            topName,
-            average,
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.vix_stress,
-          ),
-          aiPowered: Boolean(aiSnapshot?.drivers?.vix_stress),
-        },
-        crush_pressure: {
-          ...drivers.crush_pressure,
-          headline: aiSnapshot?.drivers?.crush_pressure?.headline ?? drivers.crush_pressure.headline,
-          level: aiSnapshot?.drivers?.crush_pressure?.level ?? drivers.crush_pressure.level,
-          strategicSpecialInstructions:
-            aiSnapshot?.drivers?.crush_pressure?.strategicSpecialInstructions ??
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.crush_pressure,
-          whatsHappening: aiSnapshot?.drivers?.crush_pressure?.whatsHappening ?? buildDriverWhatsHappening(
-            "crush_pressure",
-            drivers.crush_pressure,
-            scoredEntries.length === 0
-              ? "Awaiting promoted analytics rows."
-              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
-            topName,
-            average,
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.crush_pressure,
-          ),
-          aiPowered: Boolean(aiSnapshot?.drivers?.crush_pressure),
-        },
-        china_tension: {
-          ...drivers.china_tension,
-          headline: aiSnapshot?.drivers?.china_tension?.headline ?? drivers.china_tension.headline,
-          level: aiSnapshot?.drivers?.china_tension?.level ?? drivers.china_tension.level,
-          strategicSpecialInstructions:
-            aiSnapshot?.drivers?.china_tension?.strategicSpecialInstructions ??
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.china_tension,
-          whatsHappening: aiSnapshot?.drivers?.china_tension?.whatsHappening ?? buildDriverWhatsHappening(
-            "china_tension",
-            drivers.china_tension,
-            scoredEntries.length === 0
-              ? "Awaiting promoted analytics rows."
-              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
-            topName,
-            average,
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.china_tension,
-          ),
-          aiPowered: Boolean(aiSnapshot?.drivers?.china_tension),
-        },
-        tariff_threat: {
-          ...drivers.tariff_threat,
-          headline: aiSnapshot?.drivers?.tariff_threat?.headline ?? drivers.tariff_threat.headline,
-          level: aiSnapshot?.drivers?.tariff_threat?.level ?? drivers.tariff_threat.level,
-          strategicSpecialInstructions:
-            aiSnapshot?.drivers?.tariff_threat?.strategicSpecialInstructions ??
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.tariff_threat,
-          whatsHappening: aiSnapshot?.drivers?.tariff_threat?.whatsHappening ?? buildDriverWhatsHappening(
-            "tariff_threat",
-            drivers.tariff_threat,
-            scoredEntries.length === 0
-              ? "Awaiting promoted analytics rows."
-              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
-            topName,
-            average,
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.tariff_threat,
-          ),
-          aiPowered: Boolean(aiSnapshot?.drivers?.tariff_threat),
-        },
-        energy_stress: {
-          ...drivers.energy_stress,
-          headline: aiSnapshot?.drivers?.energy_stress?.headline ?? drivers.energy_stress.headline,
-          level: aiSnapshot?.drivers?.energy_stress?.level ?? drivers.energy_stress.level,
-          strategicSpecialInstructions:
-            aiSnapshot?.drivers?.energy_stress?.strategicSpecialInstructions ??
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.energy_stress,
-          whatsHappening: aiSnapshot?.drivers?.energy_stress?.whatsHappening ?? buildDriverWhatsHappening(
-            "energy_stress",
-            drivers.energy_stress,
-            scoredEntries.length === 0
-              ? "Awaiting promoted analytics rows."
-              : `Top concern is ${topName} at ${Math.round(topScore)}.`,
-            topName,
-            average,
-            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.energy_stress,
-          ),
-          aiPowered: Boolean(aiSnapshot?.drivers?.energy_stress),
-        },
-      },
+      drivers: mergedDrivers,
       summary: {
-        average_pressure: average,
-        highest_pressure: { name: topName, score: topScore },
-        alert_count: alertCount,
+        average_pressure: mergedAverage,
+        highest_pressure: { name: mergedTopName, score: mergedTopScore },
+        alert_count: mergedAlertCount,
       },
       intelligence: {
         headline:
           aiSnapshot?.intelligence?.headline ??
-          (topScore >= 65 ? "ELEVATED MARKET - Watch Procurement Risk" : "NORMAL MARKET - Buy On Schedule"),
+          (mergedTopScore >= 65 ? "ELEVATED MARKET - Watch Procurement Risk" : "NORMAL MARKET - Buy On Schedule"),
         summary:
           aiSnapshot?.intelligence?.summary ??
-          (scoredEntries.length === 0
+          (mergedTopName === "No Data"
             ? "Awaiting promoted analytics rows. Cards are wired to live Supabase contracts and will populate automatically."
-            : `Top concern is ${topName} at ${Math.round(topScore)}. Average risk is ${average}.`),
-        drivers: aiSnapshot?.intelligence?.drivers ?? (Object.values(drivers) as DriverData[])
+            : `Top concern is ${mergedTopName} at ${Math.round(mergedTopScore)}. Average risk is ${mergedAverage}.`),
+        drivers: aiSnapshot?.intelligence?.drivers ?? (Object.values(mergedDrivers) as DriverData[])
           .filter((d) => d.score !== null)
           .map((d) => ({
             label: d.name,
             outlook: d.score !== null && d.score >= 65 ? "PRESSURE" : d.score !== null && d.score <= 35 ? "SUPPORTIVE" : "MIXED",
             detail: d.headline,
           })),
-        zlOutlook: aiSnapshot?.intelligence?.zlOutlook ?? outlookFromScore(average),
-        zlColor: aiSnapshot?.intelligence?.zlColor ?? colorFromScore(average),
+        zlOutlook: aiSnapshot?.intelligence?.zlOutlook ?? outlookFromScore(mergedAverage),
+        zlColor: aiSnapshot?.intelligence?.zlColor ?? colorFromScore(mergedAverage),
         tradingImplication:
           aiSnapshot?.intelligence?.tradingImplication ??
-          (topScore >= 65
+          (mergedTopScore >= 65
             ? "Risk elevated. Keep procurement flexible and monitor next refresh."
             : "No major pressure signal yet. Continue normal buying schedule."),
         aiPowered: Boolean(aiSnapshot?.intelligence),
         strategicSpecialInstructions:
           aiSnapshot?.intelligence?.strategicSpecialInstructions ??
           MARKET_INTELLIGENCE_STRATEGIC_SPECIAL_INSTRUCTIONS,
+        provenance:
+          aiSnapshot?.intelligence?.provenance ??
+          buildIntelligenceProvenance(asOfDateMax ?? asOfDateMin, aiSnapshot?.generatedAt ?? null),
       },
       ai: {
         enabled: Boolean(aiSnapshot),

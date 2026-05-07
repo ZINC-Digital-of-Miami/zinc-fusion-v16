@@ -4,7 +4,14 @@ import { useEffect, useMemo, useState } from "react"
 import { Activity, Building2, Gavel, Newspaper, Radio, Tag } from "lucide-react"
 
 import { BackendShell } from "@/components/backend-shell"
+import type { AiCardContent } from "@/lib/contracts/ai-card"
 import type { ApiEnvelope, LegislationItem } from "@/lib/contracts/api"
+
+type LegislationCards = {
+  feedSummary: AiCardContent
+  sourcePressure: AiCardContent
+  tagPressure: AiCardContent
+}
 
 function safeDate(value: string): Date | null {
   const parsed = new Date(value)
@@ -54,6 +61,7 @@ function MetricCard({
 
 export default function LegislationPage() {
   const [items, setItems] = useState<LegislationItem[]>([])
+  const [cards, setCards] = useState<LegislationCards | null>(null)
   const [loading, setLoading] = useState(true)
   const [clientNow, setClientNow] = useState<number | null>(null)
 
@@ -64,16 +72,22 @@ export default function LegislationPage() {
       try {
         const res = await fetch("/api/legislation/feed", { cache: "no-store" })
         const body = (await res.json()) as ApiEnvelope<LegislationItem[]> & {
+          cards?: LegislationCards
           error?: string
         }
         if (!active) return
         if (res.ok && body.ok && Array.isArray(body.data)) {
           setItems(body.data)
+          setCards(body.cards ?? null)
         } else {
           setItems([])
+          setCards(null)
         }
       } catch {
-        if (active) setItems([])
+        if (active) {
+          setItems([])
+          setCards(null)
+        }
       } finally {
         if (active) setLoading(false)
       }
@@ -198,8 +212,11 @@ export default function LegislationPage() {
 
         <section className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 md:p-10 hover:border-white/20 transition-all duration-300">
           <div className="text-sm font-semibold text-white uppercase tracking-widest border-l-2 border-cyan-500 pl-3 mb-8">
-            Live Policy Feed
+            {cards?.feedSummary?.title ?? "Live Policy Feed"}
           </div>
+          {cards?.feedSummary?.body && (
+            <p className="text-sm text-slate-400 mb-6">{cards.feedSummary.body}</p>
+          )}
 
           {loading ? (
             <div className="space-y-4">
@@ -245,8 +262,11 @@ export default function LegislationPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-all duration-300">
             <div className="text-sm font-semibold text-white uppercase tracking-widest border-l-2 border-emerald-500 pl-3 mb-6">
-              Source Activity
+              {cards?.sourcePressure?.title ?? "Source Activity"}
             </div>
+            {cards?.sourcePressure?.body && (
+              <p className="text-sm text-slate-400 mb-6">{cards.sourcePressure.body}</p>
+            )}
             {analytics.sources.length === 0 ? (
               <p className="text-slate-500 text-sm">Awaiting source activity data.</p>
             ) : (
@@ -273,8 +293,11 @@ export default function LegislationPage() {
 
           <section className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-all duration-300">
             <div className="text-sm font-semibold text-white uppercase tracking-widest border-l-2 border-amber-500 pl-3 mb-6">
-              Policy Tag Pressure
+              {cards?.tagPressure?.title ?? "Policy Tag Pressure"}
             </div>
+            {cards?.tagPressure?.body && (
+              <p className="text-sm text-slate-400 mb-6">{cards.tagPressure.body}</p>
+            )}
             {analytics.tags.length === 0 ? (
               <p className="text-slate-500 text-sm">Awaiting policy tagging data.</p>
             ) : (
