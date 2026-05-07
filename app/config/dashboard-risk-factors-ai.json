@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-05-07T07:00:00-04:00",
+  "generatedAt": "2026-05-07T08:56:18-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
-  "source": "pro-subscription-connection",
+  "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "drivers": {
     "vix_stress": {
@@ -178,7 +178,7 @@
   },
   "intelligence": {
     "headline": "ELEVATED NETWORK PRESSURE - prioritize optionality and tighter execution cadence",
-    "summary": "Cross-driver synthesis shows the highest risk concentration in volatility transmission, crush economics fragility, and macro-policy tail channels. Regime is not singular panic, but it is decisively above neutral. The correct posture is controlled aggression: preserve optionality, avoid oversized single-window buys, and run confirmation-based scaling.",
+    "summary": "Cross-driver synthesis shows the highest risk concentration in volatility transmission, crush economics fragility, and macro-policy tail channels. Regime is not singular panic, but it is decisively above neutral. The correct posture is controlled aggression: preserve optionality, avoid oversized single-window buys, and run confirmation-based scaling. Refreshed 2026-05-07 08:56 ET.",
     "drivers": [
       {
         "label": "Volatility Transmission",

@@ -16,15 +16,6 @@ interface WhatsHappening {
   zlImplication: string
 }
 
-interface StrategicSpecialInstructions {
-  cardTopic: string
-  strategicObjective: string
-  neuralConnectionThesis: string
-  quantResearchProtocol: string[]
-  inferenceConstraints: string[]
-  outputRequirements: string[]
-}
-
 interface DriverData {
   name: string
   score: number | null
@@ -33,7 +24,6 @@ interface DriverData {
   headline: string
   components: Record<string, number | null>
   whatsHappening?: WhatsHappening
-  strategicSpecialInstructions?: StrategicSpecialInstructions
   aiPowered?: boolean
   dataDate?: string
 }
@@ -65,14 +55,6 @@ interface MarketDriversResponse {
     alert_count: number
   }
   intelligence: IntelligenceData
-  ai?: {
-    enabled: boolean
-    source: string
-    model: string | null
-    reasoningEffort: string | null
-    generatedAt: string | null
-    refreshScheduleEt: string | null
-  }
 }
 
 function formatFreshnessLabel(
@@ -93,13 +75,6 @@ function formatFreshnessSummary(
     return `${payload.as_of_date_min} to ${payload.as_of_date_max}`
   }
   return payload.as_of_date ?? "–"
-}
-
-function formatAiTimestamp(timestamp: string | null | undefined): string {
-  if (!timestamp) return "–"
-  const date = new Date(timestamp)
-  if (Number.isNaN(date.getTime())) return timestamp
-  return date.toLocaleString("en-US", { timeZone: "America/New_York", hour12: true })
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +204,6 @@ function DriverCard({
   const level = data?.level ? (LEVEL_LABELS[data.level] ?? data.level) : "--"
   const colors = getScoreColor(score ?? 0)
   const wh = data?.whatsHappening
-  const strategic = data?.strategicSpecialInstructions
 
   const border =
     score !== null && score >= 65
@@ -244,7 +218,7 @@ function DriverCard({
       <div className="text-base font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
         {DRIVER_NAMES[label] ?? label}
         {data?.aiPowered && (
-          <span className="px-1.5 py-0.5 rounded text-xs bg-violet-500/20 text-violet-400">AI</span>
+          <span className="px-1.5 py-0.5 rounded text-xs bg-cyan-500/15 text-cyan-300 border border-cyan-500/20">AI</span>
         )}
       </div>
 
@@ -312,55 +286,6 @@ function DriverCard({
             <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">What This Means For You</div>
             <div className="text-sm text-slate-200">{wh.zlImplication}</div>
           </div>
-          {strategic && (
-            <div className="mt-3 p-3 rounded-lg bg-[#050505] border border-cyan-500/20 space-y-3">
-              <div className="text-[10px] text-cyan-400 uppercase tracking-[0.12em] font-semibold">
-                Strategic Special Instructions
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">Card Topic</div>
-                <div className="text-sm text-slate-200">{strategic.cardTopic}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">Strategic Objective</div>
-                <div className="text-sm text-slate-300 leading-snug">{strategic.strategicObjective}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">Neural Connection Thesis</div>
-                <div className="text-sm text-slate-300 leading-snug">{strategic.neuralConnectionThesis}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">Quant Research Protocol</div>
-                <div className="space-y-1 mt-1">
-                  {strategic.quantResearchProtocol.map((line, idx) => (
-                    <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
-                      {idx + 1}. {line}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">Inference Constraints</div>
-                <div className="space-y-1 mt-1">
-                  {strategic.inferenceConstraints.map((line, idx) => (
-                    <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
-                      {idx + 1}. {line}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500 uppercase tracking-wider">Output Requirements</div>
-                <div className="space-y-1 mt-1">
-                  {strategic.outputRequirements.map((line, idx) => (
-                    <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
-                      {idx + 1}. {line}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -389,7 +314,6 @@ export function MarketRiskFactors() {
   }, [])
 
   const d = data?.drivers
-  const aiMeta = data?.ai
 
   return (
     <div className="w-full">
@@ -432,13 +356,6 @@ export function MarketRiskFactors() {
           <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-slate-400">
             Freshness: <span className="text-slate-300">{formatFreshnessSummary(data)}</span>
           </div>
-        </div>
-      )}
-
-      {aiMeta?.enabled && (
-        <div className="mb-6 rounded-lg border border-violet-500/25 bg-violet-500/5 px-3 py-2 text-xs text-violet-300">
-          AI Content Source: {aiMeta.model ?? "GPT"} / {aiMeta.reasoningEffort ?? "high"} / {aiMeta.source} / updated{" "}
-          {formatAiTimestamp(aiMeta.generatedAt)} ET / schedule {aiMeta.refreshScheduleEt ?? "07:00 America/New_York"}
         </div>
       )}
 

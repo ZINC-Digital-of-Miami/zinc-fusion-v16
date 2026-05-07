@@ -336,7 +336,7 @@ export function ZlCandlestickChart({
           <div className="h-3 w-px bg-white/10" />
           <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5">
             <span className="text-[9px] text-white/30 uppercase">IV</span>
-            <span className="text-[11px] font-mono text-violet-400">
+            <span className="text-[11px] font-mono text-cyan-400">
               {volatility}
             </span>
           </div>
