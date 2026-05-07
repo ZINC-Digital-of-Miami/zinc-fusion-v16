@@ -51,7 +51,12 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 12. **ZERO code copying.** Every line of V16 is written fresh. legacy baseline is a visual reference only. Clone-and-clean failed catastrophically — never again.
 13. **No local Supabase / No Docker.** Cloud Supabase only. Supabase CLI for migrations (`db push`). No `supabase start`.
 14. **No hardcoded port 3000.** Dev server port must be checked for availability first.
-15. **Design holdoff.** Do not propose UI design changes until user signals readiness. Build clean structure, defer aesthetics.
+15. **Design holdoff exception (locked 2026-05-07).** For page parity work, do not redesign. Reproduce locked source visuals exactly.
+16. **Locked page authority map (2026-05-07):** Strategy=V16, Vegas Intel=V16, Dashboard=V15, Legislation=V15, Sentiment=V15.
+17. **Global layout lock:** Full-width geometry is mandatory on ALL V16 pages. Do not keep narrow/containerized widths.
+18. **Pixel parity lock:** Typography, spacing, shadows, border/radius, gradients, hex colors, and all interaction states must match locked source exactly.
+19. **Cadence pivot lock:** Most non-price data moves to weekly batch ingest and weekly retraining; hourly chart freshness remains.
+20. **GPT content lock:** Sentiment and Legislation pipelines are GPT-driven from approved source feeds with traceable provenance.
 
 ### Process Rules
 
