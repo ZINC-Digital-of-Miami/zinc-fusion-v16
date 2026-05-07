@@ -225,7 +225,7 @@ export default function LegislationPage() {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <p className="text-slate-500 text-sm">Awaiting legislation and executive feed data.</p>
+            <p className="text-slate-500 text-sm">Hard stop: no verified legislation feed rows are available.</p>
           ) : (
             <div className="space-y-3">
               {items.slice(0, 30).map((item, idx) => (
@@ -268,7 +268,7 @@ export default function LegislationPage() {
               <p className="text-sm text-slate-400 mb-6">{cards.sourcePressure.body}</p>
             )}
             {analytics.sources.length === 0 ? (
-              <p className="text-slate-500 text-sm">Awaiting source activity data.</p>
+              <p className="text-slate-500 text-sm">Hard stop: no verified source-activity rows are available.</p>
             ) : (
               <div className="space-y-4">
                 {analytics.sources.slice(0, 10).map((source) => (
@@ -299,7 +299,7 @@ export default function LegislationPage() {
               <p className="text-sm text-slate-400 mb-6">{cards.tagPressure.body}</p>
             )}
             {analytics.tags.length === 0 ? (
-              <p className="text-slate-500 text-sm">Awaiting policy tagging data.</p>
+              <p className="text-slate-500 text-sm">Hard stop: no verified policy-tag rows are available.</p>
             ) : (
               <div className="space-y-4">
                 {analytics.tags.slice(0, 12).map((tag) => (

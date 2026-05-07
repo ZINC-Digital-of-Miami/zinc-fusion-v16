@@ -155,15 +155,15 @@ export default function SentimentPage() {
     return [
       {
         title: "Macro Narrative",
-        body: "Awaiting daily AI pull for macro and policy narrative classification.",
+        body: "Hard stop: macro narrative unavailable because verified sentiment inputs were not returned.",
       },
       {
         title: "Flow Narrative",
-        body: "Awaiting daily AI pull for participation and positioning narrative synthesis.",
+        body: "Hard stop: flow narrative unavailable because verified sentiment inputs were not returned.",
       },
       {
         title: "Procurement Narrative",
-        body: "Awaiting daily AI pull for buyer-facing contract timing interpretation.",
+        body: "Hard stop: procurement narrative unavailable because verified sentiment inputs were not returned.",
       },
     ]
   }, [cards])

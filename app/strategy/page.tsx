@@ -58,7 +58,7 @@ export default function StrategyPage() {
               <p className="text-slate-300 leading-relaxed">{posture.rationale}</p>
             </div>
           ) : (
-            <p className="text-slate-500">Awaiting strategy data</p>
+            <p className="text-slate-500">Hard stop: no verified strategy posture data returned.</p>
           )}
         </div>
 
@@ -67,7 +67,7 @@ export default function StrategyPage() {
             {cards?.contractImpactCalculator.title ?? "Contract Impact Calculator"}
           </div>
           <p className="text-slate-300">
-            {cards?.contractImpactCalculator.body ?? "Awaiting forecast and pricing data"}
+            {cards?.contractImpactCalculator.body ?? "Hard stop: contract-impact card has no verified data."}
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export default function StrategyPage() {
             {cards?.factorWaterfall.title ?? "Factor Waterfall"}
           </div>
           <p className="text-slate-300">
-            {cards?.factorWaterfall.body ?? "Awaiting driver attribution data"}
+            {cards?.factorWaterfall.body ?? "Hard stop: factor-waterfall card has no verified attribution data."}
           </p>
         </div>
 
@@ -85,7 +85,7 @@ export default function StrategyPage() {
             {cards?.riskMetrics.title ?? "Risk Metrics"}
           </div>
           <p className="text-slate-300">
-            {cards?.riskMetrics.body ?? "Awaiting risk calculation data"}
+            {cards?.riskMetrics.body ?? "Hard stop: risk-metrics card has no verified market data."}
           </p>
         </div>
       </div>

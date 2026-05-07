@@ -4,6 +4,11 @@ import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } fr
 import type { ApiEnvelope, VegasIntelSnapshot } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import {
+  fetchTrustedMarketSnapshot,
+  TRUSTED_MARKET_SOURCE_FEEDS,
+  uniqueTrustedMarketUrls,
+} from "@/lib/server/trusted-market-sources";
 
 type VegasIntelCards = {
   upcomingEvents: AiCardContent;
@@ -116,12 +121,20 @@ function buildProvenance(
   generatedAt: string,
   asOf: string,
   cardKey: keyof VegasIntelCards,
+  trustedUrls: string[],
 ): AiCardProvenance {
   return {
     asOf,
     generatedAt,
-    method: "daily-ai-card-refresh",
-    sourceFeeds: ["vegas.events", "vegas.restaurants", "app/config/vegas-intel-ai.json"],
+    method: "verified-db-and-trusted-market-pull",
+    sourceFeeds: [
+      "vegas.events",
+      "vegas.restaurants",
+      "vegas.customer_scores",
+      "vegas.fryers",
+      "vegas.event_impact",
+      ...trustedUrls,
+    ],
     sourceRecords: [
       {
         source: "vegas.events",
@@ -136,8 +149,7 @@ function buildProvenance(
         observedAt: asOf,
       },
       {
-        source: "ai-daily-refresh",
-        table: "app/config/vegas-intel-ai.json",
+        source: "trusted-market-pull",
         recordHint: `card=${cardKey}`,
         observedAt: generatedAt,
       },
@@ -151,14 +163,53 @@ export async function GET() {
     const aiSnapshot = await readAiSnapshot<VegasIntelAiSnapshot>(
       "app/config/vegas-intel-ai.json",
     );
+    const trustedMarket = await fetchTrustedMarketSnapshot();
+    const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
 
     const today = new Date().toISOString().slice(0, 10);
+    const in14 = new Date();
+    in14.setDate(in14.getDate() + 14);
+    const in30 = new Date();
+    in30.setDate(in30.getDate() + 30);
 
-    const { count: activeEvents, error: evtError } = await supabase
-      .schema("vegas")
-      .from("events")
-      .select("id", { count: "exact", head: true })
-      .gte("event_date", today);
+    const [
+      { data: eventRows, error: evtError },
+      { data: restaurantRows, error: restError },
+      { data: fryerRows },
+      { data: scoreRows },
+      { data: impactRows },
+    ] = await Promise.all([
+      supabase
+        .schema("vegas")
+        .from("events")
+        .select("id, event_name, event_date")
+        .gte("event_date", today)
+        .order("event_date", { ascending: true })
+        .limit(200),
+      supabase
+        .schema("vegas")
+        .from("restaurants")
+        .select("id, restaurant_name, account_status")
+        .eq("account_status", "active")
+        .limit(500),
+      supabase
+        .schema("vegas")
+        .from("fryers")
+        .select("restaurant_id, fryer_count")
+        .limit(500),
+      supabase
+        .schema("vegas")
+        .from("customer_scores")
+        .select("restaurant_id, score_date, score")
+        .order("score_date", { ascending: false })
+        .limit(500),
+      supabase
+        .schema("vegas")
+        .from("event_impact")
+        .select("event_id, restaurant_id, impact_score")
+        .order("impact_score", { ascending: false })
+        .limit(500),
+    ]);
 
     if (evtError) {
       return NextResponse.json(
@@ -167,12 +218,6 @@ export async function GET() {
       );
     }
 
-    const { count: highPriority, error: restError } = await supabase
-      .schema("vegas")
-      .from("restaurants")
-      .select("id", { count: "exact", head: true })
-      .eq("account_status", "active");
-
     if (restError) {
       return NextResponse.json(
         { ok: false, data: null, asOf: new Date().toISOString(), error: restError.message },
@@ -180,9 +225,42 @@ export async function GET() {
       );
     }
 
+    const events = eventRows ?? [];
+    const activeRestaurants = restaurantRows ?? [];
+    const fryers = fryerRows ?? [];
+    const customerScores = scoreRows ?? [];
+    const eventImpacts = impactRows ?? [];
+
+    const activeEvents = events.length;
+    const highPriority = activeRestaurants.length;
+    const events14d = events.filter((e) => new Date(e.event_date).getTime() <= in14.getTime()).length;
+    const events30d = events.filter((e) => new Date(e.event_date).getTime() <= in30.getTime()).length;
+    const nextEvent = events[0] ?? null;
+
+    const totalFryers = fryers.reduce((acc, row) => acc + (Number(row.fryer_count) || 0), 0);
+    const lowRedundancySites = fryers.filter((row) => (Number(row.fryer_count) || 0) <= 1).length;
+
+    const latestScoreDate = customerScores[0]?.score_date ?? null;
+    const latestScores = customerScores.filter((row) => row.score_date === latestScoreDate);
+    const scoredAccounts = latestScores
+      .map((row) => Number(row.score))
+      .filter((value) => Number.isFinite(value));
+    const avgScore =
+      scoredAccounts.length > 0
+        ? scoredAccounts.reduce((acc, value) => acc + value, 0) / scoredAccounts.length
+        : null;
+
+    const impactValues = eventImpacts
+      .map((row) => Number(row.impact_score))
+      .filter((value) => Number.isFinite(value));
+    const avgImpact =
+      impactValues.length > 0
+        ? impactValues.reduce((acc, value) => acc + value, 0) / impactValues.length
+        : null;
+
     const dbSnapshot: VegasIntelSnapshot = {
-      activeEvents: activeEvents ?? 0,
-      highPriorityAccounts: highPriority ?? 0,
+      activeEvents,
+      highPriorityAccounts: highPriority,
       updatedAt: new Date().toISOString(),
     };
     const snapshot: VegasIntelSnapshot = {
@@ -194,30 +272,43 @@ export async function GET() {
 
     const generatedAt = aiSnapshot?.generatedAt ?? new Date().toISOString();
     const asOf = snapshot.updatedAt;
+    const cl = trustedMarket.cl.value;
+    const cl5d = trustedMarket.cl.change5d;
+    const vix = trustedMarket.vix.value;
+    const cl5dText =
+      cl5d === null ? "n/a" : `${cl5d * 100 >= 0 ? "+" : ""}${(cl5d * 100).toFixed(2)}%`;
     const fallbackCards: VegasIntelCards = {
       upcomingEvents: {
         title: "Upcoming Events",
-        body: "Awaiting daily AI pull for event-level demand implications.",
+        body: nextEvent
+          ? `${events14d} events are scheduled over the next 14 days (${events30d} over 30 days). Next demand catalyst is ${nextEvent.event_name} on ${nextEvent.event_date}.`
+          : "Hard stop: no verified vegas.events rows are available for upcoming demand-window analysis.",
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.upcomingEvents,
-        provenance: buildProvenance(generatedAt, asOf, "upcomingEvents"),
+        provenance: buildProvenance(generatedAt, asOf, "upcomingEvents", trustedUrls),
       },
       aiSalesStrategy: {
         title: "AI Sales Strategy",
-        body: "Awaiting daily AI pull for account-targeted sales strategy recommendations.",
+        body: activeRestaurants.length === 0 || events.length === 0
+          ? "Hard stop: account-targeted strategy is blocked because verified event or active-account rows are missing."
+          : `Prioritize high-volume active accounts ahead of the ${events14d > 0 ? "next two-week event cluster" : "next demand window"}. Average modeled event impact is ${avgImpact?.toFixed(2) ?? "n/a"}. Current oil-cost backdrop is CL ${cl?.toFixed(2) ?? "n/a"} with 5-day ${cl5dText} and VIX ${vix?.toFixed(2) ?? "n/a"}, so cost-certainty messaging should be staged and urgency-tiered.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.aiSalesStrategy,
-        provenance: buildProvenance(generatedAt, asOf, "aiSalesStrategy"),
+        provenance: buildProvenance(generatedAt, asOf, "aiSalesStrategy", trustedUrls),
       },
       restaurantAccounts: {
         title: "Restaurant Accounts",
-        body: "Awaiting daily AI pull for account-priority reasoning and timing guidance.",
+        body: latestScores.length === 0
+          ? "Hard stop: no verified vegas.customer_scores rows are available for account-priority ranking."
+          : `Latest scoring window (${latestScoreDate}) covers ${latestScores.length} accounts with average opportunity score ${avgScore?.toFixed(2) ?? "n/a"}. Sequence outreach from highest opportunity tier first, then roll down by event-window overlap.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.restaurantAccounts,
-        provenance: buildProvenance(generatedAt, asOf, "restaurantAccounts"),
+        provenance: buildProvenance(generatedAt, asOf, "restaurantAccounts", trustedUrls),
       },
       fryerTracking: {
         title: "Fryer Equipment Tracking",
-        body: "Awaiting daily AI pull for fryer lifecycle risk and service-window prioritization.",
+        body: fryers.length === 0
+          ? "Hard stop: fryer lifecycle guidance is blocked because no verified vegas.fryers rows are available."
+          : `Verified fryer inventory totals ${totalFryers} units across ${fryers.length} tracked sites; ${lowRedundancySites} sites run low redundancy (one fryer or fewer). Service prioritization should front-load these sites before high-impact event windows.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.fryerTracking,
-        provenance: buildProvenance(generatedAt, asOf, "fryerTracking"),
+        provenance: buildProvenance(generatedAt, asOf, "fryerTracking", trustedUrls),
       },
     };
 
@@ -262,7 +353,7 @@ export async function GET() {
       ok: true,
       data: snapshot,
       asOf: new Date().toISOString(),
-      source: "vegas.events,vegas.restaurants",
+      source: ["vegas.events", "vegas.restaurants", "vegas.customer_scores", "vegas.fryers", "vegas.event_impact", ...TRUSTED_MARKET_SOURCE_FEEDS].join(","),
     };
 
     return NextResponse.json({

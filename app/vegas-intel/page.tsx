@@ -59,7 +59,7 @@ export default function VegasIntelPage() {
             {cards?.upcomingEvents?.title ?? "Upcoming Events"}
           </div>
           <p className="text-slate-300 text-center py-4">
-            {cards?.upcomingEvents?.body ?? "Awaiting event data"}
+            {cards?.upcomingEvents?.body ?? "Hard stop: upcoming-event card has no verified data."}
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export default function VegasIntelPage() {
             {cards?.aiSalesStrategy?.title ?? "AI Sales Strategy"}
           </div>
           <p className="text-slate-300 text-center py-4">
-            {cards?.aiSalesStrategy?.body ?? "Awaiting customer and event data from Glide API"}
+            {cards?.aiSalesStrategy?.body ?? "Hard stop: sales-strategy card has no verified account/event data."}
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export default function VegasIntelPage() {
             {cards?.restaurantAccounts?.title ?? "Restaurant Accounts"}
           </div>
           <p className="text-slate-300 text-center py-4">
-            {cards?.restaurantAccounts?.body ?? "Awaiting restaurant data from Glide API"}
+            {cards?.restaurantAccounts?.body ?? "Hard stop: restaurant-accounts card has no verified account-score data."}
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export default function VegasIntelPage() {
             {cards?.fryerTracking?.title ?? "Fryer Equipment Tracking"}
           </div>
           <p className="text-slate-300 text-center py-4">
-            {cards?.fryerTracking?.body ?? "Awaiting equipment lifecycle data"}
+            {cards?.fryerTracking?.body ?? "Hard stop: fryer-tracking card has no verified fryer dataset."}
           </p>
         </div>
       </div>

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 
 import type { AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
+import { readAiSnapshot, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
+import { fetchTrustedMarketSnapshot, uniqueTrustedMarketUrls } from "@/lib/server/trusted-market-sources";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 
 type DriverKey =
@@ -34,14 +34,9 @@ type AiIntelligenceContent = {
 };
 
 type AiRiskFactorsSnapshot = {
-  generatedAt: string;
-  model: string;
-  reasoningEffort: string;
-  source?: string;
-  refreshScheduleEt?: string;
   drivers: Partial<Record<DriverKey, AiDriverContent>>;
   intelligence: AiIntelligenceContent;
-};
+} & AiSnapshotMeta;
 
 type WhatsHappening = {
   whatsHappening: string;
@@ -182,7 +177,7 @@ function colorFromScore(score: number): string {
 }
 
 function headlineFor(driverName: string, score: number | null): string {
-  if (score === null) return `${driverName}: awaiting promoted data`;
+  if (score === null) return `Hard stop: ${driverName} lacks verified promoted data`;
   if (score >= 70) return `${driverName}: elevated pressure`;
   if (score >= 45) return `${driverName}: moderate risk`;
   return `${driverName}: stable`;
@@ -398,24 +393,11 @@ function summarizeDrivers(drivers: Record<DriverKey, DriverData>): {
   return { average, topName, topScore, alertCount };
 }
 
-const AI_RISK_FACTORS_SNAPSHOT_PATH = path.join(
-  process.cwd(),
-  "app/config/dashboard-risk-factors-ai.json",
-);
-
 async function readAiRiskFactorsSnapshot(): Promise<AiRiskFactorsSnapshot | null> {
-  try {
-    const raw = await readFile(AI_RISK_FACTORS_SNAPSHOT_PATH, "utf8");
-    const parsed = JSON.parse(raw) as AiRiskFactorsSnapshot;
-    if (!parsed || typeof parsed !== "object") return null;
-    if (!parsed.drivers || !parsed.intelligence) return null;
-    if (typeof parsed.model !== "string" || parsed.model.trim().length === 0) return null;
-    if (typeof parsed.reasoningEffort !== "string" || parsed.reasoningEffort.trim().length === 0) return null;
-    if (typeof parsed.generatedAt !== "string" || parsed.generatedAt.trim().length === 0) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
+  const snapshot = await readAiSnapshot<AiRiskFactorsSnapshot>("app/config/dashboard-risk-factors-ai.json");
+  if (!snapshot) return null;
+  if (!snapshot.drivers || !snapshot.intelligence) return null;
+  return snapshot;
 }
 
 function driverFocus(driver: DriverKey): string {
@@ -430,16 +412,17 @@ function buildDriverProvenance(
   key: DriverKey,
   dataDate: string | null,
   generatedAt: string | null,
+  trustedUrls: string[],
 ): AiCardProvenance {
   const asOf = dataDate ?? generatedAt ?? new Date().toISOString();
   return {
     asOf,
     generatedAt: generatedAt ?? asOf,
-    method: "daily-ai-card-refresh",
+    method: "verified-db-and-trusted-market-pull",
     sourceFeeds: [
       "analytics.dashboard_metrics",
       "analytics.driver_attribution_1d",
-      "app/config/dashboard-risk-factors-ai.json",
+      ...trustedUrls,
     ],
     sourceRecords: [
       {
@@ -455,9 +438,8 @@ function buildDriverProvenance(
         observedAt: dataDate ?? undefined,
       },
       {
-        source: "ai-daily-refresh",
-        table: "app/config/dashboard-risk-factors-ai.json",
-        recordHint: `driver=${key}`,
+        source: "trusted-market-pull",
+        recordHint: `driver=${key} live market context`,
         observedAt: generatedAt ?? undefined,
       },
     ],
@@ -467,16 +449,17 @@ function buildDriverProvenance(
 function buildIntelligenceProvenance(
   asOf: string | null,
   generatedAt: string | null,
+  trustedUrls: string[],
 ): AiCardProvenance {
   const resolvedAsOf = asOf ?? generatedAt ?? new Date().toISOString();
   return {
     asOf: resolvedAsOf,
     generatedAt: generatedAt ?? resolvedAsOf,
-    method: "daily-ai-card-refresh",
+    method: "verified-db-and-trusted-market-pull",
     sourceFeeds: [
       "analytics.dashboard_metrics",
       "analytics.driver_attribution_1d",
-      "app/config/dashboard-risk-factors-ai.json",
+      ...trustedUrls,
     ],
     sourceRecords: [
       {
@@ -492,9 +475,8 @@ function buildIntelligenceProvenance(
         observedAt: resolvedAsOf,
       },
       {
-        source: "ai-daily-refresh",
-        table: "app/config/dashboard-risk-factors-ai.json",
-        recordHint: "intelligence",
+        source: "trusted-market-pull",
+        recordHint: "cross-driver synthesis with live market pulls",
         observedAt: generatedAt ?? undefined,
       },
     ],
@@ -555,7 +537,7 @@ function buildDriverWhatsHappening(
     supplyDemand,
     geopolitical,
     investorSentiment: sentiment,
-    nearTermOutlook: payload.score === null ? "Awaiting next signal update." : payload.score >= 70 ? "High-risk posture likely to persist near term." : payload.score >= 45 ? "Mixed posture with event-driven volatility risk." : "Low-pressure posture unless headline regime changes.",
+    nearTermOutlook: payload.score === null ? "Hard stop: near-term outlook blocked until verified signal fields are populated." : payload.score >= 70 ? "High-risk posture likely to persist near term." : payload.score >= 45 ? "Mixed posture with event-driven volatility risk." : "Low-pressure posture unless headline regime changes.",
     zlImplication,
   };
 }
@@ -564,6 +546,8 @@ export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
     const aiSnapshot = await readAiRiskFactorsSnapshot();
+    const trustedMarket = await fetchTrustedMarketSnapshot();
+    const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
 
     const [{ data: metricRows, error: metricError }, { data: attributionRows, error: attributionError }] = await Promise.all([
       supabase
@@ -597,6 +581,17 @@ export async function GET() {
       metricMap.set(normalizeMetricKey(row.metric_key), toNumber(row.metric_value));
     }
 
+    // Trusted-source override lane: if live pulls are available, they replace stale DB metric components.
+    if (trustedMarket.vix.value !== null) metricMap.set("vix_value", trustedMarket.vix.value);
+    if (trustedMarket.ovx.value !== null) metricMap.set("ovx_value", trustedMarket.ovx.value);
+    if (trustedMarket.cl.value !== null) metricMap.set("cl_price", trustedMarket.cl.value);
+    if (trustedMarket.cl.change5d !== null) {
+      metricMap.set("cl_change_5d", trustedMarket.cl.change5d);
+      metricMap.set("oil_change_5d", trustedMarket.cl.change5d);
+      metricMap.set("crude_oil_change_5d", trustedMarket.cl.change5d);
+    }
+    if (trustedMarket.cny.value !== null) metricMap.set("cny_rate", trustedMarket.cny.value);
+
     const latestAttributionDate = attributionRows?.[0]?.trade_date ?? null;
     const latestAttribution = (attributionRows ?? []).filter((r) => r.trade_date === latestAttributionDate);
     const attributionByDriver = new Map<DriverKey, { trade_date: string; factor: string; contribution: number | null }>();
@@ -627,6 +622,36 @@ export async function GET() {
     for (const key of Object.keys(scoreCandidates) as DriverKey[]) {
       if (scoreCandidates[key] === null) {
         scoreCandidates[key] = coerceScore(attributionByDriver.get(key)?.contribution ?? null);
+      }
+    }
+
+    const normalized = (value: number, floor: number, ceil: number): number =>
+      Math.max(0, Math.min(100, ((value - floor) / (ceil - floor)) * 100));
+
+    if (scoreCandidates.vix_stress === null) {
+      const vix = getMetric(metricMap, ["vix_value"]);
+      const ovx = getMetric(metricMap, ["ovx_value"]);
+      if (vix !== null || ovx !== null) {
+        const vixScore = vix === null ? 0 : normalized(vix, 14, 40);
+        const ovxScore = ovx === null ? 0 : normalized(ovx, 20, 60);
+        scoreCandidates.vix_stress = Math.round((vixScore * 0.55 + ovxScore * 0.45) * 10) / 10;
+      }
+    }
+
+    if (scoreCandidates.energy_stress === null) {
+      const cl5d = getMetric(metricMap, ["cl_change_5d", "crude_oil_change_5d"]);
+      const ovx = getMetric(metricMap, ["ovx_value"]);
+      if (cl5d !== null || ovx !== null) {
+        const clScore = cl5d === null ? 0 : normalized(Math.abs(cl5d * 100), 0.5, 8);
+        const ovxScore = ovx === null ? 0 : normalized(ovx, 20, 60);
+        scoreCandidates.energy_stress = Math.round((clScore * 0.5 + ovxScore * 0.5) * 10) / 10;
+      }
+    }
+
+    if (scoreCandidates.china_tension === null) {
+      const cny = getMetric(metricMap, ["cny_rate"]);
+      if (cny !== null) {
+        scoreCandidates.china_tension = Math.round(normalized(Math.abs(cny - 7.0), 0.03, 0.35) * 10) / 10;
       }
     }
 
@@ -743,7 +768,12 @@ export async function GET() {
           ai?.strategicSpecialInstructions ?? defaultInstructions,
         provenance:
           ai?.provenance ??
-          buildDriverProvenance(key, base.dataDate, aiSnapshot?.generatedAt ?? null),
+          buildDriverProvenance(
+            key,
+            base.dataDate,
+            aiSnapshot?.generatedAt ?? trustedMarket.fetchedAt,
+            trustedUrls,
+          ),
         aiPowered: Boolean(ai),
         dataDate: base.dataDate,
       };
@@ -802,7 +832,7 @@ export async function GET() {
         key,
         driver,
         mergedTopScore === 0 && mergedTopName === "No Data"
-          ? "Awaiting promoted analytics rows."
+          ? "Hard stop: promoted analytics rows are missing."
           : `Top concern is ${mergedTopName} at ${Math.round(mergedTopScore)}.`,
         mergedTopName,
         mergedAverage,
@@ -828,7 +858,7 @@ export async function GET() {
         summary:
           aiSnapshot?.intelligence?.summary ??
           (mergedTopName === "No Data"
-            ? "Awaiting promoted analytics rows. Cards are wired to live Supabase contracts and will populate automatically."
+            ? "Hard stop: promoted analytics rows are missing for cross-driver synthesis."
             : `Top concern is ${mergedTopName} at ${Math.round(mergedTopScore)}. Average risk is ${mergedAverage}.`),
         drivers: aiSnapshot?.intelligence?.drivers ?? (Object.values(mergedDrivers) as DriverData[])
           .filter((d) => d.score !== null)
@@ -850,14 +880,18 @@ export async function GET() {
           MARKET_INTELLIGENCE_STRATEGIC_SPECIAL_INSTRUCTIONS,
         provenance:
           aiSnapshot?.intelligence?.provenance ??
-          buildIntelligenceProvenance(asOfDateMax ?? asOfDateMin, aiSnapshot?.generatedAt ?? null),
+          buildIntelligenceProvenance(
+            asOfDateMax ?? asOfDateMin,
+            aiSnapshot?.generatedAt ?? trustedMarket.fetchedAt,
+            trustedUrls,
+          ),
       },
       ai: {
         enabled: Boolean(aiSnapshot),
-        source: aiSnapshot?.source ?? "none",
+        source: aiSnapshot?.source ?? "trusted-db+market-pull",
         model: aiSnapshot?.model ?? null,
         reasoningEffort: aiSnapshot?.reasoningEffort ?? null,
-        generatedAt: aiSnapshot?.generatedAt ?? null,
+        generatedAt: aiSnapshot?.generatedAt ?? trustedMarket.fetchedAt,
         refreshScheduleEt: aiSnapshot?.refreshScheduleEt ?? null,
       },
     };

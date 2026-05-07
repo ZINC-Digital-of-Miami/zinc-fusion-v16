@@ -4,6 +4,11 @@ import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } fr
 import type { ApiEnvelope, StrategyPosture } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import {
+  fetchTrustedMarketSnapshot,
+  TRUSTED_MARKET_SOURCE_FEEDS,
+  uniqueTrustedMarketUrls,
+} from "@/lib/server/trusted-market-sources";
 
 type StrategyCards = {
   contractImpactCalculator: AiCardContent;
@@ -92,16 +97,17 @@ function buildProvenance(
   generatedAt: string,
   tradeDate: string | null,
   cardKey: keyof StrategyCards,
+  trustedUrls: string[],
 ): AiCardProvenance {
   return {
     asOf: tradeDate ?? generatedAt,
     generatedAt,
-    method: "daily-ai-card-refresh",
+    method: "verified-db-and-trusted-market-pull",
     sourceFeeds: [
       "analytics.market_posture",
       "analytics.dashboard_metrics",
       "analytics.driver_attribution_1d",
-      "app/config/dashboard-risk-factors-ai.json",
+      ...trustedUrls,
     ],
     sourceRecords: [
       {
@@ -111,15 +117,15 @@ function buildProvenance(
         observedAt: tradeDate ?? undefined,
       },
       {
-        source: "ai-daily-refresh",
-        table: "app/config/strategy-posture-ai.json",
+        source: "analytics.driver_attribution_1d",
+        table: "analytics.driver_attribution_1d",
         recordHint: `card=${cardKey}`,
-        observedAt: generatedAt,
+        observedAt: tradeDate ?? generatedAt,
       },
     ],
     notes: [
-      "Buyer posture is interpreted for procurement cost control.",
-      "Card output is AI-authored with table-linked provenance hints.",
+      "Buyer posture is interpreted from verified table and market-source pulls.",
+      "Hard stop is applied when required driver or market evidence is missing.",
     ],
   };
 }
@@ -130,14 +136,31 @@ export async function GET() {
     const aiSnapshot = await readAiSnapshot<StrategyAiSnapshot>(
       "app/config/strategy-posture-ai.json",
     );
+    const trustedMarket = await fetchTrustedMarketSnapshot();
+    const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
 
-    const { data: row, error } = await supabase
-      .schema("analytics")
-      .from("market_posture")
-      .select("posture, rationale, trade_date")
-      .order("trade_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const [{ data: row, error }, { data: attributionRows }, { data: metricRows }] = await Promise.all([
+      supabase
+        .schema("analytics")
+        .from("market_posture")
+        .select("posture, rationale, trade_date")
+        .order("trade_date", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .schema("analytics")
+        .from("driver_attribution_1d")
+        .select("trade_date, rank, factor, contribution")
+        .order("trade_date", { ascending: false })
+        .order("rank", { ascending: true })
+        .limit(40),
+      supabase
+        .schema("analytics")
+        .from("dashboard_metrics")
+        .select("trade_date, metric_key, metric_value")
+        .order("trade_date", { ascending: false })
+        .limit(300),
+    ]);
 
     if (error) {
       return NextResponse.json(
@@ -146,36 +169,83 @@ export async function GET() {
       );
     }
 
+    const latestAttrDate = attributionRows?.[0]?.trade_date ?? null;
+    const latestAttr = (attributionRows ?? []).filter((r) => r.trade_date === latestAttrDate);
+    const topFactors = latestAttr
+      .slice(0, 4)
+      .map((r) => `${String(r.factor)} (${Number(r.contribution).toFixed(2)})`);
+
+    const latestMetricDate = metricRows?.[0]?.trade_date ?? null;
+    const latestMetrics = (metricRows ?? []).filter((r) => r.trade_date === latestMetricDate);
+    const metricMap = new Map<string, number>();
+    for (const rowMetric of latestMetrics) {
+      const n = Number(rowMetric.metric_value);
+      if (Number.isFinite(n)) {
+        metricMap.set(String(rowMetric.metric_key).toLowerCase(), n);
+      }
+    }
+
+    const dbVix = metricMap.get("vix_value") ?? null;
+    const dbOvx = metricMap.get("ovx_value") ?? null;
+    const dbCl5d = metricMap.get("cl_change_5d") ?? metricMap.get("crude_oil_change_5d") ?? null;
+    const liveVix = trustedMarket.vix.value ?? dbVix;
+    const liveOvx = trustedMarket.ovx.value ?? dbOvx;
+    const liveCl5d = trustedMarket.cl.change5d ?? dbCl5d;
+
     const dbPosture: StrategyPosture | null = row
       ? {
           posture: row.posture as StrategyPosture["posture"],
           rationale: row.rationale ?? "",
-          updatedAt: row.trade_date,
+          updatedAt: row.trade_date ?? new Date().toISOString(),
         }
       : null;
 
     const posture: StrategyPosture | null = aiSnapshot?.posture ?? dbPosture;
     const generatedAt = aiSnapshot?.generatedAt ?? new Date().toISOString();
     const tradeDate = row?.trade_date ?? posture?.updatedAt ?? null;
+    const stagedExecutionBias =
+      posture?.posture === "ACCUMULATE"
+        ? "Staged accumulation remains favored."
+        : posture?.posture === "WAIT"
+          ? "Hold execution optionality and avoid urgency."
+          : "Defer new exposure until risk compression is visible.";
+    const volatilityLine =
+      liveVix !== null && liveOvx !== null
+        ? `VIX ${liveVix.toFixed(2)} and OVX ${liveOvx.toFixed(2)} remain active volatility constraints.`
+        : "Hard stop: verified VIX/OVX volatility reads are unavailable.";
+    const crudeLine =
+      liveCl5d !== null
+        ? `CL 5-day change is ${(liveCl5d * 100).toFixed(2)}%, informing near-term pass-through risk.`
+        : "Hard stop: verified CL 5-day change is unavailable.";
+    const topFactorLine =
+      topFactors.length > 0
+        ? `Latest verified attribution stack: ${topFactors.join(", ")}.`
+        : "Hard stop: no verified attribution rows available in analytics.driver_attribution_1d.";
+    const noTrustedFeeds =
+      liveVix === null && liveOvx === null && liveCl5d === null;
 
     const fallbackCards: StrategyCards = {
       contractImpactCalculator: {
         title: "Contract Impact Calculator",
-        body: "Awaiting daily AI pull for buyer-side contract impact math.",
+        body: noTrustedFeeds
+          ? "Hard stop: trusted market evidence from Yahoo/FRED is unavailable, so contract-impact guidance is blocked."
+          : `${stagedExecutionBias} ${volatilityLine} ${crudeLine}`,
         strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.contractImpactCalculator,
-        provenance: buildProvenance(generatedAt, tradeDate, "contractImpactCalculator"),
+        provenance: buildProvenance(generatedAt, tradeDate, "contractImpactCalculator", trustedUrls),
       },
       factorWaterfall: {
         title: "Factor Waterfall",
-        body: "Awaiting daily AI pull for ranked factor contribution and causal chain.",
+        body: topFactorLine,
         strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.factorWaterfall,
-        provenance: buildProvenance(generatedAt, tradeDate, "factorWaterfall"),
+        provenance: buildProvenance(generatedAt, tradeDate, "factorWaterfall", trustedUrls),
       },
       riskMetrics: {
         title: "Risk Metrics",
-        body: "Awaiting daily AI pull for quantified probability, drawdown, and exposure math.",
+        body: noTrustedFeeds
+          ? "Hard stop: trusted volatility and crude metrics are unavailable; buyer risk-math output is blocked until verified feeds recover."
+          : `${volatilityLine} ${crudeLine} Decision-latency risk should be prioritized over single-window execution risk when these channels remain elevated.`,
         strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.riskMetrics,
-        provenance: buildProvenance(generatedAt, tradeDate, "riskMetrics"),
+        provenance: buildProvenance(generatedAt, tradeDate, "riskMetrics", trustedUrls),
       },
     };
 
@@ -189,7 +259,7 @@ export async function GET() {
           STRATEGY_INSTRUCTIONS.contractImpactCalculator,
         provenance:
           rawCards.contractImpactCalculator?.provenance ??
-          buildProvenance(generatedAt, tradeDate, "contractImpactCalculator"),
+          buildProvenance(generatedAt, tradeDate, "contractImpactCalculator", trustedUrls),
       },
       factorWaterfall: {
         ...fallbackCards.factorWaterfall,
@@ -199,7 +269,7 @@ export async function GET() {
           STRATEGY_INSTRUCTIONS.factorWaterfall,
         provenance:
           rawCards.factorWaterfall?.provenance ??
-          buildProvenance(generatedAt, tradeDate, "factorWaterfall"),
+          buildProvenance(generatedAt, tradeDate, "factorWaterfall", trustedUrls),
       },
       riskMetrics: {
         ...fallbackCards.riskMetrics,
@@ -209,7 +279,7 @@ export async function GET() {
           STRATEGY_INSTRUCTIONS.riskMetrics,
         provenance:
           rawCards.riskMetrics?.provenance ??
-          buildProvenance(generatedAt, tradeDate, "riskMetrics"),
+          buildProvenance(generatedAt, tradeDate, "riskMetrics", trustedUrls),
       },
     };
 
@@ -217,7 +287,7 @@ export async function GET() {
       ok: true,
       data: posture,
       asOf: new Date().toISOString(),
-      source: "analytics.market_posture",
+      source: ["analytics.market_posture", ...TRUSTED_MARKET_SOURCE_FEEDS].join(","),
     };
 
     return NextResponse.json({

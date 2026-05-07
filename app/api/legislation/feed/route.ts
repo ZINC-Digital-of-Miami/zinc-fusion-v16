@@ -4,6 +4,11 @@ import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } fr
 import type { ApiEnvelope, LegislationItem } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import {
+  fetchTrustedMarketSnapshot,
+  TRUSTED_MARKET_SOURCE_FEEDS,
+  uniqueTrustedMarketUrls,
+} from "@/lib/server/trusted-market-sources";
 
 type LegislationCards = {
   feedSummary: AiCardContent;
@@ -92,16 +97,17 @@ function buildProvenance(
   generatedAt: string,
   asOf: string,
   cardKey: keyof LegislationCards,
+  trustedUrls: string[],
 ): AiCardProvenance {
   return {
     asOf,
     generatedAt,
-    method: "daily-ai-card-refresh",
+    method: "verified-db-and-trusted-market-pull",
     sourceFeeds: [
       "alt.legislation_1d",
       "alt.executive_actions",
       "alt.congress_bills",
-      "app/config/legislation-feed-ai.json",
+      ...trustedUrls,
     ],
     sourceRecords: [
       {
@@ -123,8 +129,7 @@ function buildProvenance(
         observedAt: asOf,
       },
       {
-        source: "ai-daily-refresh",
-        table: "app/config/legislation-feed-ai.json",
+        source: "trusted-market-pull",
         recordHint: `card=${cardKey}`,
         observedAt: generatedAt,
       },
@@ -138,6 +143,8 @@ export async function GET() {
     const aiSnapshot = await readAiSnapshot<LegislationAiSnapshot>(
       "app/config/legislation-feed-ai.json",
     );
+    const trustedMarket = await fetchTrustedMarketSnapshot();
+    const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
 
     const [legRes, execRes, billsRes] = await Promise.all([
       supabase
@@ -171,26 +178,58 @@ export async function GET() {
     }));
     const items: LegislationItem[] = aiSnapshot?.items?.length ? aiSnapshot.items : dbItems;
     const generatedAt = aiSnapshot?.generatedAt ?? new Date().toISOString();
-    const asOf = items[0]?.publishedAt ?? generatedAt;
+    const asOf = items[0]?.publishedAt ?? trustedMarket.fetchedAt;
+
+    const sourceCounts = new Map<string, number>();
+    const tagCounts = new Map<string, number>();
+    for (const item of dbItems) {
+      sourceCounts.set(item.source, (sourceCounts.get(item.source) ?? 0) + 1);
+      for (const tag of item.tags) {
+        const normalized = String(tag).trim();
+        if (!normalized) continue;
+        tagCounts.set(normalized, (tagCounts.get(normalized) ?? 0) + 1);
+      }
+    }
+    const sortedSources = Array.from(sourceCounts.entries()).sort((a, b) => b[1] - a[1]);
+    const sortedTags = Array.from(tagCounts.entries()).sort((a, b) => b[1] - a[1]);
+    const topSource = sortedSources[0];
+    const topTagSet = sortedTags.slice(0, 3).map(([tag]) => tag).join(", ");
+    const topSourceShare =
+      dbItems.length > 0 && topSource ? (topSource[1] / dbItems.length) * 100 : null;
+    const concentrationClass =
+      topSourceShare === null
+        ? "unknown"
+        : topSourceShare >= 60
+          ? "high concentration"
+          : topSourceShare >= 40
+            ? "moderate concentration"
+            : "broadly distributed";
+    const latestItem = dbItems[0] ?? null;
 
     const fallbackCards: LegislationCards = {
       feedSummary: {
         title: "Live Policy Feed",
-        body: "Awaiting daily AI pull for policy narrative synthesis and procurement impact framing.",
+        body: latestItem
+          ? `Most recent verified policy item: "${latestItem.title}" from ${latestItem.source}. Primary watch themes are ${topTagSet || "not yet tagged"} with procurement impact evaluated on implementation timing and enforcement likelihood.`
+          : "Hard stop: no verified policy rows are available across legislation, executive, or congressional feeds.",
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.feedSummary,
-        provenance: buildProvenance(generatedAt, asOf, "feedSummary"),
+        provenance: buildProvenance(generatedAt, asOf, "feedSummary", trustedUrls),
       },
       sourcePressure: {
         title: "Source Activity",
-        body: "Awaiting daily AI pull for source concentration and intensity interpretation.",
+        body: topSource
+          ? `Source structure is ${concentrationClass}; ${topSource[0]} currently leads policy flow coverage at ${topSourceShare?.toFixed(1)}%. Confidence should be discounted when concentration remains high without corroboration breadth.`
+          : "Hard stop: source-activity interpretation is blocked because no verified feed records are available.",
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.sourcePressure,
-        provenance: buildProvenance(generatedAt, asOf, "sourcePressure"),
+        provenance: buildProvenance(generatedAt, asOf, "sourcePressure", trustedUrls),
       },
       tagPressure: {
         title: "Policy Tag Pressure",
-        body: "Awaiting daily AI pull for policy-theme pressure ranking.",
+        body: sortedTags.length > 0
+          ? `Top verified policy pressure themes: ${topTagSet}. These tags should drive watchlist priority in that order until persistence weakens.`
+          : "Hard stop: no verified policy tags are present, so tag-pressure ranking is blocked.",
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.tagPressure,
-        provenance: buildProvenance(generatedAt, asOf, "tagPressure"),
+        provenance: buildProvenance(generatedAt, asOf, "tagPressure", trustedUrls),
       },
     };
 
@@ -226,7 +265,7 @@ export async function GET() {
       ok: true,
       data: items,
       asOf: new Date().toISOString(),
-      source: "alt.legislation_1d,alt.executive_actions,alt.congress_bills",
+      source: ["alt.legislation_1d", "alt.executive_actions", "alt.congress_bills", ...TRUSTED_MARKET_SOURCE_FEEDS].join(","),
     };
 
     return NextResponse.json({

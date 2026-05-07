@@ -18,6 +18,8 @@ export type AiEnvelopeMeta = {
   refreshScheduleEt: string | null;
 };
 
+const TRUSTED_SNAPSHOT_SOURCES = new Set(["trusted-live-pull", "trusted-authority-pull"]);
+
 export async function readAiSnapshot<T extends object>(
   relativePathFromRepoRoot: string,
 ): Promise<(T & AiSnapshotMeta) | null> {
@@ -32,6 +34,9 @@ export async function readAiSnapshot<T extends object>(
     if (typeof parsed.generatedAt !== "string" || parsed.generatedAt.trim().length === 0) return null;
     if (typeof parsed.model !== "string" || parsed.model.trim().length === 0) return null;
     if (typeof parsed.reasoningEffort !== "string" || parsed.reasoningEffort.trim().length === 0) return null;
+    const snapshotSource =
+      typeof parsed.source === "string" ? parsed.source.trim().toLowerCase() : "";
+    if (!TRUSTED_SNAPSHOT_SOURCES.has(snapshotSource)) return null;
     return parsed as T & AiSnapshotMeta;
   } catch {
     return null;
