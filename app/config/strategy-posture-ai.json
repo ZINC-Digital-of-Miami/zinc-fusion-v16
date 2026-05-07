@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "generatedAt": "2026-05-07T11:07:28-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Current risk network remains elevated but not disorderly. For a buyer, staged accumulation reduces timing error while preserving optionality against macro and energy shock persistence.",
-    "updatedAt": "2026-05-07T13:52:00-04:00"
+    "rationale": "Buyer posture ACCUMULATE from cross-driver average 42.6; top pressure channel is energy_stress at 80.8.",
+    "updatedAt": "2026-05-07T11:07:28-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Contract-impact math remains in favor of staged execution: tranche sequencing reduces adverse fill risk versus one-shot commitment while volatility/macro tail coupling remains elevated.",
+      "body": "Current buyer stance is ACCUMULATE. Volatility score 44.1 and macro-policy score 27.4 support staged contract timing over one-shot execution.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
@@ -61,7 +61,7 @@
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Current driver ordering remains: volatility transmission first, then crush-margin pressure and macro-policy shock, followed by energy pass-through; China-flow remains meaningful but secondary.",
+      "body": "Driver order (highest to lowest pressure): energy stress (80.8), vix stress (44.1), china tension (38.0), tariff threat (27.4), crush pressure (22.9).",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
@@ -110,7 +110,7 @@
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Risk asymmetry is still upside-cost skewed for buyers; decision-latency risk remains larger than disciplined over-hedge risk while multi-driver coherence stays elevated.",
+      "body": "Average risk 42.6; top channel energy_stress 80.8. Regime NEUTRAL at confidence 0.90.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",

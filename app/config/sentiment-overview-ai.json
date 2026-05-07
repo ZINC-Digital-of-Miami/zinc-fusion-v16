@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "generatedAt": "2026-05-07T11:07:28-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "overview": {
-    "headlineCount": 127,
-    "sentimentScore": -18,
-    "cotBias": "defensive-neutral",
-    "updatedAt": "2026-05-07T13:52:00-04:00"
+    "headlineCount": 13,
+    "sentimentScore": 100.0,
+    "cotBias": "bullish",
+    "updatedAt": "2026-05-07T11:07:28-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Macro-policy narrative remains in elevated transmission state; energy-policy co-clustering is still the key regime amplifier for buyer timing risk.",
+        "body": "Macro-policy flow shows 7 high-signal rows in the active window; uncertainty index is 282.79.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Policy Sentiment Transmission",
           "strategicObjective": "Classify macro and policy narrative pressure regimes that can change soybean oil procurement timing risk before hard price confirmation.",
@@ -62,7 +62,7 @@
       },
       {
         "title": "Flow Narrative",
-        "body": "Positioning flow remains cautious with intermittent risk-on pulses, but conviction follow-through stays fragile when volatility and policy channels re-intensify.",
+        "body": "Active sentiment feed includes 13 rows over the last 7 days with energy=2, tariff=2, china=0.",
         "strategicSpecialInstructions": {
           "cardTopic": "Positioning and Participation Flow Sentiment",
           "strategicObjective": "Interpret whether current positioning flow supports stable price discovery or increases fragility for procurement execution windows.",
@@ -111,7 +111,7 @@
       },
       {
         "title": "Procurement Narrative",
-        "body": "Buyer-optimal sentiment posture remains staged execution with shorter reassessment windows; avoid large one-shot exposure while cross-channel correlation stays elevated.",
+        "body": "CFTC bias is bullish; combine with regime NEUTRAL to keep a staged buyer cadence and daily re-checks.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
           "strategicObjective": "Convert sentiment and flow conditions into buyer-ready pacing guidance that minimizes timing regret under uncertainty.",
@@ -161,7 +161,7 @@
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "Managed-money positioning is defensive-neutral: participation exists, but conviction remains conditional on volatility decay and policy stability.",
+      "body": "Latest CFTC soybean-oil report shows bias=bullish, net=171,812, ratio=24.23% of open interest.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
         "strategicObjective": "Determine whether managed-money bias contributes to stabilizing or destabilizing procurement-cost expectations.",
@@ -203,7 +203,7 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "Headline velocity remains above calm baseline; actionable signal is concentrated in persistent macro-policy and energy clusters rather than one-off stories.",
+      "body": "Headline flow classification is derived from trusted .gov and market feeds, with specialist tag clustering computed per row.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
         "strategicObjective": "Assess whether headline velocity is producing actionable regime signal or noisy churn for procurement decisions.",

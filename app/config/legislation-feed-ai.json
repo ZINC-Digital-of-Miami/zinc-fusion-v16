@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "generatedAt": "2026-05-07T11:07:28-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,7 +7,7 @@
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "Daily AI pull ranks policy items by procurement impact velocity, implementation horizon, and likely cost-transmission path into buyer execution windows.",
+      "body": "Loaded 10 policy items from Federal Register, White House, and Congress feeds; latest source is Congress.gov.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Procurement Impact Synthesis",
         "strategicObjective": "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
@@ -50,7 +50,7 @@
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Source concentration remains elevated enough to increase interpretation risk; federal energy, trade, and executive channels are still the dominant pressure contributors.",
+      "body": "Most active policy source in current pull: Congress.gov (6 items).",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Concentration and Signal Reliability",
         "strategicObjective": "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
@@ -99,7 +99,7 @@
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "Highest-pressure policy themes remain tariff, biofuel, logistics, and export-control pathways due to direct transmission into procurement-cost and timing assumptions.",
+      "body": "Top policy themes: policy, energy, tariff.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify which policy themes carry the highest procurement risk contribution in the current window.",
@@ -143,40 +143,84 @@
   },
   "items": [
     {
-      "source": "Federal Register",
-      "title": "Biofuel blend compliance clarification with downstream credit accounting revision",
-      "publishedAt": "2026-05-07T08:05:00-04:00",
-      "tags": ["biofuel", "compliance", "credit-market"]
+      "source": "Congress.gov",
+      "title": "H.R.4818 (118th) - Treat and Reduce Obesity Act of 2023",
+      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "tags": [
+        "policy"
+      ]
     },
     {
-      "source": "Congress",
-      "title": "Committee hearing schedules update on agricultural trade and export resilience",
-      "publishedAt": "2026-05-07T07:20:00-04:00",
-      "tags": ["trade", "exports", "ag-policy"]
+      "source": "Congress.gov",
+      "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
+      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "tags": [
+        "policy"
+      ]
     },
     {
-      "source": "Executive Action",
-      "title": "Supply-chain resilience directive expands critical-input monitoring scope",
-      "publishedAt": "2026-05-06T16:40:00-04:00",
-      "tags": ["supply-chain", "critical-inputs", "monitoring"]
+      "source": "Congress.gov",
+      "title": "H.R.22 (119th) - SAVE Act",
+      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "tags": [
+        "policy"
+      ]
     },
     {
-      "source": "USDA",
-      "title": "Oilseed market reporting cadence adjustment for weekly publication windows",
-      "publishedAt": "2026-05-06T13:10:00-04:00",
-      "tags": ["oilseeds", "reporting", "cadence"]
+      "source": "Congress.gov",
+      "title": "H.R.1 (119th) - An act to provide for reconciliation pursuant to title II of H. Con. Res. 14.",
+      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "tags": [
+        "policy"
+      ]
     },
     {
-      "source": "DOE",
-      "title": "Energy market stability briefing adds refined product risk commentary",
-      "publishedAt": "2026-05-06T10:25:00-04:00",
-      "tags": ["energy", "stability", "market-risk"]
+      "source": "Congress.gov",
+      "title": "H.R.8445 (118th) - To amend title 38, United States Code, and the Servicemembers Civil Relief Act to provide for the eligibility of United States citizens who serve in the Israeli Defense Forces for certain protections relating to such service.",
+      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "tags": [
+        "policy"
+      ]
     },
     {
-      "source": "Federal Register",
-      "title": "Port logistics capacity notice with temporary throughput procedural changes",
-      "publishedAt": "2026-05-05T14:50:00-04:00",
-      "tags": ["logistics", "ports", "throughput"]
+      "source": "Congress.gov",
+      "title": "H.R.7147 (119th) - Homeland Security and Further Additional Continuing Appropriations Act, 2026.",
+      "publishedAt": "2026-05-07T15:07:28.252388Z",
+      "tags": [
+        "policy"
+      ]
+    },
+    {
+      "source": "Securities and Exchange Commission",
+      "title": "Semiannual Reporting",
+      "publishedAt": "2026-05-07T00:00:00Z",
+      "tags": [
+        "policy"
+      ]
+    },
+    {
+      "source": "Agriculture Department",
+      "title": "United States Standards for Grades of Nectarines",
+      "publishedAt": "2026-05-07T00:00:00Z",
+      "tags": [
+        "policy"
+      ]
+    },
+    {
+      "source": "Agriculture Department",
+      "title": "Spearmint Oil Produced in the Far West; Salable Quantities and Allotment Percentages for the 2025-2026 Marketing Year",
+      "publishedAt": "2026-05-07T00:00:00Z",
+      "tags": [
+        "energy"
+      ]
+    },
+    {
+      "source": "Securities and Exchange Commission",
+      "title": "Self-Regulatory Organizations; LCH SA; Notice of an Application for an Exemption Pursuant to Section 36 of the Securities Exchange Act of 1934 Relating to Rule Filing Requirements and Request for Comment",
+      "publishedAt": "2026-05-06T00:00:00Z",
+      "tags": [
+        "tariff"
+      ]
     }
   ]
 }

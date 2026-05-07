@@ -237,8 +237,12 @@ export async function GET() {
     const events30d = events.filter((e) => new Date(e.event_date).getTime() <= in30.getTime()).length;
     const nextEvent = events[0] ?? null;
 
-    const totalFryers = fryers.reduce((acc, row) => acc + (Number(row.fryer_count) || 0), 0);
-    const lowRedundancySites = fryers.filter((row) => (Number(row.fryer_count) || 0) <= 1).length;
+    const knownFryerCounts = fryers
+      .map((row) => Number(row.fryer_count))
+      .filter((count) => Number.isFinite(count) && count >= 0);
+    const totalFryers = knownFryerCounts.reduce((acc, count) => acc + count, 0);
+    const lowRedundancySites = knownFryerCounts.filter((count) => count <= 1).length;
+    const unknownFryerSites = Math.max(0, fryers.length - knownFryerCounts.length);
 
     const latestScoreDate = customerScores[0]?.score_date ?? null;
     const latestScores = customerScores.filter((row) => row.score_date === latestScoreDate);
@@ -306,7 +310,9 @@ export async function GET() {
         title: "Fryer Equipment Tracking",
         body: fryers.length === 0
           ? "Hard stop: fryer lifecycle guidance is blocked because no verified vegas.fryers rows are available."
-          : `Verified fryer inventory totals ${totalFryers} units across ${fryers.length} tracked sites; ${lowRedundancySites} sites run low redundancy (one fryer or fewer). Service prioritization should front-load these sites before high-impact event windows.`,
+          : knownFryerCounts.length === 0
+            ? `Verified fryer rows exist for ${fryers.length} tracked sites, but fryer-count telemetry is not yet populated. Service prioritization should use event impact and account urgency until count telemetry is promoted.`
+            : `Verified fryer inventory totals ${totalFryers} units across ${fryers.length} tracked sites; ${lowRedundancySites} sites run low redundancy (one fryer or fewer) and ${unknownFryerSites} sites still require fryer-count telemetry. Service prioritization should front-load low-redundancy sites before high-impact event windows.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.fryerTracking,
         provenance: buildProvenance(generatedAt, asOf, "fryerTracking", trustedUrls),
       },

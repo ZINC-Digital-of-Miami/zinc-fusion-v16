@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-07T13:52:00-04:00",
+  "generatedAt": "2026-05-07T11:07:28-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
-    "activeEvents": 42,
-    "highPriorityAccounts": 118,
-    "updatedAt": "2026-05-07T13:52:00-04:00"
+    "activeEvents": 21,
+    "highPriorityAccounts": 10,
+    "updatedAt": "2026-05-07T11:07:28-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "Event pressure remains concentrated in convention and sports windows; prioritize pre-event outreach where projected fryer load and traffic elasticity are highest.",
+      "body": "Trusted event pull shows 10 events in 14 days and 11 in 30 days across tracked Vegas demand windows.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Driven Demand Window Risk",
         "strategicObjective": "Map near-term event concentration to procurement and service-demand timing so account outreach aligns with real demand spikes.",
@@ -53,7 +53,7 @@
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "Lead with cost-control certainty: pair contract timing guidance with account-level demand calendars and service-readiness positioning per venue cluster.",
+      "body": "Prioritize accounts with score >=65 (10 accounts) before the next two-week event cluster.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account-Level Sales Execution Strategy",
         "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer’s demand timing and service profile.",
@@ -95,7 +95,7 @@
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "Highest-opportunity accounts still show recurring high-volume event sensitivity; sequence outreach by demand-spike probability and service-cycle timing.",
+      "body": "Active tracked accounts: 10. Scores are refreshed from event-pressure and market-risk weighted logic.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account Priority and Opportunity Concentration",
         "strategicObjective": "Identify highest-value account opportunities with explicit reasoning tied to event sensitivity, volume pattern, and service window alignment.",
@@ -137,7 +137,7 @@
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer lifecycle risk remains elevated in high-throughput accounts; align proactive service windows to event cadence to reduce emergency downtime.",
+      "body": "Fryer rows are present for every tracked account; count telemetry is flagged pending direct customer equipment sync.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Assess fryer lifecycle risk against demand windows to prevent service disruption and emergency replacement cost exposure.",
