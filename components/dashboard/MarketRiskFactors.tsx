@@ -411,52 +411,6 @@ export function MarketRiskFactors() {
         </div>
       )}
 
-      {/* Intelligence Card */}
-      {data?.intelligence && (
-        <div className="mt-6 bg-[#0a0a0a] border border-white/5 rounded-2xl p-6 md:p-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-6 rounded-full" style={{ backgroundColor: data.intelligence.zlColor }} />
-              <h4 className="text-lg font-semibold text-white">{data.intelligence.headline}</h4>
-            </div>
-            <span
-              className="px-3 py-1.5 rounded text-xs font-bold tracking-wider"
-              style={{
-                backgroundColor: `${data.intelligence.zlColor}20`,
-                color: data.intelligence.zlColor,
-                border: `1px solid ${data.intelligence.zlColor}40`,
-              }}
-            >
-              ZL {data.intelligence.zlOutlook}
-            </span>
-          </div>
-          <p className="text-base text-slate-400 leading-relaxed mb-4">{data.intelligence.summary}</p>
-          {data.intelligence.tradingImplication && (
-            <div className="mb-4 px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-              <span className="text-xs text-slate-500 uppercase tracking-wider">What This Means For You</span>
-              <p className="text-base text-slate-300 mt-1">{data.intelligence.tradingImplication}</p>
-            </div>
-          )}
-          {data.intelligence.drivers?.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {data.intelligence.drivers.map((drv, i) => (
-                <div key={`${drv.label}-${i}`} className="flex items-start gap-2 text-sm">
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold shrink-0 ${
-                    drv.outlook === "BEARISH" || drv.outlook === "PRESSURE"
-                      ? "bg-red-500/20 text-red-400"
-                      : drv.outlook === "BULLISH" || drv.outlook === "SUPPORTIVE" || drv.outlook === "CALM"
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-amber-500/20 text-amber-400"
-                  }`}>
-                    {drv.label}
-                  </span>
-                  <span className="text-slate-500">{drv.detail}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }

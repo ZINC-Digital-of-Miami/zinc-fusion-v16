@@ -49,6 +49,7 @@ type MarketDriversResponse = {
     zlOutlook: "BULLISH" | "NEUTRAL" | "CAUTIOUS" | "BEARISH";
     zlColor: string;
     tradingImplication?: string;
+    aiPowered?: boolean;
   };
 };
 
@@ -102,10 +103,10 @@ function levelFor(driver: DriverKey, score: number | null): string {
     return "Brazil Favored";
   }
   if (driver === "tariff_threat") {
-    if (score >= 85) return "Active War";
-    if (score >= 65) return "Retaliation Risk";
-    if (score >= 45) return "Elevated Noise";
-    return "Minimal Threat";
+    if (score >= 85) return "Systemic Shock";
+    if (score >= 65) return "Elevated Risk";
+    if (score >= 45) return "Watch";
+    return "Contained";
   }
   if (score >= 85) return "Crisis";
   if (score >= 65) return "Supply Shock";
@@ -346,11 +347,11 @@ export async function GET() {
         dataDate: dateFor("china_tension"),
       },
       tariff_threat: {
-        name: "Tariff Threat",
+        name: "Macro Threat",
         score: scoreCandidates.tariff_threat,
         level: levelFor("tariff_threat", scoreCandidates.tariff_threat),
         regime: regimeFor(scoreCandidates.tariff_threat),
-        headline: headlineFor("Trade policy", scoreCandidates.tariff_threat),
+        headline: headlineFor("Macro/geopolitical", scoreCandidates.tariff_threat),
         components: {
           tpu_value: getMetric(metricMap, ["tpu_value", "trade_policy_uncertainty"]),
           uncertainty_value: getMetric(metricMap, ["uncertainty_value", "tpu_value", "trade_policy_uncertainty"]),
@@ -491,6 +492,7 @@ export async function GET() {
           topScore >= 65
             ? "Risk elevated. Keep procurement flexible and monitor next refresh."
             : "No major pressure signal yet. Continue normal buying schedule.",
+        aiPowered: false,
       },
     };
 
