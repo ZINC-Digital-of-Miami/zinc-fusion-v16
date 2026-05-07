@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
-function isPublicPath(_pathname: string): boolean {
+function isPublicPath(): boolean {
   // Auth deferred to Phase 9 — all routes are public for now
   return true;
 }
@@ -27,7 +27,7 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Public splash and auth flows remain reachable without a session.
-  if (isPublicPath(pathname)) {
+  if (isPublicPath()) {
     return supabaseResponse;
   }
 

@@ -27,8 +27,8 @@ function TopHeader() {
       }}
     >
       <nav
-        className="mx-auto flex items-center justify-between"
-        style={{ maxWidth: 1400, padding: "20px 40px" }}
+        className="flex w-full items-center justify-between"
+        style={{ padding: "20px 40px" }}
       >
         {/* Logo */}
         <Link href="/">

@@ -22,7 +22,7 @@ export default function LegislationPage() {
 
   return (
     <BackendShell>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         <h1 className="text-2xl font-bold text-white">Legislation</h1>
         <p className="text-slate-400">Federal regulations, executive actions, and congressional activity affecting soy oil and biofuel markets</p>
 

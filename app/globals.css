@@ -306,7 +306,7 @@ html, body {
 }
 
 .nav-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -981,7 +981,7 @@ html, body {
 }
 
 .hero-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
   display: grid;
@@ -1046,7 +1046,7 @@ html, body {
 }
 
 .grid-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -1170,7 +1170,7 @@ html, body {
 }
 
 .preview-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
   text-align: center;
@@ -1358,7 +1358,7 @@ html, body {
 }
 
 .cta-container {
-  max-width: 800px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -1403,7 +1403,7 @@ html, body {
 }
 
 .footer-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 40px;
 }

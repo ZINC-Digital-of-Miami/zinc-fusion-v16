@@ -5,7 +5,7 @@ import { BackendShell } from "@/components/backend-shell"
 export default function VegasIntelPage() {
   return (
     <BackendShell>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         <h1 className="text-2xl font-bold text-white">Vegas Intel</h1>
         <p className="text-slate-400">Sales strategy, event intelligence, and account recommendations for Las Vegas restaurant operations</p>
 
