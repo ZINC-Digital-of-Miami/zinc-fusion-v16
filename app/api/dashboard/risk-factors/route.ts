@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 
@@ -8,6 +10,42 @@ type DriverKey =
   | "china_tension"
   | "tariff_threat"
   | "energy_stress";
+
+type StrategicSpecialInstructions = {
+  cardTopic: string;
+  strategicObjective: string;
+  neuralConnectionThesis: string;
+  quantResearchProtocol: string[];
+  inferenceConstraints: string[];
+  outputRequirements: string[];
+};
+
+type AiDriverContent = {
+  headline?: string;
+  level?: string;
+  whatsHappening?: WhatsHappening;
+  strategicSpecialInstructions?: StrategicSpecialInstructions;
+};
+
+type AiIntelligenceContent = {
+  headline?: string;
+  summary?: string;
+  drivers?: { label: string; outlook: string; detail: string }[];
+  zlOutlook?: "BULLISH" | "NEUTRAL" | "CAUTIOUS" | "BEARISH";
+  zlColor?: string;
+  tradingImplication?: string;
+  strategicSpecialInstructions?: StrategicSpecialInstructions;
+};
+
+type AiRiskFactorsSnapshot = {
+  generatedAt: string;
+  model: string;
+  reasoningEffort: string;
+  source?: string;
+  refreshScheduleEt?: string;
+  drivers: Partial<Record<DriverKey, AiDriverContent>>;
+  intelligence: AiIntelligenceContent;
+};
 
 type WhatsHappening = {
   whatsHappening: string;
@@ -27,6 +65,7 @@ type DriverData = {
   headline: string;
   components: Record<string, number | null>;
   whatsHappening?: WhatsHappening;
+  strategicSpecialInstructions?: StrategicSpecialInstructions;
   aiPowered: boolean;
   dataDate: string | null;
 };
@@ -50,6 +89,15 @@ type MarketDriversResponse = {
     zlColor: string;
     tradingImplication?: string;
     aiPowered?: boolean;
+    strategicSpecialInstructions?: StrategicSpecialInstructions;
+  };
+  ai: {
+    enabled: boolean;
+    source: string;
+    model: string | null;
+    reasoningEffort: string | null;
+    generatedAt: string | null;
+    refreshScheduleEt: string | null;
   };
 };
 
@@ -150,6 +198,148 @@ function getMetric(metrics: Map<string, number | null>, keys: string[]): number 
   return null;
 }
 
+const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialInstructions> = {
+  vix_stress: {
+    cardTopic: "Volatility Transmission",
+    strategicObjective:
+      "Identify whether implied volatility is transitioning from noise to procurement-disruptive stress before price shocks fully print into ZL.",
+    neuralConnectionThesis:
+      "VIX and OVX co-expansion combined with unstable correlation regimes precedes defensive positioning, liquidity withdrawal, and wider execution slippage in procurement windows.",
+    quantResearchProtocol: [
+      "Track VIX absolute level, 5-day acceleration, and percentile regime versus recent history.",
+      "Measure OVX-VIX spread behavior to separate broad risk-off from energy-led volatility.",
+      "Validate implied-realized divergence before assigning persistent stress classification.",
+      "Require cross-check against correlation persistence between volatility complex and ZL directionality.",
+    ],
+    inferenceConstraints: [
+      "Do not call this a fear regime without citing at least two confirming volatility metrics.",
+      "Do not issue directional procurement urgency from a single-day volatility spike.",
+      "Treat contradictory signals as mixed regime until two consecutive confirmations.",
+    ],
+    outputRequirements: [
+      "Quote concrete metric values and near-term delta context.",
+      "State regime class and confidence rationale explicitly.",
+      "Tie conclusion to execution-risk timing, not generic market mood.",
+    ],
+  },
+  crush_pressure: {
+    cardTopic: "Crush Economics",
+    strategicObjective:
+      "Determine whether processor margin structure is signaling demand pull-forward, refinery stress, or neutral throughput for soybean oil procurement.",
+    neuralConnectionThesis:
+      "Board crush margin and oil-share shifts propagate through processor behavior, altering near-term oil availability and repricing procurement urgency ahead of spot dislocations.",
+    quantResearchProtocol: [
+      "Monitor board crush margin level and 5-day momentum for margin compression/expansion transitions.",
+      "Track oil value share and change-rate to detect oil-led versus meal-led margin dynamics.",
+      "Differentiate structural margin stress from transient basis noise using multi-day persistence.",
+      "Cross-reference with headline intensity only as secondary confirmation, never as primary driver.",
+    ],
+    inferenceConstraints: [
+      "Do not classify processor stress unless margin level and momentum agree.",
+      "Do not infer supply tightness from headlines when crush economics remain stable.",
+      "Avoid symmetric conclusions; upside and downside margin asymmetry must be explicit.",
+    ],
+    outputRequirements: [
+      "Report margin, oil share, and short-window change metrics together.",
+      "Specify whether the signal implies scarcity risk or normalization risk.",
+      "Convert finding into concrete procurement pacing guidance.",
+    ],
+  },
+  china_tension: {
+    cardTopic: "China Demand and Flow Risk",
+    strategicObjective:
+      "Detect demand-flow rerouting or escalation risk from China-linked macro channels before it manifests as persistent ZL repricing.",
+    neuralConnectionThesis:
+      "CNY stress, shipping/trade-flow narrative pressure, and China-soy headline clustering can alter marginal demand assumptions and induce asymmetric price response in oil contracts.",
+    quantResearchProtocol: [
+      "Track CNY level and directional pressure relative to recent trade windows.",
+      "Measure China/soy headline density and persistence, not one-off spikes.",
+      "Evaluate whether flow-tension signals align with broader risk complex or remain isolated.",
+      "Classify regime only after confirming currency and narrative channels are directionally coherent.",
+    ],
+    inferenceConstraints: [
+      "Do not conclude demand shock from headline count alone.",
+      "Do not treat currency wobble as structural without multi-session follow-through.",
+      "When channels diverge, report mixed state and defer hard directional posture.",
+    ],
+    outputRequirements: [
+      "State explicit flow-risk state: stable, watch, diversion, or conflict.",
+      "Cite CNY and headline evidence with timing context.",
+      "Translate into procurement decision latency guidance.",
+    ],
+  },
+  tariff_threat: {
+    cardTopic: "Macro and Geopolitical Policy Shock",
+    strategicObjective:
+      "Quantify whether policy uncertainty and geopolitical escalation are reaching a threshold where procurement execution must shift from schedule-based to contingency-aware.",
+    neuralConnectionThesis:
+      "Policy uncertainty, energy transmission, and conflict narrative density interact non-linearly; once co-aligned, they increase tail-risk probability and invalidate static buying cadence assumptions.",
+    quantResearchProtocol: [
+      "Track uncertainty index regime against short-window crude momentum for transmission confirmation.",
+      "Measure Iran/war and macro headline densities for escalation persistence.",
+      "Validate that policy and energy channels are directionally coherent before escalation call.",
+      "Assess whether macro pressure is broadening across multiple risk factors or remaining isolated.",
+    ],
+    inferenceConstraints: [
+      "Do not label systemic shock unless uncertainty and transmission metrics co-confirm.",
+      "Avoid headline-only escalation calls without price-channel corroboration.",
+      "Explicitly mark mixed regimes when macro and energy signals conflict.",
+    ],
+    outputRequirements: [
+      "Provide shock class with concrete thresholds and evidence.",
+      "State expected execution impact horizon (immediate, near-term, or deferred).",
+      "Frame recommendation in procurement optionality terms.",
+    ],
+  },
+  energy_stress: {
+    cardTopic: "Energy Pass-Through Pressure",
+    strategicObjective:
+      "Identify when energy complex dynamics are likely to cascade into soybean oil procurement cost pressure beyond routine volatility.",
+    neuralConnectionThesis:
+      "Crude direction, velocity, and energy-volatility coupling drive pass-through pressure; persistent co-movement raises the probability of accelerated cost repricing in ZL-related procurement.",
+    quantResearchProtocol: [
+      "Track CL absolute level with 5-day and 20-day directional context.",
+      "Measure OVX alignment to distinguish stable trend from unstable stress expansion.",
+      "Use energy-headline density as catalyst context rather than primary quantitative proof.",
+      "Require multi-signal coherence before assigning crisis-class regime.",
+    ],
+    inferenceConstraints: [
+      "Do not infer pass-through stress from crude alone without volatility context.",
+      "Do not overstate risk on isolated headline spikes.",
+      "When trend and volatility disagree, classify as transitional regime.",
+    ],
+    outputRequirements: [
+      "Report crude, volatility, and headline context together.",
+      "State whether signal implies transient pressure or persistent repricing risk.",
+      "Tie conclusion directly to procurement timing and hedge posture.",
+    ],
+  },
+};
+
+const MARKET_INTELLIGENCE_STRATEGIC_SPECIAL_INSTRUCTIONS: StrategicSpecialInstructions = {
+  cardTopic: "Cross-Driver Strategic Synthesis",
+  strategicObjective:
+    "Synthesize driver-level signals into an actionable procurement regime that prioritizes execution timing, optionality preservation, and risk-adjusted cost control.",
+  neuralConnectionThesis:
+    "Procurement risk is a network problem: volatility, crush economics, China flow tension, macro shock channels, and energy transmission interact with lag and feedback; robust decisions require weighted cross-signal coherence, not single-factor conviction.",
+  quantResearchProtocol: [
+    "Rank drivers by pressure score and persistence, then test for cross-driver agreement.",
+    "Separate structural regime shifts from transient anomalies by requiring multi-session confirmation.",
+    "Evaluate top driver interaction terms (volatility x macro, energy x macro, crush x china) before final posture.",
+    "Force explicit confidence statement tied to data freshness and signal completeness.",
+  ],
+  inferenceConstraints: [
+    "Do not issue high-conviction posture when top drivers conflict materially.",
+    "Do not default to neutral language when one driver shows systemic-risk class pressure.",
+    "Never summarize without an explicit execution implication for procurement.",
+  ],
+  outputRequirements: [
+    "State the dominant risk network and its expected persistence horizon.",
+    "Provide a concrete posture recommendation with monitoring triggers.",
+    "Use metric-backed reasoning and avoid generic narrative filler.",
+  ],
+};
+
 function formatMetric(value: number | null, mode: "fixed1" | "fixed2" | "int" | "pct" | "usd2"): string {
   if (value === null) return "unavailable";
   if (mode === "fixed1") return value.toFixed(1);
@@ -166,6 +356,26 @@ function scoreState(score: number | null): string {
   return "calm zone";
 }
 
+const AI_RISK_FACTORS_SNAPSHOT_PATH = path.join(
+  process.cwd(),
+  "app/config/dashboard-risk-factors-ai.json",
+);
+
+async function readAiRiskFactorsSnapshot(): Promise<AiRiskFactorsSnapshot | null> {
+  try {
+    const raw = await readFile(AI_RISK_FACTORS_SNAPSHOT_PATH, "utf8");
+    const parsed = JSON.parse(raw) as AiRiskFactorsSnapshot;
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed.drivers || !parsed.intelligence) return null;
+    if (typeof parsed.model !== "string" || parsed.model.trim().length === 0) return null;
+    if (typeof parsed.reasoningEffort !== "string" || parsed.reasoningEffort.trim().length === 0) return null;
+    if (typeof parsed.generatedAt !== "string" || parsed.generatedAt.trim().length === 0) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 function driverFocus(driver: DriverKey): string {
   if (driver === "vix_stress") return "volatility transmission into procurement timing";
   if (driver === "crush_pressure") return "processor margin pressure and oil-share economics";
@@ -180,6 +390,7 @@ function buildDriverWhatsHappening(
   aggregateSummary: string,
   topDriverName: string,
   averagePressure: number,
+  instructions: StrategicSpecialInstructions,
 ): WhatsHappening {
   const scoreText = payload.score === null ? "No scored signal yet" : `Score ${Math.round(payload.score)}`;
   const commonState = scoreState(payload.score);
@@ -222,7 +433,7 @@ function buildDriverWhatsHappening(
           : "Pressure is contained; continue schedule-based procurement unless another driver escalates."
 
   return {
-    whatsHappening: `${payload.name} is currently ${commonState}. ${scoreText} with level ${payload.level} keeps focus on ${focus}.`,
+    whatsHappening: `${payload.name} is currently ${commonState}. ${scoreText} with level ${payload.level} keeps focus on ${focus}. Strategic frame: ${instructions.cardTopic}.`,
     macroContext: `${aggregateSummary} Top pressure is ${topDriverName} and average pressure is ${averagePressure.toFixed(1)}.`,
     supplyDemand,
     geopolitical,
@@ -235,6 +446,7 @@ function buildDriverWhatsHappening(
 export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
+    const aiSnapshot = await readAiRiskFactorsSnapshot();
 
     const [{ data: metricRows, error: metricError }, { data: attributionRows, error: attributionError }] = await Promise.all([
       supabase
@@ -409,7 +621,12 @@ export async function GET() {
       drivers: {
         vix_stress: {
           ...drivers.vix_stress,
-          whatsHappening: buildDriverWhatsHappening(
+          headline: aiSnapshot?.drivers?.vix_stress?.headline ?? drivers.vix_stress.headline,
+          level: aiSnapshot?.drivers?.vix_stress?.level ?? drivers.vix_stress.level,
+          strategicSpecialInstructions:
+            aiSnapshot?.drivers?.vix_stress?.strategicSpecialInstructions ??
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.vix_stress,
+          whatsHappening: aiSnapshot?.drivers?.vix_stress?.whatsHappening ?? buildDriverWhatsHappening(
             "vix_stress",
             drivers.vix_stress,
             scoredEntries.length === 0
@@ -417,11 +634,18 @@ export async function GET() {
               : `Top concern is ${topName} at ${Math.round(topScore)}.`,
             topName,
             average,
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.vix_stress,
           ),
+          aiPowered: Boolean(aiSnapshot?.drivers?.vix_stress),
         },
         crush_pressure: {
           ...drivers.crush_pressure,
-          whatsHappening: buildDriverWhatsHappening(
+          headline: aiSnapshot?.drivers?.crush_pressure?.headline ?? drivers.crush_pressure.headline,
+          level: aiSnapshot?.drivers?.crush_pressure?.level ?? drivers.crush_pressure.level,
+          strategicSpecialInstructions:
+            aiSnapshot?.drivers?.crush_pressure?.strategicSpecialInstructions ??
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.crush_pressure,
+          whatsHappening: aiSnapshot?.drivers?.crush_pressure?.whatsHappening ?? buildDriverWhatsHappening(
             "crush_pressure",
             drivers.crush_pressure,
             scoredEntries.length === 0
@@ -429,11 +653,18 @@ export async function GET() {
               : `Top concern is ${topName} at ${Math.round(topScore)}.`,
             topName,
             average,
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.crush_pressure,
           ),
+          aiPowered: Boolean(aiSnapshot?.drivers?.crush_pressure),
         },
         china_tension: {
           ...drivers.china_tension,
-          whatsHappening: buildDriverWhatsHappening(
+          headline: aiSnapshot?.drivers?.china_tension?.headline ?? drivers.china_tension.headline,
+          level: aiSnapshot?.drivers?.china_tension?.level ?? drivers.china_tension.level,
+          strategicSpecialInstructions:
+            aiSnapshot?.drivers?.china_tension?.strategicSpecialInstructions ??
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.china_tension,
+          whatsHappening: aiSnapshot?.drivers?.china_tension?.whatsHappening ?? buildDriverWhatsHappening(
             "china_tension",
             drivers.china_tension,
             scoredEntries.length === 0
@@ -441,11 +672,18 @@ export async function GET() {
               : `Top concern is ${topName} at ${Math.round(topScore)}.`,
             topName,
             average,
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.china_tension,
           ),
+          aiPowered: Boolean(aiSnapshot?.drivers?.china_tension),
         },
         tariff_threat: {
           ...drivers.tariff_threat,
-          whatsHappening: buildDriverWhatsHappening(
+          headline: aiSnapshot?.drivers?.tariff_threat?.headline ?? drivers.tariff_threat.headline,
+          level: aiSnapshot?.drivers?.tariff_threat?.level ?? drivers.tariff_threat.level,
+          strategicSpecialInstructions:
+            aiSnapshot?.drivers?.tariff_threat?.strategicSpecialInstructions ??
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.tariff_threat,
+          whatsHappening: aiSnapshot?.drivers?.tariff_threat?.whatsHappening ?? buildDriverWhatsHappening(
             "tariff_threat",
             drivers.tariff_threat,
             scoredEntries.length === 0
@@ -453,11 +691,18 @@ export async function GET() {
               : `Top concern is ${topName} at ${Math.round(topScore)}.`,
             topName,
             average,
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.tariff_threat,
           ),
+          aiPowered: Boolean(aiSnapshot?.drivers?.tariff_threat),
         },
         energy_stress: {
           ...drivers.energy_stress,
-          whatsHappening: buildDriverWhatsHappening(
+          headline: aiSnapshot?.drivers?.energy_stress?.headline ?? drivers.energy_stress.headline,
+          level: aiSnapshot?.drivers?.energy_stress?.level ?? drivers.energy_stress.level,
+          strategicSpecialInstructions:
+            aiSnapshot?.drivers?.energy_stress?.strategicSpecialInstructions ??
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.energy_stress,
+          whatsHappening: aiSnapshot?.drivers?.energy_stress?.whatsHappening ?? buildDriverWhatsHappening(
             "energy_stress",
             drivers.energy_stress,
             scoredEntries.length === 0
@@ -465,7 +710,9 @@ export async function GET() {
               : `Top concern is ${topName} at ${Math.round(topScore)}.`,
             topName,
             average,
+            DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS.energy_stress,
           ),
+          aiPowered: Boolean(aiSnapshot?.drivers?.energy_stress),
         },
       },
       summary: {
@@ -474,25 +721,40 @@ export async function GET() {
         alert_count: alertCount,
       },
       intelligence: {
-        headline: topScore >= 65 ? "ELEVATED MARKET - Watch Procurement Risk" : "NORMAL MARKET - Buy On Schedule",
+        headline:
+          aiSnapshot?.intelligence?.headline ??
+          (topScore >= 65 ? "ELEVATED MARKET - Watch Procurement Risk" : "NORMAL MARKET - Buy On Schedule"),
         summary:
-          scoredEntries.length === 0
+          aiSnapshot?.intelligence?.summary ??
+          (scoredEntries.length === 0
             ? "Awaiting promoted analytics rows. Cards are wired to live Supabase contracts and will populate automatically."
-            : `Top concern is ${topName} at ${Math.round(topScore)}. Average risk is ${average}.`,
-        drivers: (Object.values(drivers) as DriverData[])
+            : `Top concern is ${topName} at ${Math.round(topScore)}. Average risk is ${average}.`),
+        drivers: aiSnapshot?.intelligence?.drivers ?? (Object.values(drivers) as DriverData[])
           .filter((d) => d.score !== null)
           .map((d) => ({
             label: d.name,
             outlook: d.score !== null && d.score >= 65 ? "PRESSURE" : d.score !== null && d.score <= 35 ? "SUPPORTIVE" : "MIXED",
             detail: d.headline,
           })),
-        zlOutlook: outlookFromScore(average),
-        zlColor: colorFromScore(average),
+        zlOutlook: aiSnapshot?.intelligence?.zlOutlook ?? outlookFromScore(average),
+        zlColor: aiSnapshot?.intelligence?.zlColor ?? colorFromScore(average),
         tradingImplication:
-          topScore >= 65
+          aiSnapshot?.intelligence?.tradingImplication ??
+          (topScore >= 65
             ? "Risk elevated. Keep procurement flexible and monitor next refresh."
-            : "No major pressure signal yet. Continue normal buying schedule.",
-        aiPowered: false,
+            : "No major pressure signal yet. Continue normal buying schedule."),
+        aiPowered: Boolean(aiSnapshot?.intelligence),
+        strategicSpecialInstructions:
+          aiSnapshot?.intelligence?.strategicSpecialInstructions ??
+          MARKET_INTELLIGENCE_STRATEGIC_SPECIAL_INSTRUCTIONS,
+      },
+      ai: {
+        enabled: Boolean(aiSnapshot),
+        source: aiSnapshot?.source ?? "none",
+        model: aiSnapshot?.model ?? null,
+        reasoningEffort: aiSnapshot?.reasoningEffort ?? null,
+        generatedAt: aiSnapshot?.generatedAt ?? null,
+        refreshScheduleEt: aiSnapshot?.refreshScheduleEt ?? null,
       },
     };
 

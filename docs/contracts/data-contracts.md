@@ -20,6 +20,19 @@
 - Sentiment and Legislation page content is GPT-driven from approved news/policy sources.
 - Generated summaries/scores must remain attributable to source records and run timestamps.
 
+## Dashboard AI Card Instruction Contract
+- `/api/dashboard/risk-factors` must provide per-card `strategicSpecialInstructions` for each driver card and the AI Market Intelligence card.
+- Instructions must be topic-specific, quant-research oriented, and include:
+  - strategic objective
+  - neural connection thesis
+  - quant research protocol
+  - inference constraints
+  - output requirements
+- Generic instruction text is not allowed for AI card instruction payloads.
+- AI narrative content is sourced from `app/config/dashboard-risk-factors-ai.json` (no OpenAI API key path).
+- Snapshot metadata must include `model`, `reasoningEffort`, `source`, `generatedAt`, and daily `refreshScheduleEt`.
+- Current locked runtime target: `gpt-5.5-fast` with `high-think`, refreshed daily at `07:00 America/New_York`.
+
 ## Operational Contracts
 - `ops.ingest_run`: mandatory ingest lifecycle logging for batch and price paths.
 - `ops.pipeline_alerts`: freshness and pipeline alerting.

@@ -1,0 +1,234 @@
+{
+  "generatedAt": "2026-05-07T07:00:00-04:00",
+  "model": "gpt-5.5-fast",
+  "reasoningEffort": "high-think",
+  "source": "pro-subscription-connection",
+  "refreshScheduleEt": "07:00 America/New_York daily",
+  "drivers": {
+    "vix_stress": {
+      "headline": "Volatility transfer risk is active: implied stress is elevated enough to widen execution slippage if energy and macro channels co-accelerate.",
+      "level": "Fund Exit",
+      "whatsHappening": {
+        "whatsHappening": "Volatility complex behavior is no longer background noise. Cross-asset stress is showing the exact early-stage signature that historically front-runs execution friction in ZL procurement windows.",
+        "macroContext": "Rates uncertainty plus geopolitics is sustaining higher implied-volatility sensitivity, which increases the chance of abrupt repricing between regular buying windows.",
+        "supplyDemand": "No physical soybean oil dislocation is confirmed yet, but volatility transmission is the pre-condition that can convert neutral supply into expensive procurement timing.",
+        "geopolitical": "Energy corridor risk and policy headline shocks remain the catalyst set that can convert implied stress into real price gaps.",
+        "investorSentiment": "Systematic and discretionary flows are both in a defensive orientation; liquidity depth can deteriorate quickly when volatility spikes cluster.",
+        "nearTermOutlook": "Expect chop with fat-tail gap risk rather than smooth trend continuation. Decision lag is currently more expensive than normal.",
+        "zlImplication": "Tighten decision cadence, stage procurement in smaller tranches, and preserve hedge optionality instead of relying on single-window execution."
+      },
+      "strategicSpecialInstructions": {
+        "cardTopic": "Volatility Transmission and Execution Slippage",
+        "strategicObjective": "Detect transition from benign volatility to procurement-disruptive stress before price shock expression is complete.",
+        "neuralConnectionThesis": "A VIX/OVX co-expansion regime with unstable cross-asset correlation persistence increases probability of liquidity withdrawal and adverse execution in ZL procurement.",
+        "quantResearchProtocol": [
+          "Compute VIX and OVX joint z-score regime and 5-session acceleration vectors.",
+          "Estimate implied-realized divergence and classify persistence over rolling 10/20-session windows.",
+          "Measure execution-friction proxy via intraday range expansion and opening-gap frequency.",
+          "Require cross-confirmation with macro shock channel before elevating to hard-action posture."
+        ],
+        "inferenceConstraints": [
+          "Do not classify crisis from one-session spikes without persistence evidence.",
+          "Do not issue high-conviction action when implied-realized spread is mean-reverting.",
+          "Explicitly mark mixed regime when volatility and macro channels diverge."
+        ],
+        "outputRequirements": [
+          "State regime class, persistence window, and confidence basis.",
+          "Quantify expected execution-risk impact in near-term procurement windows.",
+          "Provide trigger thresholds for escalation and de-escalation."
+        ]
+      }
+    },
+    "crush_pressure": {
+      "headline": "Crush economics remain the core physical signal: margin compression risk is high enough to threaten near-term oil availability pacing.",
+      "level": "Margin Squeeze",
+      "whatsHappening": {
+        "whatsHappening": "Processor economics are in a fragile zone where small margin shocks can quickly alter throughput behavior and soybean oil availability assumptions.",
+        "macroContext": "Macro volatility amplifies margin sensitivity; even modest input-cost movement can rapidly change processor run-rate incentives.",
+        "supplyDemand": "Board crush and oil-share dynamics point to tighter response bands for processors, which can translate into faster repricing for buyers.",
+        "geopolitical": "No single geopolitical event dominates, but policy and freight shocks would likely intensify this margin-pressure setup.",
+        "investorSentiment": "Market participants are treating crush signals as a live risk channel rather than a lagging confirmation metric.",
+        "nearTermOutlook": "Expect continued sensitivity in margin-linked pricing until either oil-share momentum cools or crush spreads stabilize across multiple sessions.",
+        "zlImplication": "Prioritize procurement timing when margin windows improve; avoid delayed batching if crush signals deteriorate further."
+      },
+      "strategicSpecialInstructions": {
+        "cardTopic": "Crush Margin to Availability Transmission",
+        "strategicObjective": "Identify whether processor margin structure is shifting toward throughput restraint or normalization before spot repricing accelerates.",
+        "neuralConnectionThesis": "Board crush compression combined with oil-share instability creates asymmetric supply-risk propagation into procurement cost timing.",
+        "quantResearchProtocol": [
+          "Track crush margin level, 5-session slope, and volatility of slope.",
+          "Measure oil value share and divergence from meal-led dynamics.",
+          "Classify persistence with multi-session state machine (stable, compressing, unstable).",
+          "Cross-check with inventory/flow proxies before scarcity classification."
+        ],
+        "inferenceConstraints": [
+          "Do not label structural scarcity from transient basis noise.",
+          "Do not infer normalization unless margin and oil-share both stabilize.",
+          "Report asymmetry explicitly when downside margin risk dominates upside recovery."
+        ],
+        "outputRequirements": [
+          "Provide scarcity-vs-normalization probability framing.",
+          "Attach concrete pacing guidance for procurement windows.",
+          "Cite margin/oil-share metrics with short-window deltas."
+        ]
+      }
+    },
+    "china_tension": {
+      "headline": "China flow-risk channel is in a watch-to-diversion state: currency and narrative pressure can still reprice marginal demand expectations quickly.",
+      "level": "Trade Diversion",
+      "whatsHappening": {
+        "whatsHappening": "China-linked demand and flow signals are not in full escalation, but the setup remains sensitive enough to shift import assumptions rapidly.",
+        "macroContext": "CNY pressure and growth uncertainty are keeping demand elasticity assumptions unstable across soy complex exposures.",
+        "supplyDemand": "Flow redirection risk remains elevated where trade narratives cluster around logistics and policy friction.",
+        "geopolitical": "Trade-policy rhetoric and bilateral tension continue to act as non-linear catalysts for demand-flow interpretation.",
+        "investorSentiment": "Positioning is cautious: participants are discounting one-off headlines but reacting quickly to persistent cluster regimes.",
+        "nearTermOutlook": "Base case is mixed with episodic spikes; escalation probability rises if currency pressure and flow headlines align for multiple sessions.",
+        "zlImplication": "Keep procurement cadence flexible and monitor China-flow confirmation triggers before committing large single-window volume."
+      },
+      "strategicSpecialInstructions": {
+        "cardTopic": "China Demand Rerouting and Currency Stress",
+        "strategicObjective": "Distinguish transient headline turbulence from persistent demand-flow rerouting that can alter ZL pricing path.",
+        "neuralConnectionThesis": "Sustained CNY stress plus coherent China-flow narrative clusters can re-anchor marginal demand expectations and induce asymmetric ZL repricing.",
+        "quantResearchProtocol": [
+          "Model CNY directional pressure and persistence bands over rolling trade windows.",
+          "Compute China/soy narrative density and cluster duration metrics.",
+          "Test coherence between currency stress and flow-news regime states.",
+          "Promote escalation class only on multi-session channel agreement."
+        ],
+        "inferenceConstraints": [
+          "No demand-shock conclusion from headline count alone.",
+          "No structural call without currency persistence confirmation.",
+          "Label mixed state when channels are contradictory."
+        ],
+        "outputRequirements": [
+          "State explicit regime: stable, watch, diversion, or conflict.",
+          "Translate regime into procurement latency guidance.",
+          "Include confirmation/deconfirmation triggers."
+        ]
+      }
+    },
+    "tariff_threat": {
+      "headline": "Macro-policy shock channel remains elevated: uncertainty plus conflict narrative is high enough to invalidate static procurement cadence assumptions.",
+      "level": "Elevated Risk",
+      "whatsHappening": {
+        "whatsHappening": "Policy uncertainty and geopolitical narrative density are interacting in a way that keeps tail-risk probability elevated for procurement cost planning.",
+        "macroContext": "Macro regime is fragile: uncertainty shocks are transmitting faster into commodities when energy and policy signals reinforce.",
+        "supplyDemand": "Physical balance alone is not sufficient protection here; policy channel repricing can dominate near-term cost path.",
+        "geopolitical": "Conflict and tariff headlines remain active catalysts that can move risk-premium assumptions before hard fundamentals update.",
+        "investorSentiment": "Risk appetite is selective; markets are demanding stronger confirmation before pricing calm.",
+        "nearTermOutlook": "Maintain a guarded stance until uncertainty index and conflict-narrative pressure both cool on a persistent basis.",
+        "zlImplication": "Use contingency-aware execution plans and keep optionality open around high-impact policy windows."
+      },
+      "strategicSpecialInstructions": {
+        "cardTopic": "Macro Policy Shock and Geopolitical Escalation",
+        "strategicObjective": "Quantify whether policy uncertainty has crossed the threshold where procurement should switch from schedule-first to contingency-first execution.",
+        "neuralConnectionThesis": "Policy uncertainty, conflict narrative, and energy transmission interact non-linearly; once aligned, they raise tail-risk and compress reaction time for buyers.",
+        "quantResearchProtocol": [
+          "Track uncertainty index regime and velocity against short-horizon crude momentum.",
+          "Measure conflict/macro narrative persistence rather than point-in-time counts.",
+          "Evaluate cross-driver agreement with volatility and energy channels.",
+          "Assign escalation class only when transmission and narrative channels co-confirm."
+        ],
+        "inferenceConstraints": [
+          "No systemic-shock label without cross-channel corroboration.",
+          "No headline-only escalation call when price channel is non-confirming.",
+          "Disclose mixed-regime uncertainty when macro and energy diverge."
+        ],
+        "outputRequirements": [
+          "Classify risk horizon: immediate, near-term, deferred.",
+          "Specify procurement optionality posture and trigger points.",
+          "Cite uncertainty and transmission metrics explicitly."
+        ]
+      }
+    },
+    "energy_stress": {
+      "headline": "Energy pass-through remains a live pressure source: persistent crude/volatility coupling can accelerate procurement-cost repricing.",
+      "level": "Supply Shock",
+      "whatsHappening": {
+        "whatsHappening": "Energy complex behavior is still a meaningful upstream stressor for soybean oil procurement cost expectations.",
+        "macroContext": "Macro uncertainty is amplifying commodity cross-linkage sensitivity, raising the probability that energy moves transmit into procurement costs.",
+        "supplyDemand": "Crude trend persistence with elevated energy-vol context supports a non-trivial pass-through risk classification.",
+        "geopolitical": "Supply-route and conflict risk keep upside shock scenarios active in the energy channel.",
+        "investorSentiment": "Positioning is alert to energy-led upside shocks; complacency premium is limited.",
+        "nearTermOutlook": "Risk remains in a transitional-high state until crude trend and implied energy vol both normalize.",
+        "zlImplication": "Keep hedge posture adaptive and avoid assuming energy pressure will fade without confirmation."
+      },
+      "strategicSpecialInstructions": {
+        "cardTopic": "Energy Pass-Through Into ZL Procurement",
+        "strategicObjective": "Identify when energy dynamics are likely to propagate beyond routine volatility and materially alter procurement cost timing.",
+        "neuralConnectionThesis": "Persistent crude momentum plus elevated OVX regime increases probability of accelerated pass-through into soybean oil contract repricing.",
+        "quantResearchProtocol": [
+          "Track crude level and slope across 5-session and 20-session windows.",
+          "Measure OVX regime state and coupling intensity with crude direction.",
+          "Model shock persistence versus mean-reversion probability.",
+          "Require multi-signal coherence before assigning crisis-class action."
+        ],
+        "inferenceConstraints": [
+          "Do not infer persistent pass-through from crude alone.",
+          "Do not elevate on isolated headlines without vol confirmation.",
+          "Mark transitional regimes when trend and volatility conflict."
+        ],
+        "outputRequirements": [
+          "Report transient-vs-persistent pressure judgment explicitly.",
+          "Tie recommendation to procurement timing and hedge stance.",
+          "Include concrete monitoring triggers for downgrade/upgrade."
+        ]
+      }
+    }
+  },
+  "intelligence": {
+    "headline": "ELEVATED NETWORK PRESSURE - prioritize optionality and tighter execution cadence",
+    "summary": "Cross-driver synthesis shows the highest risk concentration in volatility transmission, crush economics fragility, and macro-policy tail channels. Regime is not singular panic, but it is decisively above neutral. The correct posture is controlled aggression: preserve optionality, avoid oversized single-window buys, and run confirmation-based scaling.",
+    "drivers": [
+      {
+        "label": "Volatility Transmission",
+        "outlook": "PRESSURE",
+        "detail": "Implied-vol regime and correlation instability increase execution slippage risk."
+      },
+      {
+        "label": "Crush Economics",
+        "outlook": "PRESSURE",
+        "detail": "Margin compression risk can alter throughput behavior and near-term oil availability assumptions."
+      },
+      {
+        "label": "China Flow Risk",
+        "outlook": "MIXED",
+        "detail": "Watch for currency and narrative cluster alignment before escalation classification."
+      },
+      {
+        "label": "Macro / Geopolitical",
+        "outlook": "PRESSURE",
+        "detail": "Policy uncertainty and conflict narratives keep tail-risk premium active."
+      },
+      {
+        "label": "Energy Pass-Through",
+        "outlook": "WATCH SUPPLY",
+        "detail": "Crude and energy-vol coupling remains a non-trivial procurement-cost channel."
+      }
+    ],
+    "zlOutlook": "CAUTIOUS",
+    "zlColor": "#EF7300",
+    "tradingImplication": "For a buyer, this is a risk-managed accumulation regime: execute in staged tranches, tighten monitoring intervals, and escalate protection if volatility/macro co-confirm for multiple sessions.",
+    "strategicSpecialInstructions": {
+      "cardTopic": "Cross-Driver Procurement Regime Synthesis",
+      "strategicObjective": "Convert multi-factor market pressure into one explicit procurement execution posture with measurable escalation and de-escalation triggers.",
+      "neuralConnectionThesis": "Procurement risk emerges from network coherence, not isolated factors; when volatility, macro policy stress, crush fragility, and energy transmission align, decision latency becomes the dominant cost driver.",
+      "quantResearchProtocol": [
+        "Rank all drivers by score, persistence, and transmission intensity.",
+        "Model interaction effects: volatility x macro, energy x macro, crush x china.",
+        "Require regime agreement across at least two top channels for high-conviction posture changes.",
+        "Tie confidence to freshness and completeness of underlying metric surfaces."
+      ],
+      "inferenceConstraints": [
+        "Never issue high-conviction calm when any systemic channel remains elevated.",
+        "Never average away conflicting top-channel signals; disclose conflict explicitly.",
+        "Never provide a narrative without concrete procurement execution implications."
+      ],
+      "outputRequirements": [
+        "State dominant risk network and expected persistence horizon.",
+        "Provide exact posture recommendation and trigger thresholds.",
+        "Include confidence rationale based on metric coherence and freshness."
+      ]
+    }
+  }
+}

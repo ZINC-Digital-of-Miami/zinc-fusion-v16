@@ -16,6 +16,15 @@ interface WhatsHappening {
   zlImplication: string
 }
 
+interface StrategicSpecialInstructions {
+  cardTopic: string
+  strategicObjective: string
+  neuralConnectionThesis: string
+  quantResearchProtocol: string[]
+  inferenceConstraints: string[]
+  outputRequirements: string[]
+}
+
 interface DriverData {
   name: string
   score: number | null
@@ -24,6 +33,7 @@ interface DriverData {
   headline: string
   components: Record<string, number | null>
   whatsHappening?: WhatsHappening
+  strategicSpecialInstructions?: StrategicSpecialInstructions
   aiPowered?: boolean
   dataDate?: string
 }
@@ -55,6 +65,14 @@ interface MarketDriversResponse {
     alert_count: number
   }
   intelligence: IntelligenceData
+  ai?: {
+    enabled: boolean
+    source: string
+    model: string | null
+    reasoningEffort: string | null
+    generatedAt: string | null
+    refreshScheduleEt: string | null
+  }
 }
 
 function formatFreshnessLabel(
@@ -75,6 +93,13 @@ function formatFreshnessSummary(
     return `${payload.as_of_date_min} to ${payload.as_of_date_max}`
   }
   return payload.as_of_date ?? "–"
+}
+
+function formatAiTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) return "–"
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return timestamp
+  return date.toLocaleString("en-US", { timeZone: "America/New_York", hour12: true })
 }
 
 // ---------------------------------------------------------------------------
@@ -204,6 +229,7 @@ function DriverCard({
   const level = data?.level ? (LEVEL_LABELS[data.level] ?? data.level) : "--"
   const colors = getScoreColor(score ?? 0)
   const wh = data?.whatsHappening
+  const strategic = data?.strategicSpecialInstructions
 
   const border =
     score !== null && score >= 65
@@ -286,6 +312,55 @@ function DriverCard({
             <div className="text-xs text-slate-500 uppercase tracking-wider mb-1">What This Means For You</div>
             <div className="text-sm text-slate-200">{wh.zlImplication}</div>
           </div>
+          {strategic && (
+            <div className="mt-3 p-3 rounded-lg bg-[#050505] border border-cyan-500/20 space-y-3">
+              <div className="text-[10px] text-cyan-400 uppercase tracking-[0.12em] font-semibold">
+                Strategic Special Instructions
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider">Card Topic</div>
+                <div className="text-sm text-slate-200">{strategic.cardTopic}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider">Strategic Objective</div>
+                <div className="text-sm text-slate-300 leading-snug">{strategic.strategicObjective}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider">Neural Connection Thesis</div>
+                <div className="text-sm text-slate-300 leading-snug">{strategic.neuralConnectionThesis}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider">Quant Research Protocol</div>
+                <div className="space-y-1 mt-1">
+                  {strategic.quantResearchProtocol.map((line, idx) => (
+                    <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
+                      {idx + 1}. {line}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider">Inference Constraints</div>
+                <div className="space-y-1 mt-1">
+                  {strategic.inferenceConstraints.map((line, idx) => (
+                    <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
+                      {idx + 1}. {line}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider">Output Requirements</div>
+                <div className="space-y-1 mt-1">
+                  {strategic.outputRequirements.map((line, idx) => (
+                    <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
+                      {idx + 1}. {line}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -314,6 +389,7 @@ export function MarketRiskFactors() {
   }, [])
 
   const d = data?.drivers
+  const aiMeta = data?.ai
 
   return (
     <div className="w-full">
@@ -334,6 +410,37 @@ export function MarketRiskFactors() {
           {formatFreshnessLabel(data) && <span className="text-xs text-slate-600">{formatFreshnessLabel(data)}</span>}
         </div>
       </div>
+
+      {/* Summary Bar */}
+      {data?.summary && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-slate-400">
+            Average Risk:{" "}
+            <span className="font-mono" style={{ color: getScoreColor(data.summary.average_pressure ?? 0).stroke }}>
+              {data.summary.average_pressure}
+            </span>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-slate-400">
+            Top Concern:{" "}
+            <span className="text-slate-200">
+              {DRIVER_NAMES[data.summary.highest_pressure?.name ?? ""] ?? data.summary.highest_pressure?.name}
+            </span>{" "}
+            (<span className="font-mono" style={{ color: getScoreColor(data.summary.highest_pressure?.score ?? 0).stroke }}>
+              {data.summary.highest_pressure?.score}
+            </span>)
+          </div>
+          <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-slate-400">
+            Freshness: <span className="text-slate-300">{formatFreshnessSummary(data)}</span>
+          </div>
+        </div>
+      )}
+
+      {aiMeta?.enabled && (
+        <div className="mb-6 rounded-lg border border-violet-500/25 bg-violet-500/5 px-3 py-2 text-xs text-violet-300">
+          AI Content Source: {aiMeta.model ?? "GPT"} / {aiMeta.reasoningEffort ?? "high"} / {aiMeta.source} / updated{" "}
+          {formatAiTimestamp(aiMeta.generatedAt)} ET / schedule {aiMeta.refreshScheduleEt ?? "07:00 America/New_York"}
+        </div>
+      )}
 
       {/* Driver Cards — 2-column grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -361,7 +468,6 @@ export function MarketRiskFactors() {
           data={d?.china_tension ?? null}
           metrics={[
             { key: "cny_rate", label: "Yuan Rate (CNY/USD)", format: (v) => v?.toFixed(2) ?? "--" },
-            { key: "soy_china_news_count", label: "China/Soy Headlines", format: (v) => v != null ? `${v} this week` : "--" },
           ]}
           loading={loading}
         />
@@ -371,8 +477,6 @@ export function MarketRiskFactors() {
           metrics={[
             { key: "uncertainty_value", label: "Uncertainty Index", format: (v) => v?.toFixed(0) ?? "--" },
             { key: "oil_change_5d", label: "Crude Oil (5D)", format: (v) => v != null ? `${(v * 100) >= 0 ? "+" : ""}${(v * 100).toFixed(1)}%` : "--" },
-            { key: "iran_war_news_count", label: "Iran/War Headlines", format: (v) => v != null ? `${v} this week` : "--" },
-            { key: "macro_news_count", label: "Macro Headlines", format: (v) => v != null ? `${v} this week` : "--" },
           ]}
           loading={loading}
         />
@@ -383,33 +487,10 @@ export function MarketRiskFactors() {
             { key: "cl_price", label: "Crude Oil (CL)", format: (v) => v ? `$${v.toFixed(2)}` : "--" },
             { key: "cl_change_5d", label: "5-Day Change", format: (v) => v != null ? `${(v * 100) >= 0 ? "+" : ""}${(v * 100).toFixed(1)}%` : "--" },
             { key: "ovx_value", label: "Oil Volatility (OVX)", format: (v) => v?.toFixed(1) ?? "--" },
-            { key: "energy_news_count", label: "Energy Headlines", format: (v) => v != null ? `${v} this week` : "--" },
           ]}
           loading={loading}
         />
       </div>
-
-      {/* Summary Bar */}
-      {data?.summary && (
-        <div className="mt-6 flex items-center justify-between text-sm text-slate-500 px-2">
-          <div>
-            Average Risk:{" "}
-            <span className="font-mono" style={{ color: getScoreColor(data.summary.average_pressure ?? 0).stroke }}>
-              {data.summary.average_pressure}
-            </span>
-          </div>
-          <div>
-            Top Concern:{" "}
-            <span className="text-slate-300">{DRIVER_NAMES[data.summary.highest_pressure?.name ?? ""] ?? data.summary.highest_pressure?.name}</span>{" "}
-            (<span className="font-mono" style={{ color: getScoreColor(data.summary.highest_pressure?.score ?? 0).stroke }}>
-              {data.summary.highest_pressure?.score}
-            </span>)
-          </div>
-          <div>
-            Freshness: <span className="text-slate-400">{formatFreshnessSummary(data)}</span>
-          </div>
-        </div>
-      )}
 
     </div>
   )

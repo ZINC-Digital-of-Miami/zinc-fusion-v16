@@ -10,14 +10,38 @@ type IntelligenceData = {
   zlColor: string
   tradingImplication?: string
   aiPowered?: boolean
+  strategicSpecialInstructions?: {
+    cardTopic: string
+    strategicObjective: string
+    neuralConnectionThesis: string
+    quantResearchProtocol: string[]
+    inferenceConstraints: string[]
+    outputRequirements: string[]
+  }
 }
 
 type RiskFactorsEnvelope = {
   intelligence?: IntelligenceData
+  ai?: {
+    enabled: boolean
+    source: string
+    model: string | null
+    reasoningEffort: string | null
+    generatedAt: string | null
+    refreshScheduleEt: string | null
+  }
+}
+
+function formatAiTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) return "–"
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return timestamp
+  return date.toLocaleString("en-US", { timeZone: "America/New_York", hour12: true })
 }
 
 export function MarketIntelligenceRow() {
   const [intelligence, setIntelligence] = useState<IntelligenceData | null>(null)
+  const [aiMeta, setAiMeta] = useState<RiskFactorsEnvelope["ai"] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,6 +56,7 @@ export function MarketIntelligenceRow() {
         if (!active) return
         if (json.intelligence) {
           setIntelligence(json.intelligence)
+          setAiMeta(json.ai ?? null)
         } else {
           setError("Unable to load market intelligence")
         }
@@ -135,6 +160,67 @@ export function MarketIntelligenceRow() {
               <span className="text-slate-500">{driver.detail}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {aiMeta?.enabled && (
+        <div className="mt-4 text-xs text-violet-300 border border-violet-500/25 bg-violet-500/5 rounded-lg px-3 py-2">
+          AI Content Source: {aiMeta.model ?? "GPT"} / {aiMeta.reasoningEffort ?? "high"} / {aiMeta.source} / updated{" "}
+          {formatAiTimestamp(aiMeta.generatedAt)} ET / schedule {aiMeta.refreshScheduleEt ?? "07:00 America/New_York"}
+        </div>
+      )}
+
+      {intelligence.strategicSpecialInstructions && (
+        <div className="mt-5 p-4 rounded-xl bg-[#050505] border border-violet-500/20 space-y-3">
+          <div className="text-[10px] text-violet-400 uppercase tracking-[0.12em] font-semibold">
+            Strategic Special Instructions
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider">Card Topic</div>
+            <div className="text-sm text-slate-200">{intelligence.strategicSpecialInstructions.cardTopic}</div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider">Strategic Objective</div>
+            <div className="text-sm text-slate-300 leading-snug">
+              {intelligence.strategicSpecialInstructions.strategicObjective}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider">Neural Connection Thesis</div>
+            <div className="text-sm text-slate-300 leading-snug">
+              {intelligence.strategicSpecialInstructions.neuralConnectionThesis}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider">Quant Research Protocol</div>
+            <div className="space-y-1 mt-1">
+              {intelligence.strategicSpecialInstructions.quantResearchProtocol.map((line, idx) => (
+                <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
+                  {idx + 1}. {line}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider">Inference Constraints</div>
+            <div className="space-y-1 mt-1">
+              {intelligence.strategicSpecialInstructions.inferenceConstraints.map((line, idx) => (
+                <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
+                  {idx + 1}. {line}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-slate-500 uppercase tracking-wider">Output Requirements</div>
+            <div className="space-y-1 mt-1">
+              {intelligence.strategicSpecialInstructions.outputRequirements.map((line, idx) => (
+                <div key={`${idx}-${line.slice(0, 12)}`} className="text-sm text-slate-300 leading-snug">
+                  {idx + 1}. {line}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
