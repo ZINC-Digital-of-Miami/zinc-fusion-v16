@@ -1609,7 +1609,7 @@ html, body {
    ANIMATIONS
    ========================================================================== */
 
-@keyframes pulse {
+@keyframes data-point-pulse {
   0%, 100% { opacity: 0.3; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.5); }
 }
@@ -1677,7 +1677,7 @@ html, body {
   height: 4px;
   background: #ffffff;
   border-radius: 50%;
-  animation: pulse 2s infinite;
+  animation: data-point-pulse 2s infinite;
 }
 
 .data-point:nth-child(1) { top: 20%; left: 30%; animation-delay: 0s; }
