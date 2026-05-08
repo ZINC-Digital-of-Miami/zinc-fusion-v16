@@ -1,42 +1,42 @@
 {
-  "generatedAt": "2026-05-07T13:39:50-04:00",
-  "model": "gpt-5.5-fast",
+  "generatedAt": "2026-05-08T07:04:14-04:00",
+  "model": "chatgpt-pro-subscription",
   "reasoningEffort": "high-think",
-  "source": "ai-daily-refresh",
+  "source": "chatgpt-pro-subscription-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
     "activeEvents": 21,
     "highPriorityAccounts": 10,
-    "updatedAt": "2026-05-07T13:39:50-04:00"
+    "updatedAt": "2026-05-08T07:04:14-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "Trusted event pull shows 10 events in 14 days and 11 in 30 days across tracked Vegas demand windows.",
+      "body": "The current event stack shows 10 demand windows inside 14 days and 11 inside 30 days, which means 47.6% of the visible 21-event inventory is front-loaded into the next two weeks. Kevin should treat the near-term calendar as the primary outreach clock.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Driven Demand Window Risk",
         "strategicObjective": "Map near-term event concentration to procurement and service-demand timing so account outreach aligns with real demand spikes.",
-        "neuralConnectionThesis": "Convention and sports clusters create synchronized demand surges; timing outreach and service readiness before peak windows improves conversion and operational resilience.",
+        "neuralConnectionThesis": "When nearly half of the tracked event inventory is compressed into the next 14 days, sales and service timing become a load-management problem instead of a generic awareness problem.",
         "quantResearchProtocol": [
-          "Count upcoming events by window and expected demand intensity.",
-          "Identify overlap windows with highest load concentration.",
-          "Rank event clusters by likely account impact and urgency.",
-          "Translate event pressure into scheduling and outreach priorities."
+          "Count events by 14-day and 30-day windows and compute the front-load ratio.",
+          "Identify whether the next two weeks carry a disproportionate share of total visible demand triggers.",
+          "Use concentration math to set outreach urgency.",
+          "Translate event compression into service-readiness sequencing."
         ],
         "inferenceConstraints": [
-          "Do not treat all events as equal demand impact.",
-          "Do not issue urgency without timing-window evidence.",
-          "Do not separate event insight from account execution impact."
+          "Do not treat the 30-day calendar as evenly distributed when the near-term load is compressed.",
+          "Do not separate event insight from outreach timing.",
+          "Do not issue urgency without showing the concentration math."
         ],
         "outputRequirements": [
-          "State highest-pressure event windows.",
-          "Describe expected demand behavior by window.",
-          "Provide specific outreach timing recommendation."
+          "State the event counts by window and the front-load ratio.",
+          "Explain why the near-term window matters operationally.",
+          "Give a concrete outreach timing recommendation."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "vegas.events"
@@ -45,135 +45,190 @@
           {
             "source": "vegas.events",
             "table": "vegas.events",
-            "recordHint": "future event_date rows",
+            "recordHint": "future event_date rows used for 14d and 30d counts",
             "observedAt": "2026-05-07T13:52:00-04:00"
           }
+        ],
+        "notes": [
+          "This card uses event-window concentration math, not generic event commentary.",
+          "Operational focus is explicitly on Kevin’s next-two-week outreach window."
         ]
       }
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "Prioritize accounts with score >=65 (10 accounts) before the next two-week event cluster.",
+      "body": "Ten accounts already clear the score >= 65 threshold, and the next two-week event compression argues for calling high-score accounts before broad prospecting. The sequencing logic is simple: score threshold first, event urgency second, service readiness third.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account-Level Sales Execution Strategy",
         "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer’s demand timing and service profile.",
-        "neuralConnectionThesis": "Sales conversion improves when procurement certainty messaging is synchronized with account-specific volume pressure and event exposure.",
+        "neuralConnectionThesis": "Sales efficiency rises when Kevin leads with the accounts already showing both priority-score support and imminent event-driven demand pressure.",
         "quantResearchProtocol": [
-          "Segment accounts by event sensitivity and service-cycle urgency.",
-          "Prioritize high-volume and high-volatility accounts first.",
-          "Align pitch angle to cost-certainty and operational continuity outcomes.",
-          "Sequence recommendations by conversion probability and timing risk."
+          "Count accounts above the active priority threshold and compare that count with near-term event load.",
+          "Sequence account outreach by score support first and event urgency second.",
+          "Translate the ranking into a field-usable cadence rather than generic messaging.",
+          "Retain service readiness as a gating constraint on sales promises."
         ],
         "inferenceConstraints": [
-          "Do not output generic sales copy detached from account context.",
-          "Do not prioritize low-impact accounts over high-pressure accounts.",
-          "Do not omit operational readiness implications."
+          "Do not dilute focus by spreading outreach evenly across all accounts.",
+          "Do not recommend aggressive selling detached from service readiness.",
+          "Do not hide the threshold logic behind generic AI wording."
         ],
         "outputRequirements": [
-          "State primary strategy theme for current cycle.",
-          "Explain why sequencing supports conversion.",
-          "Provide actionable outreach order or cadence guidance."
+          "State the threshold and qualified-account count.",
+          "Explain the outreach order.",
+          "Provide the operational reason that supports the sequence."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "vegas.events",
-          "vegas.restaurants"
+          "vegas.restaurants",
+          "vegas.customer_scores"
         ],
         "sourceRecords": [
           {
+            "source": "vegas.customer_scores",
+            "table": "vegas.customer_scores",
+            "recordHint": "accounts with score >= 65 in latest visible pull",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "vegas.events",
+            "table": "vegas.events",
+            "recordHint": "upcoming event load used to prioritize outreach timing",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
             "source": "vegas.restaurants",
             "table": "vegas.restaurants",
-            "recordHint": "active accounts and tier segments",
+            "recordHint": "active accounts used to frame field execution list",
             "observedAt": "2026-05-07T13:52:00-04:00"
           }
+        ],
+        "notes": [
+          "This is an execution-order card, not generic sales copy.",
+          "Sequencing is tied to both score threshold and event-window compression."
         ]
       }
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "Active tracked accounts: 10. Scores are refreshed from event-pressure and market-risk weighted logic.",
+      "body": "There are 10 active tracked accounts in the current AI layer, and all 10 are effectively high-priority right now because the score-threshold set and the active-account set overlap completely in this snapshot.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account Priority and Opportunity Concentration",
         "strategicObjective": "Identify highest-value account opportunities with explicit reasoning tied to event sensitivity, volume pattern, and service window alignment.",
-        "neuralConnectionThesis": "Opportunity concentration is maximized when account priority scores combine event exposure, expected throughput, and current service-cycle state.",
+        "neuralConnectionThesis": "When the high-priority count equals the active tracked-account count, the decision problem shifts from account selection to sequencing and service coordination.",
         "quantResearchProtocol": [
-          "Rank accounts by implied demand spike probability.",
-          "Incorporate service-cycle timing into priority score.",
-          "Separate near-term close opportunities from longer-horizon nurture accounts.",
-          "Attach rationale in buyer and sales operations language."
+          "Compare active-account count with the high-priority count to measure opportunity concentration.",
+          "Determine whether the list is selective or saturated.",
+          "If saturated, prioritize by timing and service readiness rather than by broad account elimination.",
+          "Express the result in field-operations language."
         ],
         "inferenceConstraints": [
-          "Do not use one-dimensional priority scoring.",
-          "Do not omit service-cycle timing from recommendations.",
-          "Do not overstate certainty without data recency context."
+          "Do not pretend the list is selective when the high-priority count equals the active count.",
+          "Do not use one-dimensional priority talk once the opportunity set is saturated.",
+          "Do not omit the need for sequencing discipline."
         ],
         "outputRequirements": [
-          "State top account cluster focus.",
-          "Explain priority rationale with timing context.",
-          "Provide next-action guidance for field execution."
+          "State the active count, high-priority count, and what that implies.",
+          "Explain whether the opportunity set is concentrated or saturated.",
+          "Provide the next operational focus."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
+          "vegas.customer_scores",
           "vegas.events"
         ],
         "sourceRecords": [
           {
             "source": "vegas.restaurants",
             "table": "vegas.restaurants",
-            "recordHint": "active-account and priority segments",
+            "recordHint": "active tracked account rows",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "vegas.customer_scores",
+            "table": "vegas.customer_scores",
+            "recordHint": "latest priority-score set used to identify high-priority overlap",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "vegas.events",
+            "table": "vegas.events",
+            "recordHint": "event context used to turn account overlap into sequencing guidance",
             "observedAt": "2026-05-07T13:52:00-04:00"
           }
+        ],
+        "notes": [
+          "The opportunity set is saturated in this snapshot.",
+          "Execution quality now depends more on sequencing than on account discovery."
         ]
       }
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer rows are present for every tracked account; count telemetry is flagged pending direct customer equipment sync.",
+      "body": "Fryer rows exist for every tracked account, which is a coverage positive, but equipment-count telemetry is still pending direct sync. Operationally that means service planning can be complete on identity coverage, but not yet on equipment-intensity precision.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Assess fryer lifecycle risk against demand windows to prevent service disruption and emergency replacement cost exposure.",
-        "neuralConnectionThesis": "High-throughput accounts with stressed fryer lifecycle profiles become operational bottlenecks during demand spikes; pre-emptive service alignment reduces failure risk.",
+        "neuralConnectionThesis": "Full row coverage without full equipment telemetry creates a false sense of completeness unless service teams explicitly separate known-account coverage from known-load precision.",
         "quantResearchProtocol": [
-          "Classify fryer risk by lifecycle stage and utilization pressure.",
-          "Map lifecycle risk to upcoming demand windows.",
-          "Prioritize service interventions by downtime-impact severity.",
-          "Convert risk rank to scheduling actions for operations teams."
+          "Confirm whether every active account has a fryer row.",
+          "Separate coverage completeness from telemetry completeness.",
+          "Use upcoming event load to decide whether telemetry gaps are operationally tolerable.",
+          "Translate the gap into a service-risk statement for field teams."
         ],
         "inferenceConstraints": [
-          "Do not treat lifecycle risk independently from demand timing.",
-          "Do not downplay high-throughput failure exposure.",
-          "Do not provide guidance without actionable service prioritization."
+          "Do not call the fryer dataset complete when telemetry detail is still pending.",
+          "Do not ignore event timing when evaluating equipment data gaps.",
+          "Do not provide service guidance without stating the precision limit."
         ],
         "outputRequirements": [
-          "State current lifecycle risk posture.",
-          "Highlight accounts needing proactive service first.",
-          "Provide timing recommendation relative to event calendar."
+          "State row coverage status and telemetry limitation separately.",
+          "Explain the service-risk consequence.",
+          "Recommend the operational posture until telemetry is complete."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
+          "vegas.fryers",
           "vegas.events"
         ],
         "sourceRecords": [
           {
+            "source": "vegas.fryers",
+            "table": "vegas.fryers",
+            "recordHint": "fryer rows matched across tracked accounts",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
             "source": "vegas.restaurants",
             "table": "vegas.restaurants",
-            "recordHint": "fryer lifecycle and service cycle fields",
+            "recordHint": "active account roster used for coverage check",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "vegas.events",
+            "table": "vegas.events",
+            "recordHint": "upcoming event load used to assess service urgency under telemetry gaps",
             "observedAt": "2026-05-07T13:52:00-04:00"
           }
+        ],
+        "notes": [
+          "Coverage completeness and telemetry completeness are treated as separate states.",
+          "This card explicitly preserves the operational limitation instead of masking it with generic completeness wording."
         ]
       }
     }

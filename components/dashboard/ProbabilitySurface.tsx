@@ -6,10 +6,11 @@ interface ForecastTarget {
   id: string
   horizonDays: number
   horizonLabel: string
-  priceLow: number
-  priceHigh: number
-  oofPrice: number
+  priceLow: number | null
+  priceHigh: number | null
+  oofPrice: number | null
   coveragePct: number | null
+  isMissing?: boolean
 }
 
 const BIN_COUNT = 11
@@ -27,6 +28,10 @@ function clamp(v: number, min: number, max: number): number {
 }
 
 function cellAlpha(price: number, t: ForecastTarget): number {
+  if (t.priceLow === null || t.priceHigh === null || t.oofPrice === null) {
+    return 0.08
+  }
+
   const low = Math.min(t.priceLow, t.priceHigh)
   const high = Math.max(t.priceLow, t.priceHigh)
   const halfWidth = Math.max((high - low) / 2, 0.1)
@@ -88,9 +93,13 @@ export function ProbabilitySurface() {
   }, [])
 
   const priceBins = useMemo(() => {
-    if (targets.length === 0) return [] as number[]
-    const low = Math.min(...targets.map((t) => Math.min(t.priceLow, t.priceHigh)))
-    const high = Math.max(...targets.map((t) => Math.max(t.priceLow, t.priceHigh)))
+    const resolvedTargets = targets.filter(
+      (t) => t.priceLow !== null && t.priceHigh !== null && t.oofPrice !== null,
+    )
+    if (resolvedTargets.length === 0) return [] as number[]
+
+    const low = Math.min(...resolvedTargets.map((t) => Math.min(t.priceLow!, t.priceHigh!)))
+    const high = Math.max(...resolvedTargets.map((t) => Math.max(t.priceLow!, t.priceHigh!)))
     if (!Number.isFinite(low) || !Number.isFinite(high)) return [] as number[]
 
     const span = Math.max(high - low, 1)
@@ -104,7 +113,28 @@ export function ProbabilitySurface() {
     )
   }, [targets])
 
-  const gridTemplateColumns = `56px repeat(${Math.max(targets.length, 1)}, minmax(0,1fr))`
+  const displayTargets = useMemo(() => {
+    const byHorizon = new Map<number, ForecastTarget>()
+    for (const t of targets) byHorizon.set(t.horizonDays, t)
+
+    return AG_HORIZON_DAYS.map((horizonDays) => {
+      const resolved = byHorizon.get(horizonDays)
+      if (resolved) return resolved
+
+      return {
+        id: `missing-${horizonDays}`,
+        horizonDays,
+        horizonLabel: horizonLabel(horizonDays),
+        priceLow: null,
+        priceHigh: null,
+        oofPrice: null,
+        coveragePct: null,
+        isMissing: true,
+      } satisfies ForecastTarget
+    })
+  }, [targets])
+
+  const gridTemplateColumns = `56px repeat(${Math.max(displayTargets.length, 1)}, minmax(0,1fr))`
 
   return (
     <div className="w-full bg-[#0a0a0a] border border-white/5 rounded-xl p-6 shadow-sm overflow-hidden">
@@ -148,9 +178,12 @@ export function ProbabilitySurface() {
         <div className="mt-6 space-y-2">
           <div className="grid gap-1" style={{ gridTemplateColumns }}>
             <div />
-            {targets.map((t) => (
+            {displayTargets.map((t) => (
               <div key={`h-${t.id}`} className="text-center text-[10px] text-slate-500 font-mono">
-                {t.horizonLabel}
+                <div>{t.horizonLabel}</div>
+                {t.isMissing && (
+                  <div className="text-[9px] text-slate-600">pending</div>
+                )}
               </div>
             ))}
 
@@ -159,8 +192,11 @@ export function ProbabilitySurface() {
                 <div className="text-[10px] text-slate-600 font-mono pr-2 text-right">
                   ${price.toFixed(2)}
                 </div>
-                {targets.map((t) => {
+                {displayTargets.map((t) => {
                   const alpha = cellAlpha(price, t)
+                  const title = t.isMissing
+                    ? `${t.horizonLabel} | awaiting forecast rows`
+                    : `${t.horizonLabel} | zone $${t.priceLow!.toFixed(2)}-$${t.priceHigh!.toFixed(2)} | median $${t.oofPrice!.toFixed(2)}`
                   return (
                     <div
                       key={`${t.id}-${price}`}
@@ -169,7 +205,7 @@ export function ProbabilitySurface() {
                         backgroundColor: `rgba(34, 211, 238, ${alpha})`,
                         boxShadow: alpha > 0.75 ? "0 0 10px rgba(34, 211, 238, 0.35)" : "none",
                       }}
-                      title={`${t.horizonLabel} | zone $${t.priceLow.toFixed(2)}-$${t.priceHigh.toFixed(2)} | median $${t.oofPrice.toFixed(2)}`}
+                      title={title}
                     />
                   )
                 })}
@@ -179,7 +215,7 @@ export function ProbabilitySurface() {
 
           <div className="grid gap-1 pt-2 border-t border-white/5" style={{ gridTemplateColumns }}>
             <div className="text-[10px] text-slate-600 font-mono pr-2 text-right">Coverage</div>
-            {targets.map((t) => (
+            {displayTargets.map((t) => (
               <div key={`c-${t.id}`} className="text-center text-[10px] font-mono text-cyan-300/80">
                 {t.coveragePct !== null ? `${t.coveragePct}%` : "--"}
               </div>

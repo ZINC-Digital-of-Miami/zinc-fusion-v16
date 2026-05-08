@@ -1,0 +1,10 @@
+/Data/
+/docs/
+/python/
+/scripts/
+/supabase/
+.git/
+.next/
+node_modules/
+*.sql
+*.sql.gz

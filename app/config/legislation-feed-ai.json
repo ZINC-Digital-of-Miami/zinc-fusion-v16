@@ -1,37 +1,37 @@
 {
-  "generatedAt": "2026-05-07T13:39:50-04:00",
-  "model": "gpt-5.5-fast",
+  "generatedAt": "2026-05-08T07:04:14-04:00",
+  "model": "chatgpt-pro-subscription",
   "reasoningEffort": "high-think",
-  "source": "ai-daily-refresh",
+  "source": "chatgpt-pro-subscription-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "Loaded 2 agriculture/soy policy items from Federal Register, White House, and Congress feeds; latest source is Congress.gov.",
+      "body": "The current refresh contains 2 relevant policy items. The lead item is H.R.7567, the Farm, Food, and National Security Act of 2026, which matters because farm-program and biofuel-linked language can alter feedstock expectations faster than operational labor rules.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Procurement Impact Synthesis",
         "strategicObjective": "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
-        "neuralConnectionThesis": "Policy updates influence soybean oil procurement through compliance, trade, and subsidy pathways; impact depends on implementation horizon and enforcement likelihood.",
+        "neuralConnectionThesis": "In this window, the value is not the raw item count; it is separating one potentially feedstock-relevant congressional item from a lower-direct-impact labor rule.",
         "quantResearchProtocol": [
-          "Rank items by urgency, implementation lag, and likely cost pass-through channel.",
-          "Separate market-moving policy from informational noise.",
-          "Classify each top item by immediate, near-term, or deferred impact horizon.",
-          "Translate item-level impact into buyer execution guidance."
+          "Rank each item by direct soy/biofuel relevance, implementation horizon, and likely pass-through speed.",
+          "Separate congressional, executive, and labor/regulatory items by procurement relevance.",
+          "Translate the top-ranked item into a buyer watchlist consequence.",
+          "Downgrade items that are operationally important but weakly connected to soybean oil price formation."
         ],
         "inferenceConstraints": [
-          "Do not treat all feed items as equal impact.",
-          "Do not issue urgent posture without implementation evidence.",
-          "Do not omit policy-to-procurement transmission explanation."
+          "Do not treat all policy items as equally market relevant.",
+          "Do not call urgent procurement risk without a direct transmission path.",
+          "Do not hide the difference between ag-policy and labor-policy relevance."
         ],
         "outputRequirements": [
-          "Identify top policy risks and their impact horizons.",
-          "State likely procurement consequence per top risk.",
-          "Provide monitoring trigger for each high-impact item class."
+          "Name the top relevant item explicitly.",
+          "Explain why it matters more than the other items.",
+          "State the buyer watch consequence and horizon."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "alt.legislation_1d",
@@ -40,41 +40,53 @@
         ],
         "sourceRecords": [
           {
-            "source": "Federal Register",
+            "source": "Congress.gov",
+            "table": "alt.congress_bills",
+            "recordHint": "H.R.7567 latest row",
+            "observedAt": "2026-05-07T13:52:00-04:00",
+            "publishedAt": "2026-05-07T17:39:50.310158Z"
+          },
+          {
+            "source": "Labor Department",
             "table": "alt.legislation_1d",
-            "recordHint": "latest published policy rows",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "joint employer rule row",
+            "observedAt": "2026-05-07T13:52:00-04:00",
+            "publishedAt": "2026-04-23T00:00:00Z"
           }
+        ],
+        "notes": [
+          "This card explicitly ranks the two-item set by soybean-oil relevance.",
+          "Policy relevance is judged by feedstock and procurement transmission, not institutional prestige."
         ]
       }
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Most active policy source in current pull: Congress.gov (1 items).",
+      "body": "Source breadth is narrow in this refresh: Congress.gov contributes 1 item and the Labor Department contributes 1 item. That means the tape is sparse, not diversified, so confidence should come from relevance screening rather than source volume.",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Concentration and Signal Reliability",
         "strategicObjective": "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
-        "neuralConnectionThesis": "When policy flow clusters in a narrow source set, narrative volatility can increase and degrade confidence unless corroborated by independent channels.",
+        "neuralConnectionThesis": "A two-source feed can still be useful when relevance is high, but it should never be treated like a broad corroborated policy wave.",
         "quantResearchProtocol": [
-          "Count source concentration and compare with multi-day baseline.",
-          "Detect sudden source dominance shifts and classify reliability risk.",
-          "Cross-check high-pressure sources against corroborating outlets.",
-          "Score confidence based on breadth and consistency of source coverage."
+          "Count sources and item share per source in the current window.",
+          "Classify the source structure as sparse, concentrated, or broad.",
+          "Tie confidence to source breadth and item relevance at the same time.",
+          "Use sparse-source classification to control how aggressively the buyer reacts."
         ],
         "inferenceConstraints": [
-          "Do not overstate confidence when source breadth is narrow.",
-          "Do not ignore corroboration gaps on high-impact claims.",
-          "Do not reduce source analysis to raw count only."
+          "Do not overstate confidence from a two-source sample.",
+          "Do not confuse narrow breadth with zero importance.",
+          "Do not ignore relevance just because the item count is low."
         ],
         "outputRequirements": [
-          "State concentration regime and confidence impact.",
-          "Highlight top active sources by relevance.",
-          "Explain how source structure affects buyer decision certainty."
+          "Report the source count and item split.",
+          "State the resulting confidence posture.",
+          "Explain the buyer consequence of sparse-source conditions."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "alt.legislation_1d",
@@ -83,47 +95,51 @@
         ],
         "sourceRecords": [
           {
-            "source": "Congress",
+            "source": "Congress.gov",
             "table": "alt.congress_bills",
-            "recordHint": "latest committee/hearing rows",
+            "recordHint": "latest committee/bill source in current feed",
             "observedAt": "2026-05-07T13:52:00-04:00"
           },
           {
-            "source": "Executive Action",
-            "table": "alt.executive_actions",
-            "recordHint": "latest directives",
+            "source": "Labor Department",
+            "table": "alt.legislation_1d",
+            "recordHint": "latest non-congress policy row in current feed",
             "observedAt": "2026-05-07T13:52:00-04:00"
           }
+        ],
+        "notes": [
+          "This card emphasizes source breadth math, not generic trust wording.",
+          "The current window is sparse, so the interpretation is intentionally conservative."
         ]
       }
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "Top policy themes: policy.",
+      "body": "The visible tag set is still just policy, which means the feed has not yet resolved into more precise trade, biofuel, export, or tariff theme clusters. That lowers immediate signal richness even though the congressional item remains worth watching.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify which policy themes carry the highest procurement risk contribution in the current window.",
-        "neuralConnectionThesis": "Theme pressure predicts where policy risk is likely to propagate first; concentrated tag clusters can front-run contract-cost repricing.",
+        "neuralConnectionThesis": "When the tag layer stays generic, analysts must lean more on item-level content than tag frequency because the taxonomy is not yet carrying the transmission detail.",
         "quantResearchProtocol": [
-          "Rank tags by frequency, persistence, and transmission relevance.",
-          "Group related tags into coherent risk themes.",
-          "Differentiate structural themes from transient bursts.",
-          "Map top themes to buyer-facing procurement actions."
+          "Inspect whether tags resolve into specific channels such as tariff, biofuel, or export.",
+          "If tags remain generic, fallback to item-level textual relevance ranking.",
+          "Classify the theme map as specific or unresolved.",
+          "Tie unresolved taxonomy to a lower-confidence policy signal."
         ],
         "inferenceConstraints": [
-          "Do not equate high frequency with high impact without context.",
-          "Do not collapse distinct theme channels into one generic category.",
-          "Do not provide posture without horizon classification."
+          "Do not pretend the tag taxonomy is richer than it is.",
+          "Do not infer a tariff or biofuel pulse without explicit theme evidence.",
+          "Do not use generic tag output without explaining the limitation."
         ],
         "outputRequirements": [
-          "Report top pressure themes with impact horizon.",
-          "Explain transmission pathway to procurement cost or timing.",
-          "Provide concrete watchlist priorities."
+          "State that the current tag map is generic or specific.",
+          "Explain the consequence for policy-signal confidence.",
+          "Provide the buyer watch priority despite the taxonomy limit."
         ]
       },
       "provenance": {
         "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "alt.legislation_1d",
@@ -132,11 +148,21 @@
         ],
         "sourceRecords": [
           {
-            "source": "USDA",
+            "source": "Congress.gov",
+            "table": "alt.congress_bills",
+            "recordHint": "policy-tagged Farm, Food, and National Security Act row",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "Labor Department",
             "table": "alt.legislation_1d",
-            "recordHint": "tagged oilseed/reporting policy rows",
+            "recordHint": "policy-tagged labor rule row",
             "observedAt": "2026-05-07T13:52:00-04:00"
           }
+        ],
+        "notes": [
+          "Current taxonomy remains generic, so item-level reading dominates theme interpretation.",
+          "Confidence is limited by tag resolution, not by lack of any policy feed."
         ]
       }
     }

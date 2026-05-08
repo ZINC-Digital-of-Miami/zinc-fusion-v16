@@ -1,95 +1,105 @@
 {
-  "generatedAt": "2026-05-07T13:39:50-04:00",
-  "model": "gpt-5.5-fast",
+  "generatedAt": "2026-05-08T07:04:14-04:00",
+  "model": "chatgpt-pro-subscription",
   "reasoningEffort": "high-think",
-  "source": "ai-daily-refresh",
+  "source": "chatgpt-pro-subscription-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture ACCUMULATE from cross-driver average 39.4; top pressure channel is energy_stress at 67.9.",
-    "updatedAt": "2026-05-07T13:39:50-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because average pressure is 39.4 while the only true outlier is energy stress at 67.9; that supports staged buying rather than all-at-once execution.",
+    "updatedAt": "2026-05-08T07:04:14-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Current buyer stance is ACCUMULATE. Volatility score 44.1 and macro-policy score 27.4 support staged contract timing over one-shot execution.",
+      "body": "Current posture stays ACCUMULATE. Energy stress at 67.9 and volatility at 44.1 argue for tranche execution because the lead-risk channel is 28.5 points above the average 39.4 pressure baseline.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
-        "neuralConnectionThesis": "Execution cost dispersion increases non-linearly when volatility transmission and macro-policy stress co-align; tranche-based timing reduces adverse selection probability for buyers.",
+        "neuralConnectionThesis": "When one dominant risk channel sits materially above the average network score, spreading execution windows lowers timing regret more effectively than seeking a perfect entry.",
         "quantResearchProtocol": [
-          "Estimate scenario-weighted cost outcomes across staggered execution windows.",
-          "Compare one-shot entry slippage risk versus staged entry variance reduction.",
-          "Include downside tail amplification under volatility and macro co-escalation states.",
-          "Frame recommendation as buyer-side cost-control, not directional speculation."
+          "Use the average pressure, top-driver score, and top-driver spread as the primary execution-structure inputs.",
+          "Classify whether the risk network supports one-shot, staged, or defer-and-watch execution.",
+          "Anchor the buyer recommendation in replacement-cost control rather than speculative return seeking.",
+          "Require explicit invalidation triggers tied to energy and volatility moderation."
         ],
         "inferenceConstraints": [
-          "Do not recommend one-shot execution when volatility and macro channels remain elevated.",
-          "Do not present strategy guidance without explicit downside-tail treatment.",
-          "Do not use generic timing language without quantified window tradeoffs."
+          "Do not recommend one-shot execution while the lead channel remains materially above the average stack.",
+          "Do not describe staging without quantifying why staging is preferred.",
+          "Do not present procurement guidance as a trade idea."
         ],
         "outputRequirements": [
-          "State preferred execution structure and why.",
-          "Report cost-control logic in buyer terms.",
-          "Include trigger conditions that would invalidate the recommendation."
+          "State the preferred contract structure.",
+          "Quote the key score math behind the recommendation.",
+          "List the conditions that would justify changing the structure."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "asOf": "2026-05-07",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "analytics.market_posture",
           "analytics.dashboard_metrics",
-          "analytics.driver_attribution_1d"
+          "app/config/dashboard-risk-factors-ai.json"
         ],
         "sourceRecords": [
           {
             "source": "analytics.market_posture",
             "table": "analytics.market_posture",
-            "recordHint": "latest trade_date row",
+            "recordHint": "latest buyer posture row",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "analytics.dashboard_metrics",
+            "table": "analytics.dashboard_metrics",
+            "recordHint": "average pressure and lead-risk metrics used in execution framing",
             "observedAt": "2026-05-07T13:52:00-04:00"
           },
           {
             "source": "app/config/dashboard-risk-factors-ai.json",
             "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "latest risk-factor network payload",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "energy, volatility, and composite synthesis snapshot",
+            "observedAt": "2026-05-08T07:04:14-04:00"
           }
+        ],
+        "notes": [
+          "Execution guidance is staged because the pressure network is asymmetric, not because the entire system is in panic.",
+          "This card is written for a physical buyer managing replacement cost."
         ]
       }
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Driver order (highest to lowest pressure): energy stress (67.9), vix stress (44.1), china tension (37.9), tariff threat (27.4), crush pressure (19.6).",
+      "body": "Current ordering is energy stress 67.9, vix stress 44.1, china tension 37.9, tariff threat 27.4, and crush pressure 19.6. The gap between first and second is 23.8 points, so the stack is not balanced; it is energy-led.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
-        "neuralConnectionThesis": "Procurement risk emerges from driver ordering and interaction effects; ranking volatility, crush, macro, energy, and China channels clarifies which signals should drive immediate action.",
+        "neuralConnectionThesis": "Ranking matters because a single dominant channel should drive monitoring cadence, while lower-ranked channels determine whether the dominant signal is likely to spread or fade.",
         "quantResearchProtocol": [
-          "Rank each driver by current pressure, persistence, and transmission intensity.",
-          "Test interaction pairs for escalation pathways and conflict states.",
-          "Separate dominant drivers from secondary contextual drivers.",
-          "Preserve directional uncertainty labels when channels diverge."
+          "List the full ordered stack and compute the first-to-second and first-to-average score gaps.",
+          "Explain whether the regime is concentrated or broad-based.",
+          "Tie lower-ranked channels to confirmation risk rather than giving them equal weight.",
+          "Convert the ranked stack into practical buyer monitoring priorities."
         ],
         "inferenceConstraints": [
-          "Do not collapse all drivers into a single undifferentiated summary.",
-          "Do not hide conflict between top-ranked channels.",
-          "Do not assign confidence without data freshness context."
+          "Do not flatten the stack into a generic mixed-risk statement.",
+          "Do not give secondary channels equal urgency when the score gaps are wide.",
+          "Do not omit the confirmation role of lower-ranked channels."
         ],
         "outputRequirements": [
-          "Provide ordered driver stack with concise rationale.",
-          "Call out interaction risk explicitly.",
-          "Translate ranking into procurement monitoring priorities."
+          "Provide the ordered stack with score math.",
+          "Explain what the gaps mean for monitoring priority.",
+          "Translate the ranking into buyer action focus."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "asOf": "2026-05-07",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
-          "analytics.dashboard_metrics",
           "analytics.driver_attribution_1d",
+          "analytics.dashboard_metrics",
           "app/config/dashboard-risk-factors-ai.json"
         ],
         "sourceRecords": [
@@ -100,41 +110,51 @@
             "observedAt": "2026-05-07"
           },
           {
+            "source": "analytics.dashboard_metrics",
+            "table": "analytics.dashboard_metrics",
+            "recordHint": "score inputs for ordered driver stack",
+            "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
             "source": "app/config/dashboard-risk-factors-ai.json",
             "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "drivers[*].score and level",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "refreshed per-driver AI synthesis",
+            "observedAt": "2026-05-08T07:04:14-04:00"
           }
+        ],
+        "notes": [
+          "Waterfall ordering is explicitly concentration-aware.",
+          "Buyer focus should start with the lead channel, then track confirmation risk from the middle of the stack."
         ]
       }
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Average risk 39.4; top channel energy_stress 67.9. Regime NEUTRAL at confidence 0.90.",
+      "body": "Average pressure is 39.4, lead pressure is 67.9, and the spread is 28.5. That is a neutral-to-cautious buyer regime: not systemic panic, but too asymmetric to justify passive waiting.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",
-        "neuralConnectionThesis": "For buyers, decision latency under elevated risk networks is often more expensive than controlled over-hedging; quantified asymmetry clarifies when faster action is warranted.",
+        "neuralConnectionThesis": "Buyer risk is driven less by the mean score than by the asymmetry between the lead threat and the rest of the network, because that gap determines the cost of waiting.",
         "quantResearchProtocol": [
-          "Assess near-term tail asymmetry from active driver network state.",
-          "Measure decision-latency risk versus controlled execution-risk tradeoff.",
-          "Classify exposure state as contained, elevated, or escalation-prone.",
-          "Tie risk statements to buyer-side cost outcomes and cadence impact."
+          "Compute average pressure, top pressure, and top-minus-average spread every refresh.",
+          "Classify the regime as contained, asymmetric, or synchronized stress.",
+          "Map asymmetry to decision-latency cost versus over-hedge cost for a physical buyer.",
+          "Use posture language that Chris can act on without translation."
         ],
         "inferenceConstraints": [
-          "Do not report neutral risk when asymmetry is elevated.",
-          "Do not describe risk posture without latency implications.",
-          "Do not omit confidence qualifiers when metrics are stale or sparse."
+          "Do not call the regime neutral if the asymmetry remains wide.",
+          "Do not describe risk without stating what waiting costs.",
+          "Do not bury the math in narrative-only wording."
         ],
         "outputRequirements": [
-          "State risk regime and asymmetry in plain buyer terms.",
-          "Explain latency risk versus hedge risk comparison.",
-          "Provide specific cadence/monitoring recommendation."
+          "State the three core metrics and regime label.",
+          "Explain why latency risk is or is not dominant.",
+          "Provide cadence guidance in plain buyer language."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-07T13:52:00-04:00",
+        "asOf": "2026-05-07",
+        "generatedAt": "2026-05-08T07:04:14-04:00",
         "method": "daily-ai-card-refresh",
         "sourceFeeds": [
           "analytics.market_posture",
@@ -145,15 +165,25 @@
           {
             "source": "analytics.market_posture",
             "table": "analytics.market_posture",
-            "recordHint": "latest posture row",
+            "recordHint": "latest posture record",
             "observedAt": "2026-05-07T13:52:00-04:00"
           },
           {
-            "source": "app/config/dashboard-risk-factors-ai.json",
-            "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "summary.average_pressure + highest_pressure",
+            "source": "analytics.dashboard_metrics",
+            "table": "analytics.dashboard_metrics",
+            "recordHint": "average and lead-score math inputs",
             "observedAt": "2026-05-07T13:52:00-04:00"
+          },
+          {
+            "source": "analytics.driver_attribution_1d",
+            "table": "analytics.driver_attribution_1d",
+            "recordHint": "driver ranking used to interpret spread significance",
+            "observedAt": "2026-05-07"
           }
+        ],
+        "notes": [
+          "Risk math is intentionally buyer-oriented.",
+          "The card distinguishes asymmetric pressure from full-system crisis."
         ]
       }
     }

@@ -374,7 +374,7 @@ export function MarketRiskFactors() {
           label="Crush Pressure"
           data={d?.crush_pressure ?? null}
           metrics={[
-            { key: "board_crush_value", label: "Crush Margin", format: (v) => v ? `$${v.toFixed(2)}/bu` : "--" },
+            { key: "board_crush_value", label: "Crush Margin", format: (v) => v != null ? `$${v.toFixed(2)}/bu` : "--" },
             { key: "oil_share_value", label: "Oil Value Share", format: (v) => v != null ? `${v.toFixed(1)}%` : "--" },
             { key: "oil_share_5d_change", label: "5-Day Change", format: (v) => v != null ? `${v >= 0 ? "+" : ""}${v.toFixed(1)}%` : "--" },
           ]}
@@ -401,7 +401,7 @@ export function MarketRiskFactors() {
           label="Energy Stress"
           data={d?.energy_stress ?? null}
           metrics={[
-            { key: "cl_price", label: "Crude Oil (CL)", format: (v) => v ? `$${v.toFixed(2)}` : "--" },
+            { key: "cl_price", label: "Crude Oil (CL)", format: (v) => v != null ? `$${v.toFixed(2)}` : "--" },
             { key: "cl_change_5d", label: "5-Day Change", format: (v) => v != null ? `${(v * 100) >= 0 ? "+" : ""}${(v * 100).toFixed(1)}%` : "--" },
             { key: "ovx_value", label: "Oil Volatility (OVX)", format: (v) => v?.toFixed(1) ?? "--" },
           ]}

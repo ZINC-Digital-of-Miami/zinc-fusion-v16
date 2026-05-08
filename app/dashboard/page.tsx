@@ -7,6 +7,7 @@ import { ProbabilitySurface } from "@/components/dashboard/ProbabilitySurface"
 import { RegimeAnalysisChart } from "@/components/dashboard/RegimeAnalysisChart"
 import { MarketRiskFactors } from "@/components/dashboard/MarketRiskFactors"
 import { MarketIntelligenceRow } from "@/components/dashboard/MarketIntelligenceRow"
+import { MarketSymbolPressureBar } from "@/components/dashboard/MarketSymbolPressureBar"
 import type { TargetZone } from "@/lib/contracts/api"
 
 export default function DashboardPage() {
@@ -21,6 +22,11 @@ export default function DashboardPage() {
 
   return (
     <BackendShell>
+      {/* SECTION 0: SYMBOL PRESSURE BAR */}
+      <div className="w-full">
+        <MarketSymbolPressureBar />
+      </div>
+
       {/* SECTION 1: HERO CHART */}
       <div>
         <ZlCandlestickChart height="80vh" targetZones={targetZones} />

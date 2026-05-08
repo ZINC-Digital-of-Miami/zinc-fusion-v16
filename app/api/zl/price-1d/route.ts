@@ -73,12 +73,15 @@ export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
 
+    // Supabase Data API commonly enforces a max-row cap (default 1000).
+    // Pull newest rows first so we always include the current chart window.
     const { data: rows, error } = await supabase
       .schema("mkt")
       .from("price_1d")
       .select("symbol, bucket_ts, open, high, low, close, volume")
       .eq("symbol", "ZL")
-      .order("bucket_ts", { ascending: true });
+      .order("bucket_ts", { ascending: false })
+      .limit(1000);
 
     if (error) {
       return NextResponse.json(
@@ -87,7 +90,8 @@ export async function GET() {
       );
     }
 
-    const bars: ZlPriceBar[] = (rows ?? []).map((row) => ({
+    const bars: ZlPriceBar[] = (rows ?? [])
+      .map((row) => ({
       symbol: row.symbol,
       tradeDate: row.bucket_ts,
       open: Number(row.open),
@@ -95,7 +99,10 @@ export async function GET() {
       low: Number(row.low),
       close: Number(row.close),
       volume: Number(row.volume),
-    }));
+      }))
+      .sort(
+        (a, b) => new Date(a.tradeDate).getTime() - new Date(b.tradeDate).getTime(),
+      );
 
     const { data: hourlyRows } = await supabase
       .schema("mkt")

@@ -31,6 +31,19 @@ function toChartDay(dateStr: string): Time {
   return dateStr.slice(0, 10) as unknown as Time
 }
 
+function rollingSma(values: number[], period: number): Array<number | null> {
+  const out: Array<number | null> = Array(values.length).fill(null)
+  if (period <= 0 || values.length < period) return out
+
+  let sum = 0
+  for (let i = 0; i < values.length; i += 1) {
+    sum += values[i]
+    if (i >= period) sum -= values[i - period]
+    if (i >= period - 1) out[i] = sum / period
+  }
+  return out
+}
+
 export function RegimeAnalysisChart({
   height = 400,
   timeRange = "1Y",
@@ -119,39 +132,34 @@ export function RegimeAnalysisChart({
     let currentZoneStart = lineData[0]?.time as string
     let prevRegime: MarketRegime = "NEUTRAL"
 
-    const sma20: number[] = []
-    const sma50: number[] = []
+    const closeValues = lineData.map((d) => d.value)
+    const shortPeriod = Math.min(20, Math.max(8, Math.floor(lineData.length * 0.35)))
+    const longPeriod = Math.min(50, Math.max(shortPeriod + 8, Math.floor(lineData.length * 0.75)))
+    const bullThreshold = longPeriod >= 50 ? 1.02 : 1.01
+    const bearThreshold = longPeriod >= 50 ? 0.98 : 0.99
+    const supplyThreshold = longPeriod >= 50 ? 0.95 : 0.97
+    const demandThreshold = longPeriod >= 50 ? 1.08 : 1.05
+    const smaShort = rollingSma(closeValues, shortPeriod)
+    const smaLong = rollingSma(closeValues, longPeriod)
 
-    for (let i = 0; i < lineData.length; i++) {
-      if (i >= 19) {
-        sma20.push(lineData.slice(i - 19, i + 1).reduce((s, d) => s + d.value, 0) / 20)
-      }
-      if (i >= 49) {
-        sma50.push(lineData.slice(i - 49, i + 1).reduce((s, d) => s + d.value, 0) / 50)
-      }
-    }
+    for (let i = 0; i < lineData.length; i += 1) {
+      const sShort = smaShort[i]
+      const sLong = smaLong[i]
+      if (sShort == null || sLong == null) continue
 
-    for (let i = 50; i < lineData.length; i++) {
-      const sma20Idx = i - 20
-      const sma50Idx = i - 50
-      if (sma20Idx >= 0 && sma50Idx >= 0 && sma20[sma20Idx] && sma50[sma50Idx]) {
-        const price = lineData[i].value
-        const s20 = sma20[sma20Idx]
-        const s50 = sma50[sma50Idx]
+      const price = lineData[i].value
+      let regime: MarketRegime = "NEUTRAL"
+      if (sShort > sLong * bullThreshold && price > sShort) regime = "BULLISH"
+      else if (sShort < sLong * bearThreshold && price < sShort) regime = "BEARISH"
+      else if (price < sLong * supplyThreshold) regime = "SUPPLY_CRISIS"
+      else if (price > sLong * demandThreshold) regime = "DEMAND_SHOCK"
 
-        let regime: MarketRegime = "NEUTRAL"
-        if (s20 > s50 * 1.02 && price > s20) regime = "BULLISH"
-        else if (s20 < s50 * 0.98 && price < s20) regime = "BEARISH"
-        else if (price < s50 * 0.95) regime = "SUPPLY_CRISIS"
-        else if (price > s50 * 1.08) regime = "DEMAND_SHOCK"
-
-        if (regime !== prevRegime) {
-          if (currentZoneStart) {
-            regimeZones.push({ start: currentZoneStart, end: lineData[i].time as string, regime: prevRegime })
-          }
-          currentZoneStart = lineData[i].time as string
-          prevRegime = regime
+      if (regime !== prevRegime) {
+        if (currentZoneStart) {
+          regimeZones.push({ start: currentZoneStart, end: lineData[i].time as string, regime: prevRegime })
         }
+        currentZoneStart = lineData[i].time as string
+        prevRegime = regime
       }
     }
 
@@ -258,7 +266,6 @@ export function RegimeAnalysisChart({
       {/* Legend */}
       <div className="flex items-center justify-center gap-6 py-2 border-t border-white/5 bg-white/[0.02]">
         {(Object.entries(REGIME_COLORS) as [MarketRegime, { bg: string; border: string }][])
-          .slice(0, 4)
           .map(([regime, colors]) => (
             <div key={regime} className="flex items-center gap-1.5">
               <div

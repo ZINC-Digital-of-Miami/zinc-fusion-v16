@@ -172,7 +172,7 @@ function outlookFromScore(score: number): "BULLISH" | "NEUTRAL" | "CAUTIOUS" | "
 function colorFromScore(score: number): string {
   if (score >= 70) return "#EF4444";
   if (score >= 55) return "#EF7300";
-  if (score >= 40) return "#EAB308";
+  if (score >= 35) return "#EAB308";
   return "#22C55E";
 }
 
