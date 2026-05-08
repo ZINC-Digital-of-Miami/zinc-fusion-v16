@@ -57,6 +57,10 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 18. **Pixel parity lock:** Typography, spacing, shadows, border/radius, gradients, hex colors, and all interaction states must match locked source exactly.
 19. **Cadence pivot lock:** Most non-price data moves to weekly batch ingest and weekly retraining; hourly chart freshness remains.
 20. **GPT content lock:** Sentiment and Legislation pipelines are GPT-driven from approved source feeds with traceable provenance.
+21. **AI-first cards lock (2026-05-08):** Dashboard/strategy/sentiment/legislation/vegas cards are primarily AI snapshot driven; avoid request-time external data pulls in API handlers.
+22. **Weekly pull lock (2026-05-08):** Non-price card refresh jobs run weekly cadence by default; AG training runs by manual batch trigger only unless explicitly changed.
+23. **Source reduction lock (2026-05-08):** Keep only strict high-impact feeds (FOMC/FED, ProFarmer, FRED aggregate series, constrained weather stations, core energy/FX/volatility signals).
+24. **Symbol budget lock (2026-05-08):** Maintain a compact universe (target ~20-30 symbols); do not reopen 50+ symbol spread without explicit approval.
 
 ### Process Rules
 

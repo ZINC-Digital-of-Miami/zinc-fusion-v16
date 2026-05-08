@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 import type { AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import { readAiSnapshot, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
-import { fetchTrustedMarketSnapshot, uniqueTrustedMarketUrls } from "@/lib/server/trusted-market-sources";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 
 type DriverKey =
@@ -412,17 +411,15 @@ function buildDriverProvenance(
   key: DriverKey,
   dataDate: string | null,
   generatedAt: string | null,
-  trustedUrls: string[],
 ): AiCardProvenance {
   const asOf = dataDate ?? generatedAt ?? new Date().toISOString();
   return {
     asOf,
     generatedAt: generatedAt ?? asOf,
-    method: "verified-db-and-trusted-market-pull",
+    method: "verified-db-weekly-ingest-plus-ai-snapshot",
     sourceFeeds: [
       "analytics.dashboard_metrics",
       "analytics.driver_attribution_1d",
-      ...trustedUrls,
     ],
     sourceRecords: [
       {
@@ -437,11 +434,6 @@ function buildDriverProvenance(
         recordHint: `mapped_driver=${key}`,
         observedAt: dataDate ?? undefined,
       },
-      {
-        source: "trusted-market-pull",
-        recordHint: `driver=${key} live market context`,
-        observedAt: generatedAt ?? undefined,
-      },
     ],
   };
 }
@@ -449,17 +441,15 @@ function buildDriverProvenance(
 function buildIntelligenceProvenance(
   asOf: string | null,
   generatedAt: string | null,
-  trustedUrls: string[],
 ): AiCardProvenance {
   const resolvedAsOf = asOf ?? generatedAt ?? new Date().toISOString();
   return {
     asOf: resolvedAsOf,
     generatedAt: generatedAt ?? resolvedAsOf,
-    method: "verified-db-and-trusted-market-pull",
+    method: "verified-db-weekly-ingest-plus-ai-snapshot",
     sourceFeeds: [
       "analytics.dashboard_metrics",
       "analytics.driver_attribution_1d",
-      ...trustedUrls,
     ],
     sourceRecords: [
       {
@@ -473,11 +463,6 @@ function buildIntelligenceProvenance(
         table: "analytics.driver_attribution_1d",
         recordHint: "latest factor attribution set",
         observedAt: resolvedAsOf,
-      },
-      {
-        source: "trusted-market-pull",
-        recordHint: "cross-driver synthesis with live market pulls",
-        observedAt: generatedAt ?? undefined,
       },
     ],
   };
@@ -546,8 +531,7 @@ export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
     const aiSnapshot = await readAiRiskFactorsSnapshot();
-    const trustedMarket = await fetchTrustedMarketSnapshot();
-    const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
+    const responseGeneratedAt = new Date().toISOString();
 
     const [{ data: metricRows, error: metricError }, { data: attributionRows, error: attributionError }] = await Promise.all([
       supabase
@@ -580,17 +564,6 @@ export async function GET() {
     for (const row of latestMetrics) {
       metricMap.set(normalizeMetricKey(row.metric_key), toNumber(row.metric_value));
     }
-
-    // Trusted-source override lane: if live pulls are available, they replace stale DB metric components.
-    if (trustedMarket.vix.value !== null) metricMap.set("vix_value", trustedMarket.vix.value);
-    if (trustedMarket.ovx.value !== null) metricMap.set("ovx_value", trustedMarket.ovx.value);
-    if (trustedMarket.cl.value !== null) metricMap.set("cl_price", trustedMarket.cl.value);
-    if (trustedMarket.cl.change5d !== null) {
-      metricMap.set("cl_change_5d", trustedMarket.cl.change5d);
-      metricMap.set("oil_change_5d", trustedMarket.cl.change5d);
-      metricMap.set("crude_oil_change_5d", trustedMarket.cl.change5d);
-    }
-    if (trustedMarket.cny.value !== null) metricMap.set("cny_rate", trustedMarket.cny.value);
 
     const latestAttributionDate = attributionRows?.[0]?.trade_date ?? null;
     const latestAttribution = (attributionRows ?? []).filter((r) => r.trade_date === latestAttributionDate);
@@ -771,8 +744,7 @@ export async function GET() {
           buildDriverProvenance(
             key,
             base.dataDate,
-            aiSnapshot?.generatedAt ?? trustedMarket.fetchedAt,
-            trustedUrls,
+            aiSnapshot?.generatedAt ?? responseGeneratedAt,
           ),
         aiPowered: Boolean(ai),
         dataDate: base.dataDate,
@@ -882,16 +854,15 @@ export async function GET() {
           aiSnapshot?.intelligence?.provenance ??
           buildIntelligenceProvenance(
             asOfDateMax ?? asOfDateMin,
-            aiSnapshot?.generatedAt ?? trustedMarket.fetchedAt,
-            trustedUrls,
+            aiSnapshot?.generatedAt ?? responseGeneratedAt,
           ),
       },
       ai: {
         enabled: Boolean(aiSnapshot),
-        source: aiSnapshot?.source ?? "trusted-db+market-pull",
+        source: aiSnapshot?.source ?? "weekly-db-plus-ai-snapshot",
         model: aiSnapshot?.model ?? null,
         reasoningEffort: aiSnapshot?.reasoningEffort ?? null,
-        generatedAt: aiSnapshot?.generatedAt ?? trustedMarket.fetchedAt,
+        generatedAt: aiSnapshot?.generatedAt ?? responseGeneratedAt,
         refreshScheduleEt: aiSnapshot?.refreshScheduleEt ?? null,
       },
     };
