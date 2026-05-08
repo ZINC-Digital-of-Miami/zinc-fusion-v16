@@ -3,16 +3,6 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import type { ApiEnvelope, ZlPriceBar } from "@/lib/contracts/api";
 
-type PriceOhlcvRow = {
-  symbol: string;
-  bucket_ts: string;
-  open: number | string;
-  high: number | string;
-  low: number | string;
-  close: number | string;
-  volume: number | string;
-};
-
 type YahooChartQuote = {
   open?: Array<number | null>;
   high?: Array<number | null>;
@@ -40,74 +30,6 @@ function dayKey(tsIso: string): string {
 
 function toBarDateUtc(tsSeconds: number): string {
   return new Date(tsSeconds * 1000).toISOString().slice(0, 10);
-}
-
-function rollupHourlyToDailyBars(rows: PriceOhlcvRow[]): ZlPriceBar[] {
-  const out: ZlPriceBar[] = [];
-
-  let activeDay: string | null = null;
-  let activeSymbol = "ZL";
-  let activeOpen = 0;
-  let activeHigh = Number.NEGATIVE_INFINITY;
-  let activeLow = Number.POSITIVE_INFINITY;
-  let activeClose = 0;
-  let activeVolume = 0;
-  let activeBars = 0;
-
-  const flush = () => {
-    if (!activeDay || activeBars === 0) return;
-    if (activeVolume < 100) return; // mirror rollup_zl_daily() artifact guard
-    out.push({
-      symbol: activeSymbol,
-      tradeDate: `${activeDay}T00:00:00+00:00`,
-      open: activeOpen,
-      high: activeHigh,
-      low: activeLow,
-      close: activeClose,
-      volume: activeVolume,
-    });
-  };
-
-  for (const row of rows) {
-    const day = new Date(row.bucket_ts).toISOString().slice(0, 10);
-    const open = Number(row.open);
-    const high = Number(row.high);
-    const low = Number(row.low);
-    const close = Number(row.close);
-    const volume = Number(row.volume);
-
-    if (
-      !Number.isFinite(open) ||
-      !Number.isFinite(high) ||
-      !Number.isFinite(low) ||
-      !Number.isFinite(close) ||
-      !Number.isFinite(volume)
-    ) {
-      continue;
-    }
-
-    if (activeDay !== day) {
-      flush();
-      activeDay = day;
-      activeSymbol = row.symbol ?? "ZL";
-      activeOpen = open;
-      activeHigh = high;
-      activeLow = low;
-      activeClose = close;
-      activeVolume = volume;
-      activeBars = 1;
-      continue;
-    }
-
-    activeHigh = Math.max(activeHigh, high);
-    activeLow = Math.min(activeLow, low);
-    activeClose = close;
-    activeVolume += volume;
-    activeBars += 1;
-  }
-
-  flush();
-  return out;
 }
 
 async function fetchYahooLatestDailyBar(): Promise<ZlPriceBar | null> {
@@ -166,26 +88,6 @@ export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
 
-    const { data: hourlyRows, error: hourlyError } = await supabase
-      .schema("mkt")
-      .from("price_1h")
-      .select("symbol, bucket_ts, open, high, low, close, volume")
-      .eq("symbol", "ZL")
-      .order("bucket_ts", { ascending: true });
-
-    if (!hourlyError) {
-      const rolledBars = rollupHourlyToDailyBars((hourlyRows ?? []) as PriceOhlcvRow[]);
-      if (rolledBars.length > 0) {
-        const envelope: ApiEnvelope<ZlPriceBar[]> = {
-          ok: true,
-          data: rolledBars,
-          asOf: new Date().toISOString(),
-          source: "mkt.price_1h (rolled to daily bars)",
-        };
-        return NextResponse.json(envelope);
-      }
-    }
-
     const { data: rows, error } = await supabase
       .schema("mkt")
       .from("price_1d")
@@ -228,9 +130,6 @@ export async function GET() {
       data: bars,
       asOf: new Date().toISOString(),
       source: yahooLatest ? "mkt.price_1d + Yahoo Finance (latest daily bar)" : "mkt.price_1d",
-      warning: hourlyError?.message
-        ? `hourly rollup unavailable; fell back to price_1d (${hourlyError.message})`
-        : "hourly rollup had no rows; fell back to price_1d",
     };
 
     return NextResponse.json(envelope);
