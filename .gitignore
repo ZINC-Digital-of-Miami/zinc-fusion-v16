@@ -46,3 +46,6 @@ __pycache__/
 
 # supabase local temp artifacts
 supabase/.temp/
+
+# local dataset/cache drops (keep in project folder, never commit)
+Data/

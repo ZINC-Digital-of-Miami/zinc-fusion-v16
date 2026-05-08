@@ -1,0 +1,301 @@
+//@version=6
+indicator("ZL V16 Auto Fib Confluence", shorttitle="ZL V16 Fib", overlay=true, max_lines_count=80, max_labels_count=64)
+
+// This Pine Script code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Kirk / ZINC Digital
+//
+// Port of the current V16 app fib behavior:
+// - Lookbacks: 8, 13, 21, 34, 55
+// - Confluence mid-levels: .382, .500, .618
+// - Tolerance: range * 0.001
+// - Score: confluenceCount * range
+// - Tie-break: wider range, then longer lookback
+// - Anchor lock until price breaks anchor high/low
+
+const float CONFLUENCE_TOLERANCE = 0.001
+const int MAX_LOOKBACK = 55
+
+// Color/width styling matched to app primitive.
+const color C_ANCHOR = #F3F4F6
+const color C_RETRACE = #E5E7EB
+const color C_PIVOT = #E5E7EB
+const color C_TARGET = #22D3EE
+const color C_ZONE = #9CA3AF
+const int ZONE_TRANSP = 78 // ~22% opacity
+
+const float R_ZERO = 0.0
+const float R_236 = 0.236
+const float R_382 = 0.382
+const float R_500 = 0.500
+const float R_618 = 0.618
+const float R_786 = 0.786
+const float R_ONE = 1.000
+const float R_T1 = 1.236
+const float R_T2 = 1.618
+const float R_T3 = 2.000
+
+showFibLevelLabelsInput = input.bool(true, "Show Fib Level Labels")
+fibLabelOffsetBarsInput = input.int(10, "Fib Label Offset (bars)", minval=0, maxval=50)
+fibLabelSizeInput = input.string("Small", "Fib Label Size", options=["Tiny", "Small", "Normal", "Large"])
+
+f_label_size(string sizeName) =>
+    sizeName == "Tiny" ? size.tiny : sizeName == "Normal" ? size.normal : sizeName == "Large" ? size.large : size.small
+
+f_pair_confluence(float a382, float a500, float a618, float b382, float b500, float b618, float tol) =>
+    int hits = 0
+    hits += math.abs(a382 - b382) <= tol ? 1 : 0
+    hits += math.abs(a382 - b500) <= tol ? 1 : 0
+    hits += math.abs(a382 - b618) <= tol ? 1 : 0
+    hits += math.abs(a500 - b382) <= tol ? 1 : 0
+    hits += math.abs(a500 - b500) <= tol ? 1 : 0
+    hits += math.abs(a500 - b618) <= tol ? 1 : 0
+    hits += math.abs(a618 - b382) <= tol ? 1 : 0
+    hits += math.abs(a618 - b500) <= tol ? 1 : 0
+    hits += math.abs(a618 - b618) <= tol ? 1 : 0
+    hits
+
+f_upsert_line(line id, int x1Time, float y, color c, int w, bool dashed) =>
+    line out = id
+    if na(out)
+        out := line.new(x1=x1Time, y1=y, x2=time, y2=y, xloc=xloc.bar_time, extend=extend.right, color=c, style=dashed ? line.style_dashed : line.style_solid, width=w)
+    else
+        line.set_xy1(out, x1Time, y)
+        line.set_xy2(out, time, y)
+        line.set_color(out, c)
+        line.set_width(out, w)
+        line.set_style(out, dashed ? line.style_dashed : line.style_solid)
+        line.set_extend(out, extend.right)
+    out
+
+f_set_fib_label(label idIn, bool visible, float price, string txt, color col, int xOffset, string szName) =>
+    label id = idIn
+    if visible and not na(price)
+        int labelX = bar_index + xOffset
+        string labelText = txt + "  " + str.tostring(price, format.mintick)
+        if na(id)
+            id := label.new(labelX, price, labelText, style=label.style_label_left, color=color.new(color.black, 70), textcolor=col, size=f_label_size(szName))
+        label.set_xy(id, labelX, price)
+        label.set_text(id, labelText)
+        label.set_color(id, color.new(color.black, 70))
+        label.set_textcolor(id, col)
+        label.set_size(id, f_label_size(szName))
+    else if not na(id)
+        label.delete(id)
+        id := na
+    id
+
+var float lockedHigh = na
+var float lockedLow = na
+var bool lockedBullish = true
+var int lockedStartIdx = na
+var int lockedStartTime = na
+
+var float[] LEVEL_RATIOS = array.from(R_ZERO, R_236, R_382, R_500, R_618, R_786, R_ONE, R_T1, R_T2, R_T3)
+var color[] LEVEL_COLORS = array.from(C_ANCHOR, C_RETRACE, C_RETRACE, C_PIVOT, C_RETRACE, C_TARGET, C_TARGET, C_TARGET, C_TARGET, C_TARGET)
+var int[] LEVEL_WIDTHS = array.from(2, 1, 1, 1, 1, 1, 2, 1, 1, 1)
+var string[] LEVEL_LABELS = array.from("0", ".236", ".382", ".500", ".618", ".786", "1.000", "T1", "T2", "T3")
+
+var line[] fibLines = array.new_line(10, na)
+var label[] fibLabels = array.new_label(10, na)
+var linefill pivotZoneFill = na
+
+bool canCalc = bar_index >= MAX_LOOKBACK - 1
+bool anchorMissing = na(lockedHigh) or na(lockedLow) or na(lockedStartIdx) or na(lockedStartTime)
+bool brokeAnchor = not anchorMissing and (close > lockedHigh or close < lockedLow)
+bool shouldRecalc = canCalc and (anchorMissing or brokeAnchor)
+
+if shouldRecalc
+    float h8 = ta.highest(high, 8)
+    float l8 = ta.lowest(low, 8)
+    float r8 = h8 - l8
+    int hIdx8 = bar_index - int(math.abs(ta.highestbars(high, 8)))
+    int lIdx8 = bar_index - int(math.abs(ta.lowestbars(low, 8)))
+    int sAgo8 = math.max(int(math.abs(ta.highestbars(high, 8))), int(math.abs(ta.lowestbars(low, 8))))
+    int sTime8 = time[sAgo8]
+    float m382_8 = l8 + r8 * R_382
+    float m500_8 = l8 + r8 * R_500
+    float m618_8 = l8 + r8 * R_618
+
+    float h13 = ta.highest(high, 13)
+    float l13 = ta.lowest(low, 13)
+    float r13 = h13 - l13
+    int hIdx13 = bar_index - int(math.abs(ta.highestbars(high, 13)))
+    int lIdx13 = bar_index - int(math.abs(ta.lowestbars(low, 13)))
+    int sAgo13 = math.max(int(math.abs(ta.highestbars(high, 13))), int(math.abs(ta.lowestbars(low, 13))))
+    int sTime13 = time[sAgo13]
+    float m382_13 = l13 + r13 * R_382
+    float m500_13 = l13 + r13 * R_500
+    float m618_13 = l13 + r13 * R_618
+
+    float h21 = ta.highest(high, 21)
+    float l21 = ta.lowest(low, 21)
+    float r21 = h21 - l21
+    int hIdx21 = bar_index - int(math.abs(ta.highestbars(high, 21)))
+    int lIdx21 = bar_index - int(math.abs(ta.lowestbars(low, 21)))
+    int sAgo21 = math.max(int(math.abs(ta.highestbars(high, 21))), int(math.abs(ta.lowestbars(low, 21))))
+    int sTime21 = time[sAgo21]
+    float m382_21 = l21 + r21 * R_382
+    float m500_21 = l21 + r21 * R_500
+    float m618_21 = l21 + r21 * R_618
+
+    float h34 = ta.highest(high, 34)
+    float l34 = ta.lowest(low, 34)
+    float r34 = h34 - l34
+    int hIdx34 = bar_index - int(math.abs(ta.highestbars(high, 34)))
+    int lIdx34 = bar_index - int(math.abs(ta.lowestbars(low, 34)))
+    int sAgo34 = math.max(int(math.abs(ta.highestbars(high, 34))), int(math.abs(ta.lowestbars(low, 34))))
+    int sTime34 = time[sAgo34]
+    float m382_34 = l34 + r34 * R_382
+    float m500_34 = l34 + r34 * R_500
+    float m618_34 = l34 + r34 * R_618
+
+    float h55 = ta.highest(high, 55)
+    float l55 = ta.lowest(low, 55)
+    float r55 = h55 - l55
+    int hIdx55 = bar_index - int(math.abs(ta.highestbars(high, 55)))
+    int lIdx55 = bar_index - int(math.abs(ta.lowestbars(low, 55)))
+    int sAgo55 = math.max(int(math.abs(ta.highestbars(high, 55))), int(math.abs(ta.lowestbars(low, 55))))
+    int sTime55 = time[sAgo55]
+    float m382_55 = l55 + r55 * R_382
+    float m500_55 = l55 + r55 * R_500
+    float m618_55 = l55 + r55 * R_618
+
+    int[] periods = array.new_int()
+    float[] highs = array.new_float()
+    float[] lows = array.new_float()
+    int[] highIdxs = array.new_int()
+    int[] lowIdxs = array.new_int()
+    int[] startTimes = array.new_int()
+    float[] ranges = array.new_float()
+    float[] mids382 = array.new_float()
+    float[] mids500 = array.new_float()
+    float[] mids618 = array.new_float()
+
+    if r8 > 0
+        array.push(periods, 8)
+        array.push(highs, h8)
+        array.push(lows, l8)
+        array.push(highIdxs, hIdx8)
+        array.push(lowIdxs, lIdx8)
+        array.push(startTimes, sTime8)
+        array.push(ranges, r8)
+        array.push(mids382, m382_8)
+        array.push(mids500, m500_8)
+        array.push(mids618, m618_8)
+    if r13 > 0
+        array.push(periods, 13)
+        array.push(highs, h13)
+        array.push(lows, l13)
+        array.push(highIdxs, hIdx13)
+        array.push(lowIdxs, lIdx13)
+        array.push(startTimes, sTime13)
+        array.push(ranges, r13)
+        array.push(mids382, m382_13)
+        array.push(mids500, m500_13)
+        array.push(mids618, m618_13)
+    if r21 > 0
+        array.push(periods, 21)
+        array.push(highs, h21)
+        array.push(lows, l21)
+        array.push(highIdxs, hIdx21)
+        array.push(lowIdxs, lIdx21)
+        array.push(startTimes, sTime21)
+        array.push(ranges, r21)
+        array.push(mids382, m382_21)
+        array.push(mids500, m500_21)
+        array.push(mids618, m618_21)
+    if r34 > 0
+        array.push(periods, 34)
+        array.push(highs, h34)
+        array.push(lows, l34)
+        array.push(highIdxs, hIdx34)
+        array.push(lowIdxs, lIdx34)
+        array.push(startTimes, sTime34)
+        array.push(ranges, r34)
+        array.push(mids382, m382_34)
+        array.push(mids500, m500_34)
+        array.push(mids618, m618_34)
+    if r55 > 0
+        array.push(periods, 55)
+        array.push(highs, h55)
+        array.push(lows, l55)
+        array.push(highIdxs, hIdx55)
+        array.push(lowIdxs, lIdx55)
+        array.push(startTimes, sTime55)
+        array.push(ranges, r55)
+        array.push(mids382, m382_55)
+        array.push(mids500, m500_55)
+        array.push(mids618, m618_55)
+
+    int candidateCount = array.size(ranges)
+    if candidateCount > 0
+        int bestIdx = candidateCount - 1
+        float bestScore = -1.0
+
+        for i = 0 to 4
+            if i < candidateCount
+                float rI = array.get(ranges, i)
+                float tol = rI * CONFLUENCE_TOLERANCE
+                float a382 = array.get(mids382, i)
+                float a500 = array.get(mids500, i)
+                float a618 = array.get(mids618, i)
+
+                int confluenceCount = 0
+                for j = 0 to 4
+                    if j < candidateCount and i != j
+                        confluenceCount += f_pair_confluence(a382, a500, a618, array.get(mids382, j), array.get(mids500, j), array.get(mids618, j), tol)
+
+                float score = confluenceCount * rI
+                bool sameScore = math.abs(score - bestScore) < 1e-9
+                bool widerRange = rI > array.get(ranges, bestIdx)
+                bool sameRange = math.abs(rI - array.get(ranges, bestIdx)) < 1e-9
+                bool longerWindow = array.get(periods, i) > array.get(periods, bestIdx)
+                if score > bestScore or (sameScore and (widerRange or (sameRange and longerWindow)))
+                    bestScore := score
+                    bestIdx := i
+
+        lockedHigh := array.get(highs, bestIdx)
+        lockedLow := array.get(lows, bestIdx)
+        lockedStartIdx := math.min(array.get(highIdxs, bestIdx), array.get(lowIdxs, bestIdx))
+        lockedStartTime := array.get(startTimes, bestIdx)
+        float midpoint = lockedLow + (lockedHigh - lockedLow) * R_500
+        lockedBullish := close >= midpoint
+
+bool readyToDraw = not na(lockedHigh) and not na(lockedLow) and not na(lockedStartIdx) and not na(lockedStartTime)
+
+if readyToDraw
+    float fibRng = lockedHigh - lockedLow
+    float base = lockedBullish ? lockedLow : lockedHigh
+    float dir = lockedBullish ? 1.0 : -1.0
+    int startXTime = lockedStartTime
+
+    for idx = 0 to 9
+        float ratio = array.get(LEVEL_RATIOS, idx)
+        float y = base + dir * fibRng * ratio
+        color c = array.get(LEVEL_COLORS, idx)
+        int w = array.get(LEVEL_WIDTHS, idx)
+        bool dashed = idx == 3 // .500 pivot line
+        line existing = array.get(fibLines, idx)
+        line updated = f_upsert_line(existing, startXTime, y, c, w, dashed)
+        array.set(fibLines, idx, updated)
+
+        label existingLabel = array.get(fibLabels, idx)
+        label updatedLabel = f_set_fib_label(existingLabel, showFibLevelLabelsInput, y, array.get(LEVEL_LABELS, idx), c, fibLabelOffsetBarsInput, fibLabelSizeInput)
+        array.set(fibLabels, idx, updatedLabel)
+
+    line line382 = array.get(fibLines, 2)
+    line line618 = array.get(fibLines, 4)
+    if na(pivotZoneFill) and not na(line382) and not na(line618)
+        pivotZoneFill := linefill.new(line382, line618, color.new(C_ZONE, ZONE_TRANSP))
+    else if not na(pivotZoneFill)
+        linefill.set_color(pivotZoneFill, color.new(C_ZONE, ZONE_TRANSP))
+else
+    for idx = 0 to 9
+        line ln = array.get(fibLines, idx)
+        if not na(ln)
+            line.set_color(ln, color.new(color.white, 100))
+        label lb = array.get(fibLabels, idx)
+        if not na(lb)
+            label.delete(lb)
+            label cleared = na
+            array.set(fibLabels, idx, cleared)
