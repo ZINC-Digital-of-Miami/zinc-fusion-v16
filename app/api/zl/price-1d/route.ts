@@ -3,85 +3,70 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import type { ApiEnvelope, ZlPriceBar } from "@/lib/contracts/api";
 
-type YahooChartQuote = {
-  open?: Array<number | null>;
-  high?: Array<number | null>;
-  low?: Array<number | null>;
-  close?: Array<number | null>;
-  volume?: Array<number | null>;
-};
-
-type YahooChartResult = {
-  timestamp?: number[];
-  indicators?: {
-    quote?: YahooChartQuote[];
-  };
-};
-
-type YahooChartResponse = {
-  chart?: {
-    result?: YahooChartResult[];
-  };
+type PriceRow = {
+  symbol: string;
+  bucket_ts: string;
+  open: number | string;
+  high: number | string;
+  low: number | string;
+  close: number | string;
+  volume: number | string | null;
 };
 
 function dayKey(tsIso: string): string {
   return tsIso.slice(0, 10);
 }
 
-function toBarDateUtc(tsSeconds: number): string {
-  return new Date(tsSeconds * 1000).toISOString().slice(0, 10);
-}
+function buildLatestDatabentoDailyFromHourly(rows: PriceRow[]): ZlPriceBar | null {
+  if (rows.length === 0) return null;
 
-async function fetchYahooLatestDailyBar(): Promise<ZlPriceBar | null> {
-  const url = "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=1mo";
-  try {
-    const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 (Codex Market Feed)" },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const payload = (await res.json()) as YahooChartResponse;
-    const result = payload.chart?.result?.[0];
-    const timestamps = result?.timestamp ?? [];
-    const quote = result?.indicators?.quote?.[0];
-    const opens = quote?.open ?? [];
-    const highs = quote?.high ?? [];
-    const lows = quote?.low ?? [];
-    const closes = quote?.close ?? [];
-    const volumes = quote?.volume ?? [];
+  const latestDay = dayKey(rows[0].bucket_ts);
+  const sameDayRows = rows.filter((row) => dayKey(row.bucket_ts) === latestDay);
+  if (sameDayRows.length === 0) return null;
 
-    for (let i = timestamps.length - 1; i >= 0; i -= 1) {
-      const ts = timestamps[i];
-      const open = opens[i];
-      const high = highs[i];
-      const low = lows[i];
-      const close = closes[i];
-      const volume = volumes[i];
-      if (
-        typeof ts !== "number" ||
-        typeof open !== "number" ||
-        typeof high !== "number" ||
-        typeof low !== "number" ||
-        typeof close !== "number"
-      ) {
-        continue;
-      }
+  sameDayRows.sort(
+    (a, b) => new Date(a.bucket_ts).getTime() - new Date(b.bucket_ts).getTime(),
+  );
 
-      const barDate = toBarDateUtc(ts);
-      return {
-        symbol: "ZL",
-        tradeDate: `${barDate}T00:00:00+00:00`,
-        open,
-        high,
-        low,
-        close,
-        volume: typeof volume === "number" && Number.isFinite(volume) ? volume : 0,
-      };
-    }
-  } catch {
-    return null;
+  const parsedRows = sameDayRows
+    .map((row) => ({
+      open: Number(row.open),
+      high: Number(row.high),
+      low: Number(row.low),
+      close: Number(row.close),
+      volume: Number(row.volume ?? 0),
+    }))
+    .filter(
+      (row) =>
+        Number.isFinite(row.open) &&
+        Number.isFinite(row.high) &&
+        Number.isFinite(row.low) &&
+        Number.isFinite(row.close),
+    );
+
+  if (parsedRows.length === 0) return null;
+
+  const open = parsedRows[0].open;
+  const close = parsedRows[parsedRows.length - 1].close;
+  let high = parsedRows[0].high;
+  let low = parsedRows[0].low;
+  let volume = 0;
+
+  for (const row of parsedRows) {
+    if (row.high > high) high = row.high;
+    if (row.low < low) low = row.low;
+    if (Number.isFinite(row.volume)) volume += row.volume;
   }
-  return null;
+
+  return {
+    symbol: "ZL",
+    tradeDate: `${latestDay}T00:00:00+00:00`,
+    open,
+    high,
+    low,
+    close,
+    volume,
+  };
 }
 
 export async function GET() {
@@ -112,16 +97,27 @@ export async function GET() {
       volume: Number(row.volume),
     }));
 
-    const yahooLatest = await fetchYahooLatestDailyBar();
-    if (yahooLatest) {
+    const { data: hourlyRows } = await supabase
+      .schema("mkt")
+      .from("price_1h")
+      .select("symbol, bucket_ts, open, high, low, close, volume")
+      .eq("symbol", "ZL")
+      .order("bucket_ts", { ascending: false })
+      .limit(96);
+
+    const databentoLatest = buildLatestDatabentoDailyFromHourly(
+      (hourlyRows ?? []) as PriceRow[],
+    );
+
+    if (databentoLatest) {
       const lastBar = bars[bars.length - 1] ?? null;
       const lastDay = lastBar ? dayKey(lastBar.tradeDate) : null;
-      const yahooDay = dayKey(yahooLatest.tradeDate);
+      const databentoDay = dayKey(databentoLatest.tradeDate);
 
-      if (!lastDay || yahooDay > lastDay) {
-        bars.push(yahooLatest);
-      } else if (yahooDay === lastDay && lastBar) {
-        bars[bars.length - 1] = yahooLatest;
+      if (!lastDay || databentoDay > lastDay) {
+        bars.push(databentoLatest);
+      } else if (databentoDay === lastDay && lastBar) {
+        bars[bars.length - 1] = databentoLatest;
       }
     }
 
@@ -129,7 +125,9 @@ export async function GET() {
       ok: true,
       data: bars,
       asOf: new Date().toISOString(),
-      source: yahooLatest ? "mkt.price_1d + Yahoo Finance (latest daily bar)" : "mkt.price_1d",
+      source: databentoLatest
+        ? "mkt.price_1d + Databento (mkt.price_1h latest daily bar)"
+        : "mkt.price_1d",
     };
 
     return NextResponse.json(envelope);
