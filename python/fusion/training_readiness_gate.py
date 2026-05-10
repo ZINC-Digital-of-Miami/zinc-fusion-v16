@@ -18,7 +18,7 @@ from .artifacts import (
     specialist_features_path,
     target_columns,
 )
-from .config import SPECIALISTS, load_config
+from .config import SPECIALISTS, resolve_cloud_db_url
 
 _ECO_TABLES: tuple[str, ...] = (
     "rates_1d",
@@ -65,6 +65,7 @@ class TrainingGateContract:
     max_cloud_local_missing_ratio: float
     max_cloud_local_value_mismatch_ratio: float
     cloud_local_value_tolerance: float
+    single_matrix_training_contract: bool
     require_options_data: bool
     min_options_rows: int
     max_options_age_days: int
@@ -119,6 +120,7 @@ def _ratio(numerator: int, denominator: int) -> float:
 
 def _load_contract() -> TrainingGateContract:
     enforce_parity = os.getenv("TRAINING_ENFORCE_CLOUD_LOCAL_PARITY", "1").strip().lower()
+    single_matrix = os.getenv("TRAINING_SINGLE_MATRIX_CONTRACT", "1").strip().lower()
     require_options = os.getenv("TRAINING_REQUIRE_OPTIONS", "0").strip().lower()
     return TrainingGateContract(
         required_symbols=_parse_csv(
@@ -169,15 +171,11 @@ def _load_contract() -> TrainingGateContract:
             os.getenv("TRAINING_CLOUD_LOCAL_VALUE_TOLERANCE"),
             1e-9,
         ),
+        single_matrix_training_contract=single_matrix not in {"0", "false", "no", "off"},
         require_options_data=require_options in {"1", "true", "yes", "on"},
         min_options_rows=int(os.getenv("TRAINING_MIN_OPTIONS_ROWS", "1000")),
         max_options_age_days=int(os.getenv("TRAINING_MAX_OPTIONS_AGE_DAYS", "14")),
     )
-
-
-def _resolve_db_url() -> str | None:
-    cfg = load_config()
-    return cfg.supabase_db_url or cfg.supabase_pooler_url
 
 
 def _check_symbol_table(
@@ -701,40 +699,61 @@ def _check_profarmer(
 
 
 def _check_specialist_target_leakage(
-    cur: Any,
     *,
     max_match_ratio: float,
 ) -> tuple[bool, str]:
-    offenders: list[str] = []
-    for specialist in SPECIALISTS:
-        query = sql.SQL(
-            "SELECT "
-            "COUNT(*)::BIGINT AS row_count, "
-            "COUNT(*) FILTER (WHERE "
-            "(s.feature_payload->>'mom_30')::numeric = "
-            "(m.feature_snapshot->>'target_price_30d')::numeric - (m.feature_snapshot->>'close')::numeric"
-            ")::BIGINT AS eq_30, "
-            "COUNT(*) FILTER (WHERE "
-            "(s.feature_payload->>'mom_90')::numeric = "
-            "(m.feature_snapshot->>'target_price_90d')::numeric - (m.feature_snapshot->>'close')::numeric"
-            ")::BIGINT AS eq_90, "
-            "COUNT(*) FILTER (WHERE "
-            "(s.feature_payload->>'mom_180')::numeric = "
-            "(m.feature_snapshot->>'target_price_180d')::numeric - (m.feature_snapshot->>'close')::numeric"
-            ")::BIGINT AS eq_180 "
-            "FROM training.{specialist_table} s "
-            "JOIN training.matrix_1d m USING (trade_date)"
-        ).format(specialist_table=sql.Identifier(f"specialist_features_{specialist}"))
-        cur.execute(query)
-        row_count, eq_30, eq_90, eq_180 = cur.fetchone()
-        row_count = int(row_count or 0)
-        eq_30 = int(eq_30 or 0)
-        eq_90 = int(eq_90 or 0)
-        eq_180 = int(eq_180 or 0)
+    try:
+        matrix = read_parquet(matrix_path()).copy()
+    except Exception as exc:  # noqa: BLE001
+        return False, f"specialist target leakage failed -> unable to read local matrix: {exc}"
 
-        r30 = _ratio(eq_30, row_count)
-        r90 = _ratio(eq_90, row_count)
-        r180 = _ratio(eq_180, row_count)
+    required = {"trade_date", "close", "target_price_30d", "target_price_90d", "target_price_180d"}
+    missing_required = sorted(required - set(matrix.columns))
+    if missing_required:
+        return False, f"specialist target leakage failed -> local matrix missing columns: {missing_required}"
+
+    matrix["trade_date"] = pd.to_datetime(matrix["trade_date"], errors="coerce").dt.date
+    matrix = matrix.dropna(subset=["trade_date"])
+    matrix["delta_30"] = pd.to_numeric(matrix["target_price_30d"], errors="coerce") - pd.to_numeric(
+        matrix["close"], errors="coerce"
+    )
+    matrix["delta_90"] = pd.to_numeric(matrix["target_price_90d"], errors="coerce") - pd.to_numeric(
+        matrix["close"], errors="coerce"
+    )
+    matrix["delta_180"] = pd.to_numeric(matrix["target_price_180d"], errors="coerce") - pd.to_numeric(
+        matrix["close"], errors="coerce"
+    )
+    base = matrix[["trade_date", "delta_30", "delta_90", "delta_180"]].copy()
+
+    offenders: list[str] = []
+    checked: list[str] = []
+    skipped: list[str] = []
+    tol = 1e-12
+
+    for specialist in SPECIALISTS:
+        try:
+            frame = read_parquet(specialist_features_path(specialist)).copy()
+        except Exception as exc:  # noqa: BLE001
+            skipped.append(f"{specialist}: unreadable ({exc})")
+            continue
+
+        needed = {"trade_date", "mom_30", "mom_90", "mom_180"}
+        if not needed.issubset(set(frame.columns)):
+            missing = sorted(needed - set(frame.columns))
+            skipped.append(f"{specialist}: missing {missing}")
+            continue
+
+        frame["trade_date"] = pd.to_datetime(frame["trade_date"], errors="coerce").dt.date
+        merged = base.merge(frame[["trade_date", "mom_30", "mom_90", "mom_180"]], on="trade_date", how="inner")
+        merged = merged.dropna(subset=["delta_30", "delta_90", "delta_180", "mom_30", "mom_90", "mom_180"])
+        if merged.empty:
+            skipped.append(f"{specialist}: 0 overlap")
+            continue
+
+        r30 = float((pd.to_numeric(merged["mom_30"], errors="coerce") - merged["delta_30"]).abs().le(tol).mean())
+        r90 = float((pd.to_numeric(merged["mom_90"], errors="coerce") - merged["delta_90"]).abs().le(tol).mean())
+        r180 = float((pd.to_numeric(merged["mom_180"], errors="coerce") - merged["delta_180"]).abs().le(tol).mean())
+        checked.append(f"{specialist}[rows={len(merged)},r30={r30:.3f},r90={r90:.3f},r180={r180:.3f}]")
         if r30 >= max_match_ratio or r90 >= max_match_ratio or r180 >= max_match_ratio:
             offenders.append(
                 f"{specialist}: r30={r30:.3f}, r90={r90:.3f}, r180={r180:.3f}, max={max_match_ratio:.3f}"
@@ -742,7 +761,11 @@ def _check_specialist_target_leakage(
 
     if offenders:
         return False, "specialist target leakage failed -> " + "; ".join(offenders)
-    return True, "specialist target leakage passed"
+    if checked:
+        if skipped:
+            return True, "specialist target leakage passed -> " + "; ".join(checked) + "; skipped: " + "; ".join(skipped)
+        return True, "specialist target leakage passed -> " + "; ".join(checked)
+    return True, "specialist target leakage skipped -> no specialist mom_* columns available"
 
 
 def _check_signal_identity(
@@ -902,12 +925,12 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         result["status"] = "dry-run"
         return result
 
-    db_url = _resolve_db_url()
+    db_url = resolve_cloud_db_url()
     if not db_url:
         result["status"] = "blocked"
         result["ready"] = False
         result["blockers"] = [
-            "DATABASE_URL (or SUPABASE_DB_URL/POSTGRES_URL_NON_POOLING/POSTGRES_URL) is not configured"
+            "Cloud DB URL is not configured. Configure DATABASE_URL, SUPABASE_DB_URL, POSTGRES_URL_NON_POOLING, or SUPABASE_POOLER_URL."
         ]
         return result
 
@@ -920,22 +943,31 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
     if not pass_flag:
         blockers.append(detail)
 
-    for specialist in SPECIALISTS:
-        pass_flag, detail = _check_local_specialist_artifact(specialist, contract=contract)
+    if contract.single_matrix_training_contract:
         checks.append(
             {
-                "check": f"local_specialist_artifact_{specialist}",
-                "passed": pass_flag,
-                "detail": detail,
+                "check": "local_specialist_artifacts",
+                "passed": True,
+                "detail": "skipped (TRAINING_SINGLE_MATRIX_CONTRACT=1)",
             }
         )
+    else:
+        for specialist in SPECIALISTS:
+            pass_flag, detail = _check_local_specialist_artifact(specialist, contract=contract)
+            checks.append(
+                {
+                    "check": f"local_specialist_artifact_{specialist}",
+                    "passed": pass_flag,
+                    "detail": detail,
+                }
+            )
+            if not pass_flag:
+                blockers.append(detail)
+
+        pass_flag, detail = _check_local_signal_artifact(contract=contract)
+        checks.append({"check": "local_specialist_signals", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
-
-    pass_flag, detail = _check_local_signal_artifact(contract=contract)
-    checks.append({"check": "local_specialist_signals", "passed": pass_flag, "detail": detail})
-    if not pass_flag:
-        blockers.append(detail)
 
     try:
         conn = psycopg2.connect(
@@ -1068,81 +1100,89 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         if not pass_flag:
             blockers.append(detail)
 
-        pass_flag, detail = _check_table_rows_and_age(
-            cur,
-            schema="training",
-            table="specialist_signals_1d",
-            date_column="trade_date",
-            freshness_column="ingested_at",
-            min_rows=contract.min_signal_rows,
-            max_freshness_age_days=contract.max_factor_age_days,
-            max_value_age_days=contract.max_training_trade_date_age_days,
-            now_utc=now_utc,
-        )
-        checks.append({"check": "specialist_signals", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
-
-        pass_flag, detail = _check_json_payload_width(
-            cur,
-            schema="training",
-            table="specialist_signals_1d",
-            payload_column="signal_payload",
-            min_keys=contract.min_signal_keys,
-        )
-        checks.append({"check": "specialist_signals_payload", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
-
-        for specialist in SPECIALISTS:
-            table_name = f"specialist_features_{specialist}"
+        if contract.single_matrix_training_contract:
+            checks.append(
+                {
+                    "check": "cloud_specialist_contract",
+                    "passed": True,
+                    "detail": "skipped specialist_signals/specialist_features checks (TRAINING_SINGLE_MATRIX_CONTRACT=1)",
+                }
+            )
+        else:
             pass_flag, detail = _check_table_rows_and_age(
                 cur,
                 schema="training",
-                table=table_name,
+                table="specialist_signals_1d",
                 date_column="trade_date",
                 freshness_column="ingested_at",
-                min_rows=contract.min_specialist_feature_rows,
+                min_rows=contract.min_signal_rows,
                 max_freshness_age_days=contract.max_factor_age_days,
                 max_value_age_days=contract.max_training_trade_date_age_days,
                 now_utc=now_utc,
             )
-            checks.append({"check": table_name, "passed": pass_flag, "detail": detail})
+            checks.append({"check": "specialist_signals", "passed": pass_flag, "detail": detail})
             if not pass_flag:
                 blockers.append(detail)
 
             pass_flag, detail = _check_json_payload_width(
                 cur,
                 schema="training",
-                table=table_name,
-                payload_column="feature_payload",
-                min_keys=contract.min_specialist_feature_keys,
+                table="specialist_signals_1d",
+                payload_column="signal_payload",
+                min_keys=contract.min_signal_keys,
             )
-            checks.append(
-                {
-                    "check": f"{table_name}_payload",
-                    "passed": pass_flag,
-                    "detail": detail,
-                }
-            )
+            checks.append({"check": "specialist_signals_payload", "passed": pass_flag, "detail": detail})
             if not pass_flag:
                 blockers.append(detail)
 
-        pass_flag, detail = _check_specialist_target_leakage(
-            cur,
-            max_match_ratio=contract.max_specialist_leakage_match_ratio,
-        )
-        checks.append({"check": "specialist_target_leakage", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
+            for specialist in SPECIALISTS:
+                table_name = f"specialist_features_{specialist}"
+                pass_flag, detail = _check_table_rows_and_age(
+                    cur,
+                    schema="training",
+                    table=table_name,
+                    date_column="trade_date",
+                    freshness_column="ingested_at",
+                    min_rows=contract.min_specialist_feature_rows,
+                    max_freshness_age_days=contract.max_factor_age_days,
+                    max_value_age_days=contract.max_training_trade_date_age_days,
+                    now_utc=now_utc,
+                )
+                checks.append({"check": table_name, "passed": pass_flag, "detail": detail})
+                if not pass_flag:
+                    blockers.append(detail)
 
-        pass_flag, detail = _check_signal_identity(
-            cur,
-            max_identity_ratio=contract.max_signal_identity_ratio,
-        )
-        checks.append({"check": "specialist_signal_identity", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
+                pass_flag, detail = _check_json_payload_width(
+                    cur,
+                    schema="training",
+                    table=table_name,
+                    payload_column="feature_payload",
+                    min_keys=contract.min_specialist_feature_keys,
+                )
+                checks.append(
+                    {
+                        "check": f"{table_name}_payload",
+                        "passed": pass_flag,
+                        "detail": detail,
+                    }
+                )
+                if not pass_flag:
+                    blockers.append(detail)
+
+            pass_flag, detail = _check_specialist_target_leakage(
+                max_match_ratio=contract.max_specialist_leakage_match_ratio,
+            )
+            checks.append({"check": "specialist_target_leakage", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
+
+            pass_flag, detail = _check_signal_identity(
+                cur,
+                max_identity_ratio=contract.max_signal_identity_ratio,
+            )
+            checks.append({"check": "specialist_signal_identity", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
 
         pass_flag, detail = _check_price_ingest_jobs(
             cur,

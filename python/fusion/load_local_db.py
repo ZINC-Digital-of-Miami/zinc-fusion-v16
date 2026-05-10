@@ -19,20 +19,22 @@ from .artifacts import (
     specialist_features_path,
     target_columns,
 )
-from .config import SPECIALISTS
+from .config import SPECIALISTS, resolve_local_training_db_url
 
 
 class LocalLoadError(RuntimeError):
     pass
 
 
-DEFAULT_LOCAL_DB_URL = "postgresql://zincdigital@localhost:5432/fusion"
+DEFAULT_LOCAL_DB_URL = resolve_local_training_db_url()
 
 
 @dataclass(frozen=True)
 class LocalLoadSummary:
     matrix_rows: int
+    matrix_target_rows: int
     signal_rows: int
+    unified_feature_count: int
     specialist_rows: dict[str, int]
     target_columns_stripped_from_matrix_payload: list[str]
     matrix_label_null_counts: dict[str, int]
@@ -102,6 +104,13 @@ def _validate_signals() -> pd.DataFrame:
     return signals.sort_values("trade_date").reset_index(drop=True)
 
 
+def _maybe_validate_signals() -> pd.DataFrame | None:
+    try:
+        return _validate_signals()
+    except FileNotFoundError:
+        return None
+
+
 def _validate_specialists() -> dict[str, pd.DataFrame]:
     payload: dict[str, pd.DataFrame] = {}
     for specialist in SPECIALISTS:
@@ -117,6 +126,32 @@ def _validate_specialists() -> dict[str, pd.DataFrame]:
     return payload
 
 
+def _coerce_trade_date(frame: pd.DataFrame) -> pd.DataFrame:
+    normalized = frame.copy()
+    normalized["trade_date"] = pd.to_datetime(normalized["trade_date"], errors="coerce").dt.date
+    normalized = normalized.dropna(subset=["trade_date"])
+    normalized = normalized.sort_values("trade_date").drop_duplicates(subset=["trade_date"], keep="last")
+    return normalized.reset_index(drop=True)
+
+
+def _build_unified_matrix(matrix: pd.DataFrame, specialists: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    unified = _coerce_trade_date(matrix)
+    for specialist, frame in specialists.items():
+        source = _coerce_trade_date(frame)
+        prefix = f"{specialist}_"
+        feature_cols = [
+            column
+            for column in source.columns
+            if column not in {"trade_date", "specialist"} and not column.startswith("target_price_")
+        ]
+        if not feature_cols:
+            continue
+        scoped = source[["trade_date", *feature_cols]].copy()
+        scoped = scoped.rename(columns={column: f"{prefix}{column}" for column in feature_cols})
+        unified = unified.merge(scoped, on="trade_date", how="left")
+    return unified.sort_values("trade_date").reset_index(drop=True)
+
+
 def _ensure_training_tables(cur: Any) -> None:
     cur.execute("CREATE SCHEMA IF NOT EXISTS training")
     cur.execute("CREATE SCHEMA IF NOT EXISTS ops")
@@ -127,6 +162,18 @@ def _ensure_training_tables(cur: Any) -> None:
           id BIGSERIAL PRIMARY KEY,
           trade_date DATE NOT NULL UNIQUE,
           feature_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+        """
+    )
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS training.matrix_targets_1d (
+          trade_date DATE PRIMARY KEY,
+          target_price_30d NUMERIC,
+          target_price_90d NUMERIC,
+          target_price_180d NUMERIC,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
@@ -190,6 +237,42 @@ def _load_matrix(cur: Any, matrix: pd.DataFrame) -> int:
     return len(rows)
 
 
+def _load_matrix_targets(cur: Any, matrix: pd.DataFrame) -> int:
+    expected = {"target_price_30d", "target_price_90d", "target_price_180d"}
+    labels = set(target_columns(matrix.columns))
+    missing = sorted(expected - labels)
+    if missing:
+        raise LocalLoadError(f"matrix artifact missing required target columns: {missing}")
+    rows = [
+        (
+            row["trade_date"],
+            None if pd.isna(row["target_price_30d"]) else float(row["target_price_30d"]),
+            None if pd.isna(row["target_price_90d"]) else float(row["target_price_90d"]),
+            None if pd.isna(row["target_price_180d"]) else float(row["target_price_180d"]),
+        )
+        for _, row in matrix.iterrows()
+    ]
+    cur.execute("TRUNCATE TABLE training.matrix_targets_1d")
+    execute_values(
+        cur,
+        """
+        INSERT INTO training.matrix_targets_1d (
+          trade_date,
+          target_price_30d,
+          target_price_90d,
+          target_price_180d,
+          created_at,
+          ingested_at
+        )
+        VALUES %s
+        """,
+        rows,
+        template="(%s, %s, %s, %s, NOW(), NOW())",
+        page_size=1000,
+    )
+    return len(rows)
+
+
 def _load_signals(cur: Any, signals: pd.DataFrame) -> int:
     rows = [(row["trade_date"], _json_from_row(row, exclude={"trade_date"})) for _, row in signals.iterrows()]
     cur.execute("TRUNCATE TABLE training.specialist_signals_1d")
@@ -222,14 +305,19 @@ def _load_specialist(cur: Any, specialist: str, frame: pd.DataFrame) -> int:
     return len(rows)
 
 
-def _touch_source_manifest(cur: Any, *, min_trade_date: str, max_trade_date: str) -> None:
+def _touch_source_manifest(
+    cur: Any,
+    *,
+    min_trade_date: str,
+    max_trade_date: str,
+    include_signals: bool,
+) -> None:
     cur.execute(
         """
         INSERT INTO ops.source_manifest (
           source_name, source_table, update_frequency, expected_row_count, min_date, max_date, last_validated, health_status, notes
         ) VALUES
-          ('ag_matrix_local', 'training.matrix_1d', 'manual', NULL, %s::date, %s::date, NOW(), 'ok', 'Local AG matrix artifact load'),
-          ('ag_signals_local', 'training.specialist_signals_1d', 'manual', NULL, %s::date, %s::date, NOW(), 'ok', 'Local AG specialist signal artifact load')
+          ('ag_matrix_local', 'training.matrix_1d', 'manual', NULL, %s::date, %s::date, NOW(), 'ok', 'Local AG matrix artifact load')
         ON CONFLICT (source_name) DO UPDATE SET
           source_table = EXCLUDED.source_table,
           update_frequency = EXCLUDED.update_frequency,
@@ -239,22 +327,46 @@ def _touch_source_manifest(cur: Any, *, min_trade_date: str, max_trade_date: str
           health_status = EXCLUDED.health_status,
           notes = EXCLUDED.notes
         """,
-        (min_trade_date, max_trade_date, min_trade_date, max_trade_date),
+        (min_trade_date, max_trade_date),
     )
+    if include_signals:
+        cur.execute(
+            """
+            INSERT INTO ops.source_manifest (
+              source_name, source_table, update_frequency, expected_row_count, min_date, max_date, last_validated, health_status, notes
+            ) VALUES
+              ('ag_signals_local', 'training.specialist_signals_1d', 'manual', NULL, %s::date, %s::date, NOW(), 'ok', 'Local AG specialist signal artifact load')
+            ON CONFLICT (source_name) DO UPDATE SET
+              source_table = EXCLUDED.source_table,
+              update_frequency = EXCLUDED.update_frequency,
+              min_date = EXCLUDED.min_date,
+              max_date = EXCLUDED.max_date,
+              last_validated = EXCLUDED.last_validated,
+              health_status = EXCLUDED.health_status,
+              notes = EXCLUDED.notes
+            """,
+            (min_trade_date, max_trade_date),
+        )
 
 
 def run(*, db_url: str = DEFAULT_LOCAL_DB_URL, dry_run: bool = True, approved: bool = False) -> dict[str, object]:
     _validate_local_db_url(db_url)
     matrix = _validate_matrix()
-    signals = _validate_signals()
+    signals = _maybe_validate_signals()
     specialists = _validate_specialists()
+    unified_matrix = _build_unified_matrix(matrix, specialists)
+    read_paths = [str(matrix_path()), *[str(specialist_features_path(specialist)) for specialist in SPECIALISTS]]
+    if signals is not None:
+        read_paths.append(str(signals_path()))
 
     min_trade_date = str(pd.to_datetime(matrix["trade_date"]).min().date())
     max_trade_date = str(pd.to_datetime(matrix["trade_date"]).max().date())
 
     summary = LocalLoadSummary(
-        matrix_rows=int(len(matrix)),
-        signal_rows=int(len(signals)),
+        matrix_rows=int(len(unified_matrix)),
+        matrix_target_rows=int(len(matrix)),
+        signal_rows=int(len(signals)) if signals is not None else 0,
+        unified_feature_count=int(len(feature_columns(unified_matrix.columns))),
         specialist_rows={name: int(len(frame)) for name, frame in specialists.items()},
         target_columns_stripped_from_matrix_payload=target_columns(matrix.columns),
         matrix_label_null_counts={
@@ -268,24 +380,26 @@ def run(*, db_url: str = DEFAULT_LOCAL_DB_URL, dry_run: bool = True, approved: b
         "approved": approved,
         "db_url": db_url,
         "reads": [
-            str(matrix_path()),
-            str(signals_path()),
-            *[str(specialist_features_path(specialist)) for specialist in SPECIALISTS],
+            *read_paths,
         ],
         "writes": [
             "training.matrix_1d",
-            "training.specialist_signals_1d",
+            "training.matrix_targets_1d",
+            "training.specialist_signals_1d (optional)",
             *[f"training.specialist_features_{specialist}" for specialist in SPECIALISTS],
             "ops.local_load_manifest",
             "ops.source_manifest",
         ],
         "matrix_rows": summary.matrix_rows,
+        "matrix_target_rows": summary.matrix_target_rows,
         "signal_rows": summary.signal_rows,
+        "unified_feature_count": summary.unified_feature_count,
         "specialist_rows": summary.specialist_rows,
         "trade_date_min": min_trade_date,
         "trade_date_max": max_trade_date,
         "target_columns_stripped_from_matrix_payload": summary.target_columns_stripped_from_matrix_payload,
         "matrix_label_null_counts": summary.matrix_label_null_counts,
+        "single_matrix_training_contract": True,
         "status": "dry-run" if dry_run else "pending",
     }
 
@@ -297,17 +411,20 @@ def run(*, db_url: str = DEFAULT_LOCAL_DB_URL, dry_run: bool = True, approved: b
     run_id = f"local-load-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
     source_paths = {
         "matrix": str(matrix_path()),
-        "signals": str(signals_path()),
         "specialists": {specialist: str(specialist_features_path(specialist)) for specialist in SPECIALISTS},
     }
+    if signals is not None:
+        source_paths["signals"] = str(signals_path())
 
     with psycopg2.connect(db_url, connect_timeout=10, application_name="fusion_load_local_db") as conn:
         with conn.cursor() as cur:
             _ensure_training_tables(cur)
             promoted = {
-                "training.matrix_1d": _load_matrix(cur, matrix),
-                "training.specialist_signals_1d": _load_signals(cur, signals),
+                "training.matrix_1d": _load_matrix(cur, unified_matrix),
+                "training.matrix_targets_1d": _load_matrix_targets(cur, matrix),
             }
+            if signals is not None:
+                promoted["training.specialist_signals_1d"] = _load_signals(cur, signals)
             for specialist, frame in specialists.items():
                 promoted[f"training.specialist_features_{specialist}"] = _load_specialist(cur, specialist, frame)
 
@@ -315,6 +432,7 @@ def run(*, db_url: str = DEFAULT_LOCAL_DB_URL, dry_run: bool = True, approved: b
                 cur,
                 min_trade_date=min_trade_date,
                 max_trade_date=max_trade_date,
+                include_signals=signals is not None,
             )
             cur.execute(
                 """
