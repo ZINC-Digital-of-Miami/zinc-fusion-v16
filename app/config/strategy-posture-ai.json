@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-08T07:04:14-04:00",
-  "model": "chatgpt-pro-subscription",
+  "generatedAt": "2026-05-09T07:09:43-04:00",
+  "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
-  "source": "chatgpt-pro-subscription-refresh",
+  "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture remains ACCUMULATE because average pressure is 39.4 while the only true outlier is energy stress at 67.9; that supports staged buying rather than all-at-once execution.",
-    "updatedAt": "2026-05-08T07:04:14-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because average pressure is 36.9 while energy stress is 59.2, leaving a 22.3-point lead-channel premium that still argues for staged execution instead of waiting for a perfect entry.",
+    "updatedAt": "2026-05-09T07:09:43-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Current posture stays ACCUMULATE. Energy stress at 67.9 and volatility at 44.1 argue for tranche execution because the lead-risk channel is 28.5 points above the average 39.4 pressure baseline.",
+      "body": "Current posture stays ACCUMULATE. Energy stress at 59.2 and volatility stress at 43.2 argue for tranche execution because the lead-risk channel is 22.3 points above the 36.9 average-pressure baseline.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
@@ -35,43 +35,43 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-08",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "analytics.market_posture",
-          "analytics.dashboard_metrics",
-          "app/config/dashboard-risk-factors-ai.json"
+          "app/config/dashboard-risk-factors-ai.json",
+          "https://finance.yahoo.com/quote/CL=F",
+          "https://fred.stlouisfed.org/series/OVXCLS"
         ],
         "sourceRecords": [
           {
-            "source": "analytics.market_posture",
-            "table": "analytics.market_posture",
-            "recordHint": "latest buyer posture row",
-            "observedAt": "2026-05-07T13:52:00-04:00"
-          },
-          {
-            "source": "analytics.dashboard_metrics",
-            "table": "analytics.dashboard_metrics",
-            "recordHint": "average pressure and lead-risk metrics used in execution framing",
-            "observedAt": "2026-05-07T13:52:00-04:00"
-          },
-          {
             "source": "app/config/dashboard-risk-factors-ai.json",
             "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "energy, volatility, and composite synthesis snapshot",
-            "observedAt": "2026-05-08T07:04:14-04:00"
+            "recordHint": "current energy and volatility synthesis",
+            "observedAt": "2026-05-09T07:09:43-04:00"
+          },
+          {
+            "source": "Yahoo Finance",
+            "recordHint": "CL close used for cost-pass-through framing",
+            "observedAt": "2026-05-08T04:00:00Z",
+            "url": "https://finance.yahoo.com/quote/CL=F"
+          },
+          {
+            "source": "FRED",
+            "recordHint": "OVX latest close used for execution-friction framing",
+            "observedAt": "2026-05-07T00:00:00Z",
+            "url": "https://fred.stlouisfed.org/series/OVXCLS"
           }
         ],
         "notes": [
-          "Execution guidance is staged because the pressure network is asymmetric, not because the entire system is in panic.",
-          "This card is written for a physical buyer managing replacement cost."
+          "Execution structure is justified from lead-channel asymmetry, not generic caution language.",
+          "Buyer guidance is replacement-cost control, not speculative timing."
         ]
       }
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Current ordering is energy stress 67.9, vix stress 44.1, china tension 37.9, tariff threat 27.4, and crush pressure 19.6. The gap between first and second is 23.8 points, so the stack is not balanced; it is energy-led.",
+      "body": "Current ordering is energy stress 59.2, vix stress 43.2, china tension 38.2, tariff threat 25.7, and crush pressure 18.4. The gap between first and second is 16.0 points, so the stack remains energy-led rather than balanced.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
@@ -94,43 +94,29 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-08",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "analytics.driver_attribution_1d",
-          "analytics.dashboard_metrics",
           "app/config/dashboard-risk-factors-ai.json"
         ],
         "sourceRecords": [
           {
-            "source": "analytics.driver_attribution_1d",
-            "table": "analytics.driver_attribution_1d",
-            "recordHint": "latest ranked factors",
-            "observedAt": "2026-05-07"
-          },
-          {
-            "source": "analytics.dashboard_metrics",
-            "table": "analytics.dashboard_metrics",
-            "recordHint": "score inputs for ordered driver stack",
-            "observedAt": "2026-05-07T13:52:00-04:00"
-          },
-          {
             "source": "app/config/dashboard-risk-factors-ai.json",
             "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "refreshed per-driver AI synthesis",
-            "observedAt": "2026-05-08T07:04:14-04:00"
+            "recordHint": "ordered driver scores from daily refresh",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           }
         ],
         "notes": [
-          "Waterfall ordering is explicitly concentration-aware.",
-          "Buyer focus should start with the lead channel, then track confirmation risk from the middle of the stack."
+          "Waterfall output keeps the lead-channel gap explicit.",
+          "Secondary channels are treated as confirmation risk, not equal-weight threats."
         ]
       }
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Average pressure is 39.4, lead pressure is 67.9, and the spread is 28.5. That is a neutral-to-cautious buyer regime: not systemic panic, but too asymmetric to justify passive waiting.",
+      "body": "Average pressure is 36.9, lead pressure is 59.2, and the spread is 22.3. That is a neutral-to-cautious buyer regime: not systemic panic, but still too asymmetric to justify passive waiting while energy remains first in the stack.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",
@@ -153,37 +139,30 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-08",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "analytics.market_posture",
-          "analytics.dashboard_metrics",
-          "analytics.driver_attribution_1d"
+          "app/config/dashboard-risk-factors-ai.json",
+          "https://publicreporting.cftc.gov"
         ],
         "sourceRecords": [
           {
-            "source": "analytics.market_posture",
-            "table": "analytics.market_posture",
-            "recordHint": "latest posture record",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "table": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "current average and lead-score math",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
-            "source": "analytics.dashboard_metrics",
-            "table": "analytics.dashboard_metrics",
-            "recordHint": "average and lead-score math inputs",
-            "observedAt": "2026-05-07T13:52:00-04:00"
-          },
-          {
-            "source": "analytics.driver_attribution_1d",
-            "table": "analytics.driver_attribution_1d",
-            "recordHint": "driver ranking used to interpret spread significance",
-            "observedAt": "2026-05-07"
+            "source": "CFTC PRE",
+            "recordHint": "managed-money bias used to frame latency risk sensitivity",
+            "observedAt": "2026-05-05",
+            "url": "https://publicreporting.cftc.gov"
           }
         ],
         "notes": [
-          "Risk math is intentionally buyer-oriented.",
-          "The card distinguishes asymmetric pressure from full-system crisis."
+          "Risk math is reported in buyer terms and does not hide latency cost.",
+          "Spread-to-average logic remains the core asymmetry measure."
         ]
       }
     }

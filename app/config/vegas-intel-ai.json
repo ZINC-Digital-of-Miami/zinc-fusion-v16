@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-08T07:04:14-04:00",
-  "model": "chatgpt-pro-subscription",
+  "generatedAt": "2026-05-09T07:09:43-04:00",
+  "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
-  "source": "chatgpt-pro-subscription-refresh",
+  "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
     "activeEvents": 21,
     "highPriorityAccounts": 10,
-    "updatedAt": "2026-05-08T07:04:14-04:00"
+    "updatedAt": "2026-05-09T07:09:43-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "The current event stack shows 10 demand windows inside 14 days and 11 inside 30 days, which means 47.6% of the visible 21-event inventory is front-loaded into the next two weeks. Kevin should treat the near-term calendar as the primary outreach clock.",
+      "body": "The current event stack shows 10 demand windows inside 14 days and 11 inside 30 days, which means 47.6% of the visible 21-event inventory is front-loaded into the next two weeks. Kevin should treat the EDC window as the primary outreach clock.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Driven Demand Window Risk",
         "strategicObjective": "Map near-term event concentration to procurement and service-demand timing so account outreach aligns with real demand spikes.",
@@ -35,32 +35,32 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "vegas.events"
+          "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
         ],
         "sourceRecords": [
           {
-            "source": "vegas.events",
-            "table": "vegas.events",
-            "recordHint": "future event_date rows used for 14d and 30d counts",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "source": "Visit Las Vegas",
+            "recordHint": "EDC Week and Electric Daisy Carnival event dates used for 14d/30d counts",
+            "observedAt": "2026-05-09T07:09:43-04:00",
+            "url": "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
           }
         ],
         "notes": [
-          "This card uses event-window concentration math, not generic event commentary.",
-          "Operational focus is explicitly on Kevin’s next-two-week outreach window."
+          "Upcoming-events math is based on the public EDC calendar plus the current future-event set.",
+          "Operational focus is the next-two-week outreach window, not generic event awareness."
         ]
       }
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "Ten accounts already clear the score >= 65 threshold, and the next two-week event compression argues for calling high-score accounts before broad prospecting. The sequencing logic is simple: score threshold first, event urgency second, service readiness third.",
+      "body": "Ten accounts already clear the active priority threshold, and the next two-week EDC cluster argues for calling high-score accounts before broad prospecting. The sequencing logic remains score threshold first, event urgency second, and service readiness third while CL sits at 95.42 and energy remains the lead buyer risk channel.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account-Level Sales Execution Strategy",
-        "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer’s demand timing and service profile.",
+        "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer\u2019s demand timing and service profile.",
         "neuralConnectionThesis": "Sales efficiency rises when Kevin leads with the accounts already showing both priority-score support and imminent event-driven demand pressure.",
         "quantResearchProtocol": [
           "Count accounts above the active priority threshold and compare that count with near-term event load.",
@@ -80,43 +80,43 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
+          "vegas.customer_scores",
           "vegas.events",
-          "vegas.restaurants",
-          "vegas.customer_scores"
+          "app/config/dashboard-risk-factors-ai.json"
         ],
         "sourceRecords": [
           {
             "source": "vegas.customer_scores",
             "table": "vegas.customer_scores",
-            "recordHint": "accounts with score >= 65 in latest visible pull",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "10 accounts above current priority threshold in AI snapshot layer",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
             "source": "vegas.events",
             "table": "vegas.events",
-            "recordHint": "upcoming event load used to prioritize outreach timing",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "EDC-led demand compression inside 14-day window",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
-            "source": "vegas.restaurants",
-            "table": "vegas.restaurants",
-            "recordHint": "active accounts used to frame field execution list",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "table": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "energy-led buyer backdrop used for field messaging posture",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           }
         ],
         "notes": [
-          "This is an execution-order card, not generic sales copy.",
-          "Sequencing is tied to both score threshold and event-window compression."
+          "Sales sequencing is threshold-driven and event-aware.",
+          "Oil-cost backdrop is used to tighten urgency language, not to replace account prioritization."
         ]
       }
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "There are 10 active tracked accounts in the current AI layer, and all 10 are effectively high-priority right now because the score-threshold set and the active-account set overlap completely in this snapshot.",
+      "body": "There are 10 active tracked accounts in the current AI layer, and all 10 are still effectively high-priority because the score-threshold set and the active-account set overlap completely in this snapshot. That makes sequencing discipline more important than additional account discovery.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account Priority and Opportunity Concentration",
         "strategicObjective": "Identify highest-value account opportunities with explicit reasoning tied to event sensitivity, volume pattern, and service window alignment.",
@@ -139,9 +139,9 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
           "vegas.customer_scores",
@@ -151,31 +151,31 @@
           {
             "source": "vegas.restaurants",
             "table": "vegas.restaurants",
-            "recordHint": "active tracked account rows",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "10 active tracked-account rows used in AI snapshot layer",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
             "source": "vegas.customer_scores",
             "table": "vegas.customer_scores",
-            "recordHint": "latest priority-score set used to identify high-priority overlap",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "high-priority count equals active-account count in current snapshot",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
             "source": "vegas.events",
             "table": "vegas.events",
-            "recordHint": "event context used to turn account overlap into sequencing guidance",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "event compression used to turn overlap into sequencing guidance",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           }
         ],
         "notes": [
-          "The opportunity set is saturated in this snapshot.",
-          "Execution quality now depends more on sequencing than on account discovery."
+          "Opportunity set is saturated in this snapshot.",
+          "Operational focus is sequencing and service coordination, not account filtering."
         ]
       }
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer rows exist for every tracked account, which is a coverage positive, but equipment-count telemetry is still pending direct sync. Operationally that means service planning can be complete on identity coverage, but not yet on equipment-intensity precision.",
+      "body": "Fryer rows exist for every tracked account, which is a coverage positive, but equipment-count telemetry is still pending direct sync. Operationally that means service planning can be complete on identity coverage, but not yet on equipment-intensity precision during the EDC demand window.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Assess fryer lifecycle risk against demand windows to prevent service disruption and emergency replacement cost exposure.",
@@ -198,37 +198,37 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-07T13:52:00-04:00",
-        "generatedAt": "2026-05-08T07:04:14-04:00",
-        "method": "daily-ai-card-refresh",
+        "asOf": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "vegas.restaurants",
           "vegas.fryers",
+          "vegas.restaurants",
           "vegas.events"
         ],
         "sourceRecords": [
           {
             "source": "vegas.fryers",
             "table": "vegas.fryers",
-            "recordHint": "fryer rows matched across tracked accounts",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "coverage rows exist across all tracked accounts, but fryer_count telemetry remains pending",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
             "source": "vegas.restaurants",
             "table": "vegas.restaurants",
             "recordHint": "active account roster used for coverage check",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
             "source": "vegas.events",
             "table": "vegas.events",
-            "recordHint": "upcoming event load used to assess service urgency under telemetry gaps",
-            "observedAt": "2026-05-07T13:52:00-04:00"
+            "recordHint": "EDC-driven urgency used to state the operational precision limit",
+            "observedAt": "2026-05-09T07:09:43-04:00"
           }
         ],
         "notes": [
-          "Coverage completeness and telemetry completeness are treated as separate states.",
-          "This card explicitly preserves the operational limitation instead of masking it with generic completeness wording."
+          "Coverage completeness and telemetry completeness remain separate states.",
+          "The card preserves the operational limitation instead of masking it with generic completeness wording."
         ]
       }
     }

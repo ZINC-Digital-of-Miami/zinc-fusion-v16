@@ -49,3 +49,5 @@ supabase/.temp/
 
 # local dataset/cache drops (keep in project folder, never commit)
 Data/
+data/fusion/
+models/fusion/

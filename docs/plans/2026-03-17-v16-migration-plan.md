@@ -192,7 +192,7 @@
 | Wide intermediate artifacts (feature matrix, specialist parquets) | **Local compute workspace** | Parquet files during processing only — not canonical storage |
 | Model artifacts (AutoGluon model files)                           | **Local compute workspace** | Large binary artifacts, not in any database                  |
 
-**Training data storage architecture** (whether wide training artifacts should be retained locally vs promoted to cloud `training.*` tables) is a separate checkpoint decision, still gated. Current posture: cloud Supabase `training.*` tables exist and are the intended destination for `promote_to_cloud.py`. Local parquet files are ephemeral compute intermediates.
+**Training data storage architecture** (whether wide training artifacts should be retained locally vs promoted to cloud `training.*` tables) is a separate checkpoint decision, still gated. Current posture: cloud Supabase `training.*` tables exist and are the intended destination for `promote_to_cloud.py`. Local parquet files are ephemeral compute intermediates. As of the 2026-05-09 training-prep remediation, local prep artifacts live under `data/fusion/`, model artifacts live under `models/fusion/`, and cloud promotion is isolated behind the explicit `promote_to_cloud.py` approval gate. Promotion strips `target_price_{h}d` labels out of cloud `training.matrix_1d.feature_snapshot`; labels remain local-only training columns.
 
 ### Cron-First Ingestion Contract
 
@@ -651,6 +651,13 @@ Training data storage architecture (whether wide training artifacts like `traini
 
 **NEVER start model training without explicit user approval.** The pipeline runner has a `--dry-run` flag. Training writes are gated behind a confirmation prompt.
 
+Readiness gate is a separate hard stop. Non-dry-run `train` must also pass:
+
+- symbol completeness checks (`mkt.price_1d`, `mkt.price_1h`)
+- required FRED/weather/ProFarmer presence and recency checks
+- matrix/signals/specialist-feature population checks
+- recent successful price ingest run checks (`ops.ingest_run`)
+
 ### Model Architecture (unchanged conceptually)
 
 - **L0 Core:** 3 AutoGluon TimeSeriesPredictor ensembles (30d/90d/180d), each training 19-model zoo
@@ -1108,16 +1115,16 @@ Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only vali
 | Step | Action                                                                                                            | Exit Evidence                                                                           |
 | ---- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | 5.1  | Rebuild `config.py` — frozen model zoo, schema constants, DB URLs, local output paths                             | Config loads cleanly                                                                    |
-| 5.2  | Rebuild `build_matrix.py` — reads from cloud Supabase, writes `data/matrix_1d.parquet` locally                    | Local parquet has rows with expected column count                                       |
-| 5.3  | Rebuild specialist feature generators (all 11) — writes `data/specialist_features_*.parquet` locally              | Local parquet files populated for each bucket                                           |
-| 5.4  | Rebuild `generate_specialist_signals.py` — writes `data/specialist_signals.parquet` locally                       | Local parquet has 33 signal columns                                                     |
+| 5.2  | Rebuild `build_matrix.py` — reads from cloud Supabase, writes `data/fusion/matrix_1d.parquet` locally             | Local parquet has rows with expected column count and separate target columns           |
+| 5.3  | Rebuild specialist feature generators (all 11) — writes `data/fusion/specialist_features/*.parquet` locally       | Local parquet files populated for each bucket with no target columns                    |
+| 5.4  | Rebuild `generate_specialist_signals.py` — writes `data/fusion/specialist_signals.parquet` locally                | Local parquet has 33 signal columns                                                     |
 | 5.5  | Rebuild `train_models.py` — AutoGluon, 3 horizons (30d/90d/180d), frozen zoo — writes artifacts + parquet locally | Training completes, artifacts saved locally, training_runs parquet logged               |
 | 5.6  | Rebuild `generate_forward_forecasts.py` — writes `data/forecasts_production.parquet` locally                      | Local parquet has predicted prices per horizon                                          |
 | 5.7  | Rebuild `run_monte_carlo.py` — 10,000 runs — writes `data/monte_carlo_*.parquet` locally                          | Local parquet files populated                                                           |
 | 5.8  | Rebuild `run_garch.py` — writes `data/garch_forecasts.parquet` locally                                            | Local parquet populated                                                                 |
 | 5.9  | Build NEW `generate_target_zones.py` — writes `data/target_zones.parquet` locally                                 | Local parquet has P30/P50/P70 per horizon                                               |
 | 5.10 | Build NEW `promote_to_cloud.py` — reads local parquet, validates, pushes to cloud Supabase                        | Promotion gate: validates row counts, schema match, null checks before writing to cloud |
-| 5.11 | Rebuild `pipeline.py` runner (orchestrates all phases including promotion)                                        | `python -m fusion.pipeline run --all` completes end-to-end                              |
+| 5.11 | Rebuild `pipeline.py` runner (orchestrates all phases including promotion)                                        | `PYTHONPATH=python python3 -m fusion.pipeline --all` completes end-to-end               |
 | 5.12 | Run promotion gate — validate local outputs, promote to cloud                                                     | Cloud tables populated with validated data                                              |
 | 5.13 | Run Gate 5 (Python Pipeline Verification)                                                                         | All checks pass                                                                         |
 
