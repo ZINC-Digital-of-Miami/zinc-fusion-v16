@@ -682,12 +682,35 @@ def _check_profarmer(
     max_age_days: int,
     now_utc: datetime,
 ) -> tuple[bool, str]:
-    cur.execute("SELECT COUNT(*)::BIGINT AS row_count, MAX(published_at) AS latest FROM alt.profarmer_news")
-    row_count, latest = cur.fetchone()
+    cur.execute(
+        """
+        SELECT
+          COUNT(*)::BIGINT AS row_count,
+          MAX(published_at) AS latest,
+          COUNT(*) FILTER (
+            WHERE published_at < '2010-01-01'::timestamptz
+          )::BIGINT AS pre2010_rows,
+          COUNT(*) FILTER (
+            WHERE ((payload->>'url') IS NULL OR payload->>'url' = '')
+              AND (
+                lower(coalesce(title, '')) IN ('profarmer', 'n')
+                OR char_length(trim(coalesce(title, ''))) <= 1
+              )
+          )::BIGINT AS likely_fake_rows
+        FROM alt.profarmer_news
+        """
+    )
+    row_count, latest, pre2010_rows, likely_fake_rows = cur.fetchone()
     row_count = int(row_count)
+    pre2010_rows = int(pre2010_rows or 0)
+    likely_fake_rows = int(likely_fake_rows or 0)
 
     if row_count < 1:
         return False, "alt.profarmer_news rows=0"
+    if pre2010_rows > 0:
+        return False, f"alt.profarmer_news has {pre2010_rows} rows with published_at before 2010-01-01"
+    if likely_fake_rows > 0:
+        return False, f"alt.profarmer_news has {likely_fake_rows} likely fake rows (empty URL + junk title)"
 
     age_days = _age_days(latest, now_utc)
     if age_days is None:
@@ -695,7 +718,10 @@ def _check_profarmer(
     if age_days > max_age_days:
         return False, f"alt.profarmer_news stale age_days={age_days:.1f} (>{max_age_days})"
 
-    return True, f"alt.profarmer_news rows={row_count}, age_days={age_days:.1f}"
+    return (
+        True,
+        f"alt.profarmer_news rows={row_count}, age_days={age_days:.1f}, pre2010_rows={pre2010_rows}, likely_fake_rows={likely_fake_rows}",
+    )
 
 
 def _check_specialist_target_leakage(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Any
 
 import pandas as pd
@@ -14,7 +15,7 @@ from .artifacts import (
     specialist_features_path,
     write_parquet,
 )
-from .config import SPECIALISTS, load_config
+from .config import SPECIALISTS, resolve_cloud_db_url
 
 _COMMON_MARKET_COLUMNS = [
     "close",
@@ -139,17 +140,14 @@ def _safe_name(value: Any) -> str:
     return cleaned or "unknown"
 
 
-def _resolve_db_url() -> str | None:
-    cfg = load_config()
-    return cfg.supabase_db_url or cfg.supabase_pooler_url
-
-
 def _read_daily_series(
     conn: Any,
     *,
     table: str,
     prefix: str,
     limit_series: int | None = None,
+    align_dates: pd.Series | None = None,
+    fill_to_calendar: bool = False,
 ) -> pd.DataFrame:
     series_filter = ""
     if limit_series is not None:
@@ -178,6 +176,20 @@ def _read_daily_series(
     frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
     pivot = frame.pivot_table(index="trade_date", columns="series_id", values="value", aggfunc="last")
     pivot = pivot.reset_index().sort_values("trade_date")
+    if align_dates is not None:
+        calendar = (
+            pd.DataFrame({"trade_date": pd.to_datetime(align_dates, errors="coerce").dt.date})
+            .dropna(subset=["trade_date"])
+            .drop_duplicates()
+            .sort_values("trade_date")
+        )
+        if not calendar.empty:
+            pivot = calendar.merge(pivot, on="trade_date", how="left").sort_values("trade_date")
+            if fill_to_calendar:
+                value_cols = [column for column in pivot.columns if column != "trade_date"]
+                if value_cols:
+                    # Backfill with nearest real observations only; no synthetic constants.
+                    pivot[value_cols] = pivot[value_cols].ffill().bfill()
     return pivot
 
 
@@ -187,7 +199,8 @@ def _read_event_frame(conn: Any, *, table: str, date_column: str, prefix: str) -
       t.{date_column}::date AS event_date,
       COALESCE(to_jsonb(t)->>'title', '') AS title,
       COALESCE(to_jsonb(t)->>'source', '') AS source,
-      COALESCE(to_jsonb(t)->>'specialist_tags', '') AS specialist_tags
+      COALESCE(to_jsonb(t)->>'specialist_tags', '') AS specialist_tags,
+      COALESCE(to_jsonb(t)->>'url', '') AS url
     FROM {table} t
     WHERE t.{date_column} IS NOT NULL
     ORDER BY t.{date_column}
@@ -203,6 +216,15 @@ def _read_event_frame(conn: Any, *, table: str, date_column: str, prefix: str) -
         + " "
         + frame["specialist_tags"].fillna("")
     ).str.lower()
+    if table == "alt.profarmer_news":
+        title_clean = frame["title"].fillna("").str.strip().str.lower()
+        event_date = pd.to_datetime(frame["event_date"], errors="coerce").dt.date
+        is_pre2010 = event_date < date(2010, 1, 1)
+        is_junk = (
+            (frame["url"].fillna("").str.strip() == "")
+            & (title_clean.isin({"profarmer", "n"}) | (title_clean.str.len() <= 1))
+        )
+        frame = frame.loc[~(is_pre2010 | is_junk)].copy()
     frame["prefix"] = prefix
     return frame[["event_date", "search_text", "prefix"]]
 
@@ -266,7 +288,14 @@ def _source_context(conn: Any, matrix_dates: pd.Series) -> dict[str, pd.DataFram
         "commodities": _read_daily_series(conn, table="econ.commodities_1d", prefix="commodities"),
         "vol": _read_daily_series(conn, table="econ.vol_indices_1d", prefix="vol"),
         "activity": _read_daily_series(conn, table="econ.activity_1d", prefix="activity"),
-        "weather": _read_daily_series(conn, table="econ.weather_1d", prefix="weather", limit_series=12),
+        "weather": _read_daily_series(
+            conn,
+            table="econ.weather_1d",
+            prefix="weather",
+            limit_series=12,
+            align_dates=matrix_dates,
+            fill_to_calendar=True,
+        ),
     }
 
     event_sources = [
@@ -399,10 +428,10 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
     if matrix.empty:
         raise RuntimeError("local matrix parquet is empty; build matrix first")
 
-    db_url = _resolve_db_url()
+    db_url = resolve_cloud_db_url()
     if not db_url:
         raise RuntimeError(
-            "DATABASE_URL (or SUPABASE_DB_URL/POSTGRES_URL_NON_POOLING/POSTGRES_URL) is not set"
+            "Cloud DB URL is not set. Configure DATABASE_URL, SUPABASE_DB_URL, POSTGRES_URL_NON_POOLING, or SUPABASE_POOLER_URL."
         )
 
     with psycopg2.connect(db_url, connect_timeout=10, application_name="fusion_specialist_features") as conn:
