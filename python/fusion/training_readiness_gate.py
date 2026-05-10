@@ -65,6 +65,9 @@ class TrainingGateContract:
     max_cloud_local_missing_ratio: float
     max_cloud_local_value_mismatch_ratio: float
     cloud_local_value_tolerance: float
+    require_options_data: bool
+    min_options_rows: int
+    max_options_age_days: int
 
 
 class TrainingReadinessError(RuntimeError):
@@ -116,6 +119,7 @@ def _ratio(numerator: int, denominator: int) -> float:
 
 def _load_contract() -> TrainingGateContract:
     enforce_parity = os.getenv("TRAINING_ENFORCE_CLOUD_LOCAL_PARITY", "1").strip().lower()
+    require_options = os.getenv("TRAINING_REQUIRE_OPTIONS", "0").strip().lower()
     return TrainingGateContract(
         required_symbols=_parse_csv(
             os.getenv("TRAINING_REQUIRED_SYMBOLS"),
@@ -165,6 +169,9 @@ def _load_contract() -> TrainingGateContract:
             os.getenv("TRAINING_CLOUD_LOCAL_VALUE_TOLERANCE"),
             1e-9,
         ),
+        require_options_data=require_options in {"1", "true", "yes", "on"},
+        min_options_rows=int(os.getenv("TRAINING_MIN_OPTIONS_ROWS", "1000")),
+        max_options_age_days=int(os.getenv("TRAINING_MAX_OPTIONS_AGE_DAYS", "14")),
     )
 
 
@@ -807,6 +814,78 @@ def _check_price_ingest_jobs(cur: Any, *, max_age_hours: int, now_utc: datetime)
     return True, "price ingest jobs passed"
 
 
+def _check_options_data(
+    cur: Any,
+    *,
+    min_rows: int,
+    max_age_days: int,
+    now_utc: datetime,
+) -> tuple[bool, str]:
+    candidates = (
+        ("raw", "databento_options_1d"),
+        ("mkt", "options_1d"),
+        ("raw", "options_1d"),
+    )
+    preferred_date_columns = (
+        "as_of_date",
+        "trade_date",
+        "observation_date",
+        "bucket_ts",
+        "ts_event",
+    )
+
+    for schema_name, table_name in candidates:
+        cur.execute(
+            "SELECT column_name "
+            "FROM information_schema.columns "
+            "WHERE table_schema = %s AND table_name = %s",
+            (schema_name, table_name),
+        )
+        columns = {row[0] for row in cur.fetchall()}
+        if not columns:
+            continue
+
+        date_column = next((column for column in preferred_date_columns if column in columns), None)
+        if date_column is None:
+            return (
+                False,
+                f"{schema_name}.{table_name} exists but has no supported date column "
+                f"{preferred_date_columns}",
+            )
+
+        query = sql.SQL(
+            "SELECT COUNT(*)::BIGINT AS row_count, MAX({date_col}) AS latest_value "
+            "FROM {schema_name}.{table_name}"
+        ).format(
+            date_col=sql.Identifier(date_column),
+            schema_name=sql.Identifier(schema_name),
+            table_name=sql.Identifier(table_name),
+        )
+        cur.execute(query)
+        row_count, latest_value = cur.fetchone()
+        row_count = int(row_count or 0)
+
+        if row_count < min_rows:
+            return False, f"{schema_name}.{table_name} rows={row_count} (<{min_rows})"
+
+        age_days = _age_days(latest_value, now_utc)
+        if age_days is None:
+            return False, f"{schema_name}.{table_name} has no latest {date_column}"
+        if age_days > max_age_days:
+            return (
+                False,
+                f"{schema_name}.{table_name} stale {date_column} age_days={age_days:.1f} "
+                f"(>{max_age_days})",
+            )
+
+        return (
+            True,
+            f"{schema_name}.{table_name} rows={row_count}, {date_column}_age_days={age_days:.1f}",
+        )
+
+    return False, "options data table missing (checked raw.databento_options_1d, mkt.options_1d, raw.options_1d)"
+
+
 def run(*, dry_run: bool = False) -> dict[str, object]:
     contract = _load_contract()
     result: dict[str, object] = {
@@ -1073,6 +1152,25 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         checks.append({"check": "price_ingest_runs", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
+
+        if contract.require_options_data:
+            pass_flag, detail = _check_options_data(
+                cur,
+                min_rows=contract.min_options_rows,
+                max_age_days=contract.max_options_age_days,
+                now_utc=now_utc,
+            )
+            checks.append({"check": "options_data", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
+        else:
+            checks.append(
+                {
+                    "check": "options_data",
+                    "passed": True,
+                    "detail": "skipped (TRAINING_REQUIRE_OPTIONS=0)",
+                }
+            )
 
         cur.close()
         conn.close()
