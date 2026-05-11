@@ -41,15 +41,18 @@ STOP if any item fails. Report reason. Do not begin schema loop.
 ```
 PRE-FLIGHT CHECKLIST
 ─────────────────────────────────────────────────────────────
-[ ] `supabase status` — confirm CLI is linked to the correct cloud project
-[ ] `supabase db diff --linked` — run and capture output (used in Section G)
+[ ] Confirm no local Supabase or Docker command is being used for this audit
+[ ] Cloud DB read-only probe succeeds against the Supabase cloud URL (`SELECT current_database(), current_user, now()`)
+[ ] `supabase db diff --linked` — run and capture output if project ref is linked (used in Section G)
 [ ] git status — no uncommitted migration files in supabase/migrations/
-[ ] Confirm working branch is NOT main (unless user approved)
+[ ] Confirm working branch is NOT main (unless user approved main-only work)
 [ ] Read docs/plans/2026-03-17-v16-migration-plan.md §4 — schema definitions
 [ ] Confirm target schema(s) for this invocation (all 9 or specific subset)
 ─────────────────────────────────────────────────────────────
-STOP if Supabase CLI is not linked or `supabase status` fails.
-Report the error and ask user to run `supabase link` before proceeding.
+STOP if the cloud DB probe fails, or if migration drift is in scope and
+`supabase db diff --linked` cannot run because the project ref is not linked.
+Do not run `supabase status` or `supabase start`; those inspect/start a local
+Supabase stack and are banned in this repo.
 ```
 
 ---

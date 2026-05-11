@@ -24,7 +24,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 | **UI System**          | shadcn/ui + Radix primitives + Tailwind CSS             |
 | **Data ingestion**     | pg_cron + `http` extension (inside Postgres, $0 cost)   |
 | **DB client (TS)**     | Supabase JS client (reads only)                         |
-| **DB client (Python)** | psycopg2 direct to cloud Supabase Postgres              |
+| **DB client (Python)** | psycopg2 to cloud Supabase Postgres; local PostgreSQL only for AG training source |
 | **ML**                 | AutoGluon (CPU-only), custom specialist models          |
 | **Auth**               | Supabase Auth                                           |
 | **API secrets**        | Supabase Vault (accessed via `current_setting()`)       |
@@ -49,7 +49,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 10. **Landing page is sacred.** REWRITE from scratch using legacy baseline as visual reference — preserve the design identity. NEVER copy legacy baseline code.
 11. **ZERO mock data.** No placeholders, no temps, no demo/synthetic/random data anywhere, ever. Empty state until real data flows. This is the HARDEST rule.
 12. **ZERO code copying.** Every line of V16 is written fresh. legacy baseline is a visual reference only. Clone-and-clean failed catastrophically — never again.
-13. **No local Supabase / No Docker.** Cloud Supabase only. Supabase CLI for migrations (`db push`). No `supabase start`.
+13. **No local Supabase / No Docker.** Cloud Supabase is canonical. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Local PostgreSQL is permitted only as the AG training-source staging database, never as canonical warehouse or local Supabase replacement.
 14. **No hardcoded port 3000.** Dev server port must be checked for availability first.
 15. **Design holdoff exception (locked 2026-05-07).** For page parity work, do not redesign. Reproduce locked source visuals exactly.
 16. **Locked page authority map (2026-05-07):** Strategy=V16, Vegas Intel=V16, Dashboard=V15, Legislation=V15, Sentiment=V15.
@@ -126,6 +126,7 @@ Full details in the migration plan. Quick reference:
 Frontend (reads):      Supabase JS client with anon key + JWT
 Data ingestion:        pg_cron + http extension (runs inside Postgres — no external connection)
 Python (reads):        psycopg2 pooled connection to cloud (port 6543)
+Python (training src): local PostgreSQL staging DB for AG training only
 Python (promotes):     psycopg2 direct connection to cloud (port 5432) — validated outputs only
 Python (intermediates): local parquet files — never written to any database
 ```
@@ -143,7 +144,7 @@ supabase db push
 supabase db diff --linked
 ```
 
-Never do manual DDL on cloud. Migrations are the single source of truth. No `supabase start` — cloud only.
+Never do manual DDL on cloud. Migrations are the single source of truth. No `supabase status`, no `supabase start`, and no local Supabase or Docker workflow.
 
 ### Data Ingestion Pattern (pg_cron + http extension)
 
@@ -265,10 +266,10 @@ V16 is complete when:
 - The landing page matches legacy baseline's premium design identity (rewritten, not copied)
 - All 6 pages are operational with real data
 - Only validated routes and jobs exist (no legacy baggage)
-- Supabase owns the clean database with RLS enforced — cloud only, no local DB
+- Supabase owns the clean canonical database with RLS enforced — cloud only; local PostgreSQL is AG training-source staging only
 - Vercel is frontend hosting ONLY — zero crons, zero ingestion compute
 - ~22 pg_cron + http functions keep data fresh inside Supabase ($0 incremental)
-- Python pipeline runs end-to-end: reads cloud → local files → promotes to cloud
+- Python pipeline runs end-to-end: reads cloud → local PostgreSQL training source/local files → promotes validated outputs to cloud
 - ProFarmer Playwright scraper is working ($500/mo source, 7 sections, 35 runs/week)
 - Auth protects dashboard routes
 - Zero mock data anywhere in the codebase

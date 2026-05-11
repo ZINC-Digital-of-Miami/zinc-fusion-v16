@@ -113,9 +113,10 @@ For each gate, run its verification checklist → determine PASS / FAIL → if F
 - [ ] Output shows: connected to cloud Supabase, NOT localhost
 - [ ] Supabase project URL matches `.env.local` (or Vercel env)
 - [ ] psycopg2 can execute `SELECT 1` against port 6543
-- [ ] No Supabase Docker / local instance running
+- [ ] No local Supabase or Docker workflow is used; do not run local-stack health checks
+- [ ] Any local PostgreSQL use is limited to the AG training-source staging database
 
-**Pass criteria:** All 5 checks pass with real output, not mocked.
+**Pass criteria:** All checks pass with real output, not mocked.
 
 **Action on PASS:**
 → Document evidence in `docs/verification/gate-1-[date].md`

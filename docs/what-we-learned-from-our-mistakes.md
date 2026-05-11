@@ -32,7 +32,7 @@ legacy baseline was built over months by multiple AI agents and a human architec
 
 Agents would accidentally start dev servers on occupied ports, or Inngest would fail to connect because the dev server wasn't running yet, or Docker would die and take Inngest with it.
 
-**V16 lesson:** V16 has exactly one service locally: `npm run dev`. No Docker. No Inngest container. No port conflicts possible. Cron jobs run on Vercel, not locally.
+**V16 lesson:** V16 has no local Supabase, no Docker, and no Inngest container. Local services are limited to the app dev server and the bounded local PostgreSQL AG training-source staging database when explicitly needed. Ingestion schedules run inside Supabase via pg_cron + http, not Vercel cron and not local Docker.
 
 ### Docker Inngest Complexity Spiral
 

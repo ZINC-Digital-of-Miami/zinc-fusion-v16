@@ -21,9 +21,9 @@ Runs as loops: pre-flight → environment loop → connection-path loop → migr
 | Contract           | Required Posture                         |
 | ------------------ | ---------------------------------------- |
 | Canonical database | Cloud Supabase only                      |
-| Local DB workflow  | Not supported in this repo               |
+| Local DB workflow  | Local PostgreSQL only for AG training source; no local Supabase/Docker |
 | Frontend reads     | Supabase JS client + anon key + JWT      |
-| Python reads       | Cloud Supabase pooler path               |
+| Python reads       | Cloud Supabase pooler path for extraction; local PostgreSQL for AG training source |
 | Python promotions  | Cloud Supabase direct write path         |
 | Intermediates      | Local parquet only                       |
 | Schema truth       | Supabase migrations + linked cloud state |
@@ -68,6 +68,7 @@ Log mismatches as BLOCKER / WARNING / NOTE.
 - [ ] Frontend reads are read-only and authenticated through Supabase Auth / JWT flow
 - [ ] API routes do not create a shadow write path that bypasses intended RLS boundaries
 - [ ] Python heavy reads use the pooler path where appropriate
+- [ ] AG training reads from the bounded local PostgreSQL training source only after explicit local load
 - [ ] Promotions use the direct write path where appropriate
 - [ ] No local file or local DB path is treated as canonical serving state
 - [ ] Pooler/direct split is explicit in docs or code where the task touches it

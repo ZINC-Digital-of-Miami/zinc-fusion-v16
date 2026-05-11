@@ -51,7 +51,8 @@ STOP if any item fails. Report reason. Do not begin audit loops.
 ```
 PRE-FLIGHT CHECKLIST
 ─────────────────────────────────────────────────────────────────────
-[ ] `supabase status` — confirm CLI is linked to correct cloud project
+[ ] Confirm no local Supabase or Docker command is being used for this audit
+[ ] Cloud DB read-only probe succeeds against the Supabase cloud URL (`SELECT current_database(), current_user, now()`)
 [ ] Current date confirmed — needed to compute staleness deltas
 [ ] Read supabase/migrations/202603210001_seed_source_registry.sql
     Canonical sources: databento, fred, usda, eia, profarmer, vegas_ops
@@ -64,6 +65,9 @@ PRE-FLIGHT CHECKLIST
 [ ] git status — read-only session confirmed (no edits expected from this skill)
 ─────────────────────────────────────────────────────────────────────
 Present current date + confirm all files were read before proceeding.
+Do not run `supabase status` or `supabase start`; those inspect/start a local
+Supabase stack and are banned in this repo. Local PostgreSQL is allowed only as
+the AG training-source staging database when that boundary is being audited.
 ```
 
 ---

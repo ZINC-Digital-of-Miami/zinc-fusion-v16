@@ -135,9 +135,9 @@
 | Scenario                      | Approach                                                                                                                                                  | Why                                                                                                                                                   |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Frontend dev**              | Reads from cloud Supabase                                                                                                                                 | Single source of truth. No local/cloud drift. `vercel env pull` provides connection.                                                                  |
-| **Python training/inference** | Reads raw data from cloud Supabase (canonical). Writes intermediates to **local parquet files** during compute. Promotes validated outputs back to cloud. | Cloud is canonical. Local is a compute workspace — intermediates stay local during iteration. Only validated artifacts are promoted back to cloud DB. |
+| **Python training/inference** | Reads canonical raw data from cloud Supabase, can materialize the bounded AG training source into local PostgreSQL for training, and writes intermediates to **local parquet files** during compute. Promotes validated outputs back to cloud. | Cloud is canonical. Local PostgreSQL is a training-source staging database only, not Supabase and not serving truth. Intermediates stay local during iteration. Only validated artifacts are promoted back to cloud DB. |
 | **Data ingestion**            | Runs **INSIDE Postgres** via pg_cron + http extension                                                                                                     | No Vercel cron routes. No external orchestrator. Ingestion is a database-native operation.                                                            |
-| **Supabase CLI**              | Used for migrations ONLY (`supabase db push`, `supabase db diff --linked`)                                                                                | No `supabase start`. No local Docker containers. No local Postgres.                                                                                   |
+| **Supabase CLI**              | Used for migrations ONLY (`supabase db push`, `supabase db diff --linked`)                                                                                | No `supabase status`. No `supabase start`. No local Supabase or Docker containers. Local PostgreSQL, when used, is a separate AG training-source database. |
 
 **Guard rail:** Create a `training` Postgres role that can only write to `training.*` and `forecasts.*` schemas. The Python pipeline uses this role. Frontend service role is read-only on those schemas.
 
@@ -171,7 +171,7 @@
 |              LOCAL MACHINE (compute workspace)              |
 |  Python ML Pipeline (rebuilt from scratch)                  |
 |  - Reads raw data from cloud Supabase via psycopg2         |
-|    (cloud is canonical — local never stores canonical data) |
+|    (cloud is canonical; local PostgreSQL is AG staging only) |
 |  - Writes intermediates to local parquet files              |
 |  - promote_to_cloud.py pushes validated outputs to cloud   |
 |                                                            |
@@ -641,11 +641,12 @@ Env vars:
 Cloud Supabase is canonical for all stored data. The Python pipeline is a compute client:
 
 - **Reads:** from cloud Supabase (canonical source) via psycopg2
+- **Training source:** local PostgreSQL staging database for AG only after explicit local load
 - **Computes:** locally — all feature engineering, training, forecasting, simulation runs on local machine
 - **Intermediates:** local parquet files — ephemeral compute artifacts, not canonical storage
 - **Promotes:** validated compact outputs back to cloud Supabase via `promote_to_cloud.py`
 
-Training data storage architecture (whether wide training artifacts like `training.matrix_1d` should be retained in cloud or live only as local parquet) is a separate checkpoint decision. Current design: `promote_to_cloud.py` pushes to cloud `training.*` tables. This may be refined under a future checkpoint.
+Training data storage architecture keeps cloud Supabase canonical while allowing local PostgreSQL as the bounded AG training-source staging database. Current design: `promote_to_cloud.py` pushes validated outputs to cloud `training.*` tables. The local training source is not serving truth and is not a local Supabase replacement.
 
 ### Training Gate (carried from legacy baseline — still mandatory)
 
@@ -829,8 +830,8 @@ V16 tokens for shadcn/ui customization:
 
 | Check                                                    | Evidence Required                                               |
 | -------------------------------------------------------- | --------------------------------------------------------------- |
-| Supabase project created and reachable                   | `supabase status` returns healthy                               |
-| Cloud Supabase reachable from local machine              | `psql` connection test succeeds against cloud Supabase          |
+| Supabase project created and reachable                   | Read-only cloud DB probe succeeds against cloud Supabase (`SELECT current_database(), current_user, now()`) |
+| Cloud Supabase reachable from local machine              | `psql` or psycopg2 connection test succeeds against cloud Supabase          |
 | Vercel <> Supabase integration active                    | Env vars auto-populated in Vercel project settings              |
 | `vercel env pull` works in V16 repo                      | `.env.local` generated with correct Supabase keys               |
 | DB health route responds                                 | `GET /api/health` returns `{ ok: true }` from local and preview |

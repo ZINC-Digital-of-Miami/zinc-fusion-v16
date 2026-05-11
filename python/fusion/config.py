@@ -48,7 +48,7 @@ def load_config() -> PipelineConfig:
     model_artifact_dir = Path(os.getenv("FUSION_MODEL_ARTIFACT_DIR", "models/fusion")).expanduser()
 
     return PipelineConfig(
-        # DATABASE_URL is the canonical local/server DB contract for V16.
+        # DATABASE_URL is the canonical cloud DB contract for V16.
         # SUPABASE_DB_URL remains a compatibility alias for existing scripts.
         supabase_db_url=_first_non_empty(
             os.getenv("DATABASE_URL"),
