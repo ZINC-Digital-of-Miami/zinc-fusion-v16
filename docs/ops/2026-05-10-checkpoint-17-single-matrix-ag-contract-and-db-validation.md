@@ -4,6 +4,10 @@ Date: 2026-05-10
 Repository: /Volumes/Satechi Hub/ZINC-FUSION-V16
 Status: COMPLETE (no non-dry-run training executed)
 
+## Supersession Notice - 2026-05-11
+
+The `status=ready` and `6439 rows` readiness evidence below is stale and no longer valid for AG approval. Checkpoint 21 corrected the readiness gate to inspect local PostgreSQL raw sources dynamically across all local hourly symbols and all local raw FRED series, exclude options by policy, and require `TRAINING_MIN_MATRIX_ROWS=500000` by default. Current AG readiness is `blocked`; see `docs/ops/2026-05-11-checkpoint-21-ag-row-floor-local-source-correction.md`.
+
 ## Objective
 Simplify AG execution to one daily training source while preserving specialist data as input features, then validate local and cloud data availability before any training approval.
 

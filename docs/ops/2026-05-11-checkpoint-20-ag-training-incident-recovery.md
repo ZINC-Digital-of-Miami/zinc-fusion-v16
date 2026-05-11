@@ -4,6 +4,10 @@ Date: 2026-05-11
 Repository: `/Volumes/Satechi Hub/ZINC-FUSION-V16`
 Status: RECOVERY COMPLETE PENDING FINAL VALIDATION
 
+## Supersession Notice - Checkpoint 21
+
+Checkpoint 21 adds a separate readiness correction: the failed May 10 runs were launched against an undersized `6,439` row daily matrix. Future approval is blocked until the active local AG matrix has at least `500,000` rows and the local source gate passes dynamic all-symbol, all-FRED, weather, and alt/econ checks. See `docs/ops/2026-05-11-checkpoint-21-ag-row-floor-local-source-correction.md`.
+
 ## Objective
 
 Recover the May 10 approved AG training attempts without launching training again. This checkpoint cleans artifact ambiguity, locks the next retry posture, and records the target dtype guard added before any future fit.

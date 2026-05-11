@@ -8,6 +8,8 @@ Status: COMPLETE (training still blocked pending user review)
 
 This checkpoint captured the state before the later approved May 10 training attempts. Its "no non-dry-run training" statements are true only for the checkpoint window below, not for the final May 10 state.
 
+Checkpoint 21 also supersedes this checkpoint's `GO (FOR USER REVIEW ONLY)` data-readiness verdict. The old gate accepted a `6,439` row daily matrix and a hardcoded narrow source subset. Current readiness is local-first, dynamic across all local hourly symbols and all local raw FRED series, excludes options by policy, and requires `500,000` active training matrix rows. Current AG readiness is `blocked`; see `docs/ops/2026-05-11-checkpoint-21-ag-row-floor-local-source-correction.md`.
+
 After this checkpoint, two approved training attempts were launched and did not complete:
 - `v16-scaffold-20260510T232703Z-60fbedb1` failed during the first horizon after target dtype and FastAI Decimal runtime failures.
 - `v16-scaffold-20260510T233101Z-85cf0d13` reached the first horizon and stalled during `NeuralNetFastAI_BAG_L1` before final run metadata.

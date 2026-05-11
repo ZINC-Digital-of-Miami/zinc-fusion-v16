@@ -139,16 +139,18 @@ Scope: lock and enforce prerequisites before any non-dry-run AG training call.
 
 ### D.1 Contract Inputs
 
-1. Required market symbols for `mkt.price_1d` and `mkt.price_1h` must be explicitly listed.
-2. Required FRED core series list must be explicitly listed.
-3. Weather contract must define minimum distinct station/series coverage.
-4. ProFarmer feed must be present and fresh.
+1. Required market symbol scope defaults to every symbol present in local PostgreSQL `raw.databento_ohlcv_1h`; env overrides are explicit exceptions, not defaults.
+2. Required FRED scope defaults to every local raw long-form FRED series; env overrides are explicit exceptions, not defaults.
+3. Weather contract must define minimum distinct station/series coverage and minimum local row coverage.
+4. ProFarmer feed must be present and fresh in local PostgreSQL for AG readiness; cloud-only ProFarmer is not enough.
 5. Local parquet artifacts must be populated under `data/fusion/`: matrix, 11 specialist feature files, and specialist signals.
-6. Training tables must be fresh on `trade_date` (not just `ingested_at` refreshes) after an explicitly approved promotion.
+6. Local training matrix and target tables must meet `TRAINING_MIN_MATRIX_ROWS`, default `500000`; the old `6439` daily-row surface is not AG-ready.
+7. Training tables must be fresh on `trade_date` (not just `ingested_at` refreshes) after an explicitly approved promotion.
    - Because labels use forward horizons up to 180 days, freshness must use a horizon-safe age window (default 320 days) unless overridden.
-7. Daily/hourly OHLC integrity checks must pass for required symbols.
-8. Specialist surfaces must pass leakage and identity checks before train phase can run.
-9. Cloud `training.matrix_1d.feature_snapshot` must not contain `target_price_{h}d` labels; targets stay local-only.
+8. Daily/hourly OHLC integrity checks must pass for the local symbol scope.
+9. Specialist surfaces must pass leakage and identity checks before train phase can run.
+10. Cloud `training.matrix_1d.feature_snapshot` must not contain `target_price_{h}d` labels; targets stay local-only.
+11. Options are excluded from AG readiness unless `TRAINING_REQUIRE_OPTIONS=1`.
 
 ### D.2 Fail-Closed Rules
 
@@ -156,6 +158,7 @@ Scope: lock and enforce prerequisites before any non-dry-run AG training call.
 2. The explicit user approval gate remains mandatory and separate from readiness.
 3. Cloud promotion is blocked unless `--approve-promotion`/`--execute` is explicitly supplied.
 4. If any gate fails, training or promotion must stop with concrete blocker details.
+5. Readiness dry-run is read-only, not permissive; `train-readiness --dry-run` must still evaluate the real gate and may return `blocked`.
 
 ### D.3 Repo-Wired Commands
 

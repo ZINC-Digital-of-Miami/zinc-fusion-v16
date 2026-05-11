@@ -4,6 +4,10 @@ Date: 2026-05-10
 Repository: /Volumes/Satechi Hub/ZINC-FUSION-V16
 Status: COMPLETE (no non-dry-run model training executed)
 
+## Supersession Notice - 2026-05-11
+
+The local matrix coverage evidence below only proves that the old `6,439` daily rows had weather/ProFarmer/rates/commodities keys. It does not prove AG-scale readiness. Checkpoint 21 now requires local PostgreSQL readiness across all local symbols, all local raw FRED series, local weather/alt/econ sources, and at least `500,000` active training matrix rows. Current AG readiness is `blocked`; see `docs/ops/2026-05-11-checkpoint-21-ag-row-floor-local-source-correction.md`.
+
 ## Objective
 1. Prove and enforce zero fake ProFarmer rows.
 2. Backfill weather feature coverage across the full local AG matrix date range.

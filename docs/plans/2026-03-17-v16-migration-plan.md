@@ -654,10 +654,13 @@ Training data storage architecture keeps cloud Supabase canonical while allowing
 
 Readiness gate is a separate hard stop. Non-dry-run `train` must also pass:
 
-- symbol completeness checks (`mkt.price_1d`, `mkt.price_1h`)
-- required FRED/weather/ProFarmer presence and recency checks
-- matrix/signals/specialist-feature population checks
-- recent successful price ingest run checks (`ops.ingest_run`)
+- local PostgreSQL source checks for all local raw hourly symbols, not a hardcoded symbol subset
+- local raw FRED checks for all local long-form FRED series, not a hardcoded core-series subset
+- local weather and alt/econ presence and recency checks
+- ProFarmer must be present in the local AG source, not cloud-only
+- active local training matrix and target tables must meet the production-scale row floor (`TRAINING_MIN_MATRIX_ROWS`, default `500000`)
+- options are excluded from AG readiness unless explicitly enabled with `TRAINING_REQUIRE_OPTIONS=1`
+- `train-readiness --dry-run` must run the same read-only checks and may return `blocked`
 
 ### Model Architecture (unchanged conceptually)
 

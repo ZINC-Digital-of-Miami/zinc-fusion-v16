@@ -1,5 +1,9 @@
 # Local AG Audit Checkpoints (2026-05-09)
 
+## Supersession Notice - 2026-05-11
+
+The `6,439` row AG-ready conclusion in this checkpoint is superseded. Checkpoint 21 corrected the readiness contract so AG readiness is local-first, dynamically checks all local symbols and all local raw FRED series, excludes options by policy, and requires at least `500,000` active training matrix rows. The current gate is `blocked`; see `docs/ops/2026-05-11-checkpoint-21-ag-row-floor-local-source-correction.md`.
+
 ## Checkpoint 1 — Current-State Reality Audit (COMPLETE)
 Status: COMPLETE
 - Confirmed local `fusion` DB authority and schema reality.

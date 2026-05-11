@@ -18,7 +18,7 @@ from .artifacts import (
     specialist_features_path,
     target_columns,
 )
-from .config import SPECIALISTS, resolve_cloud_db_url
+from .config import SPECIALISTS, resolve_local_training_db_url
 
 _ECO_TABLES: tuple[str, ...] = (
     "rates_1d",
@@ -37,6 +37,33 @@ _MATRIX_SYMBOL_COLUMN_MAP: dict[str, str] = {
     "CL": "cl_close",
 }
 
+_FRED_RAW_TABLES: tuple[tuple[str, str, str, str], ...] = (
+    ("raw", "fred_economic_1d", "series_id", "observation_date"),
+    ("raw", "fred_observations_1d", "series_id", "as_of_date"),
+    ("raw", "fred_economic_full", "series_id", "date"),
+    ("raw", "fred_financial_20251215", "series_id", "date"),
+    ("raw", "fred_fx_20251215", "series_id", "date"),
+    ("raw", "fred_rates_20251215", "series_id", "date"),
+)
+
+_WEATHER_RAW_TABLES: tuple[tuple[str, str, str, str], ...] = (
+    ("raw", "weather_observations_1d", "station_id || ':' || variable_id", "as_of_date"),
+    ("raw", "noaa_weather_1d", "station_id", "observation_date"),
+)
+
+_ALT_RAW_TABLES: tuple[tuple[str, str, str], ...] = (
+    ("raw", "news_buckets", "published_at"),
+    ("raw", "bucket_news", "date"),
+    ("raw", "usda_wasde", "report_date"),
+    ("raw", "usda_export_sales", "report_date"),
+    ("raw", "cftc_cot_full", "report_date"),
+    ("raw", "cftc_cot_tff", "report_date"),
+    ("raw", "eia_biofuels", "date"),
+    ("raw", "epa_rin_prices", "date"),
+)
+
+_ISSUE_PREVIEW_LIMIT = 20
+
 
 @dataclass(frozen=True)
 class TrainingGateContract:
@@ -44,10 +71,16 @@ class TrainingGateContract:
     required_fred_series: tuple[str, ...]
     min_daily_rows_per_symbol: int
     min_hourly_rows_per_symbol: int
+    min_symbol_count: int
+    min_hourly_source_rows: int
     min_matrix_rows: int
     min_signal_rows: int
     min_specialist_feature_rows: int
+    min_fred_series: int
+    min_fred_rows: int
     min_weather_series: int
+    min_weather_rows: int
+    min_alt_rows: int
     max_daily_price_age_days: int
     max_hourly_price_age_hours: int
     max_factor_age_days: int
@@ -95,6 +128,11 @@ def _as_utc_datetime(value: Any) -> datetime | None:
         return value.astimezone(timezone.utc) if value.tzinfo else value.replace(tzinfo=timezone.utc)
     if isinstance(value, date):
         return datetime(value.year, value.month, value.day, tzinfo=timezone.utc)
+    if isinstance(value, str):
+        parsed = pd.to_datetime(value, errors="coerce", utc=True)
+        if pd.isna(parsed):
+            return None
+        return parsed.to_pydatetime()
     return None
 
 
@@ -118,25 +156,66 @@ def _ratio(numerator: int, denominator: int) -> float:
     return float(numerator) / float(denominator)
 
 
+def _format_issues(issues: list[str]) -> str:
+    if len(issues) <= _ISSUE_PREVIEW_LIMIT:
+        return "; ".join(issues)
+    shown = "; ".join(issues[:_ISSUE_PREVIEW_LIMIT])
+    return f"{shown}; ... {len(issues) - _ISSUE_PREVIEW_LIMIT} more"
+
+
+def _table_exists(cur: Any, *, schema: str, table: str) -> bool:
+    cur.execute(
+        """
+        SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.tables
+          WHERE table_schema = %s AND table_name = %s
+        )
+        """,
+        (schema, table),
+    )
+    return bool(cur.fetchone()[0])
+
+
+def _column_exists(cur: Any, *, schema: str, table: str, column: str) -> bool:
+    cur.execute(
+        """
+        SELECT EXISTS (
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = %s AND table_name = %s AND column_name = %s
+        )
+        """,
+        (schema, table, column),
+    )
+    return bool(cur.fetchone()[0])
+
+
 def _load_contract() -> TrainingGateContract:
-    enforce_parity = os.getenv("TRAINING_ENFORCE_CLOUD_LOCAL_PARITY", "1").strip().lower()
+    enforce_parity = os.getenv("TRAINING_ENFORCE_CLOUD_LOCAL_PARITY", "0").strip().lower()
     single_matrix = os.getenv("TRAINING_SINGLE_MATRIX_CONTRACT", "1").strip().lower()
     require_options = os.getenv("TRAINING_REQUIRE_OPTIONS", "0").strip().lower()
     return TrainingGateContract(
         required_symbols=_parse_csv(
             os.getenv("TRAINING_REQUIRED_SYMBOLS"),
-            ("ZL", "ZS", "ZM", "CL"),
+            (),
         ),
         required_fred_series=_parse_csv(
             os.getenv("TRAINING_REQUIRED_FRED_SERIES"),
-            ("VIXCLS", "OVXCLS", "USEPUINDXD"),
+            (),
         ),
         min_daily_rows_per_symbol=int(os.getenv("TRAINING_MIN_DAILY_ROWS_PER_SYMBOL", "250")),
         min_hourly_rows_per_symbol=int(os.getenv("TRAINING_MIN_HOURLY_ROWS_PER_SYMBOL", "500")),
-        min_matrix_rows=int(os.getenv("TRAINING_MIN_MATRIX_ROWS", "250")),
+        min_symbol_count=int(os.getenv("TRAINING_MIN_SYMBOL_COUNT", "20")),
+        min_hourly_source_rows=int(os.getenv("TRAINING_MIN_HOURLY_SOURCE_ROWS", "500000")),
+        min_matrix_rows=int(os.getenv("TRAINING_MIN_MATRIX_ROWS", "500000")),
         min_signal_rows=int(os.getenv("TRAINING_MIN_SIGNAL_ROWS", "250")),
         min_specialist_feature_rows=int(os.getenv("TRAINING_MIN_SPECIALIST_FEATURE_ROWS", "250")),
+        min_fred_series=int(os.getenv("TRAINING_MIN_FRED_SERIES", "50")),
+        min_fred_rows=int(os.getenv("TRAINING_MIN_FRED_ROWS", "500000")),
         min_weather_series=int(os.getenv("TRAINING_MIN_WEATHER_SERIES", "4")),
+        min_weather_rows=int(os.getenv("TRAINING_MIN_WEATHER_ROWS", "500000")),
+        min_alt_rows=int(os.getenv("TRAINING_MIN_ALT_ROWS", "1")),
         max_daily_price_age_days=int(os.getenv("TRAINING_MAX_DAILY_PRICE_AGE_DAYS", "4")),
         max_hourly_price_age_hours=int(os.getenv("TRAINING_MAX_HOURLY_PRICE_AGE_HOURS", "72")),
         max_factor_age_days=int(os.getenv("TRAINING_MAX_FACTOR_AGE_DAYS", "45")),
@@ -181,6 +260,7 @@ def _load_contract() -> TrainingGateContract:
 def _check_symbol_table(
     cur: Any,
     *,
+    schema: str,
     table: str,
     ts_column: str,
     required_symbols: tuple[str, ...],
@@ -191,11 +271,12 @@ def _check_symbol_table(
 ) -> tuple[bool, str]:
     query = sql.SQL(
         "SELECT symbol, COUNT(*)::BIGINT AS row_count, MAX({ts_col}) AS latest_ts "
-        "FROM mkt.{table_name} "
+        "FROM {schema_name}.{table_name} "
         "WHERE symbol = ANY(%s) "
         "GROUP BY symbol"
     ).format(
         ts_col=sql.Identifier(ts_column),
+        schema_name=sql.Identifier(schema),
         table_name=sql.Identifier(table),
     )
     cur.execute(query, (list(required_symbols),))
@@ -224,13 +305,14 @@ def _check_symbol_table(
                 issues.append(f"{symbol}: stale age_days={age_days:.1f} (>{max_age_days})")
 
     if issues:
-        return False, f"mkt.{table} failed -> " + "; ".join(issues)
-    return True, f"mkt.{table} passed for {len(required_symbols)} symbols"
+        return False, f"{schema}.{table} failed -> " + _format_issues(issues)
+    return True, f"{schema}.{table} passed for {len(required_symbols)} symbols"
 
 
 def _check_ohlc_integrity(
     cur: Any,
     *,
+    schema: str,
     table: str,
     required_symbols: tuple[str, ...],
     max_violations: int,
@@ -239,9 +321,12 @@ def _check_ohlc_integrity(
         "SELECT "
         "COUNT(*) FILTER (WHERE high < GREATEST(open, close))::BIGINT AS high_violations, "
         "COUNT(*) FILTER (WHERE low > LEAST(open, close))::BIGINT AS low_violations "
-        "FROM mkt.{table_name} "
+        "FROM {schema_name}.{table_name} "
         "WHERE symbol = ANY(%s)"
-    ).format(table_name=sql.Identifier(table))
+    ).format(
+        schema_name=sql.Identifier(schema),
+        table_name=sql.Identifier(table),
+    )
     cur.execute(query, (list(required_symbols),))
     high_violations, low_violations = cur.fetchone()
     high_violations = int(high_violations or 0)
@@ -251,10 +336,98 @@ def _check_ohlc_integrity(
     if total > max_violations:
         return (
             False,
-            f"mkt.{table} ohlc violations={total} (high={high_violations}, low={low_violations}, "
+            f"{schema}.{table} ohlc violations={total} (high={high_violations}, low={low_violations}, "
             f"max={max_violations})",
         )
-    return True, f"mkt.{table} ohlc violations={total}"
+    return True, f"{schema}.{table} ohlc violations={total}"
+
+
+def _discover_local_symbols(cur: Any, *, contract: TrainingGateContract) -> tuple[tuple[str, ...], str]:
+    if contract.required_symbols:
+        return contract.required_symbols, f"env override ({len(contract.required_symbols)} symbols)"
+
+    if not _table_exists(cur, schema="raw", table="databento_ohlcv_1h"):
+        return (), "raw.databento_ohlcv_1h missing"
+
+    cur.execute(
+        """
+        SELECT symbol
+        FROM raw.databento_ohlcv_1h
+        WHERE symbol IS NOT NULL AND trim(symbol) <> ''
+        GROUP BY symbol
+        ORDER BY symbol
+        """
+    )
+    symbols = tuple(str(row[0]).upper() for row in cur.fetchall())
+    return symbols, f"all local raw.databento_ohlcv_1h symbols ({len(symbols)} symbols)"
+
+
+def _check_symbol_scope(
+    symbols: tuple[str, ...],
+    *,
+    contract: TrainingGateContract,
+    detail: str,
+) -> tuple[bool, str]:
+    if len(symbols) < contract.min_symbol_count:
+        return (
+            False,
+            f"local symbol scope failed -> {detail}; symbols={len(symbols)} (<{contract.min_symbol_count})",
+        )
+    return True, f"local symbol scope passed -> {detail}"
+
+
+def _check_source_row_floor(
+    cur: Any,
+    *,
+    schema: str,
+    table: str,
+    date_column: str,
+    min_rows: int,
+    max_age_hours: int | None,
+    max_age_days: int | None,
+    now_utc: datetime,
+) -> tuple[bool, str]:
+    if not _table_exists(cur, schema=schema, table=table):
+        return False, f"{schema}.{table} missing"
+
+    query = sql.SQL(
+        "SELECT COUNT(*)::BIGINT AS row_count, MAX({date_col}) AS latest_value "
+        "FROM {schema_name}.{table_name}"
+    ).format(
+        date_col=sql.Identifier(date_column),
+        schema_name=sql.Identifier(schema),
+        table_name=sql.Identifier(table),
+    )
+    cur.execute(query)
+    row_count, latest_value = cur.fetchone()
+    row_count = int(row_count or 0)
+    issues: list[str] = []
+    details = [f"rows={row_count}"]
+
+    if row_count < min_rows:
+        issues.append(f"rows={row_count} (<{min_rows})")
+
+    if max_age_hours is not None:
+        age_hours = _age_hours(latest_value, now_utc)
+        if age_hours is None:
+            issues.append(f"no latest {date_column}")
+        elif age_hours > max_age_hours:
+            issues.append(f"stale {date_column} age_hours={age_hours:.1f} (>{max_age_hours})")
+        else:
+            details.append(f"{date_column}_age_hours={age_hours:.1f}")
+
+    if max_age_days is not None:
+        age_days = _age_days(latest_value, now_utc)
+        if age_days is None:
+            issues.append(f"no latest {date_column}")
+        elif age_days > max_age_days:
+            issues.append(f"stale {date_column} age_days={age_days:.1f} (>{max_age_days})")
+        else:
+            details.append(f"{date_column}_age_days={age_days:.1f}")
+
+    if issues:
+        return False, f"{schema}.{table} failed -> " + _format_issues(issues)
+    return True, f"{schema}.{table} " + ", ".join(details)
 
 
 def _check_table_rows_and_age(
@@ -332,7 +505,7 @@ def _check_table_rows_and_age(
             detail_parts.append(f"{date_column}_age_days={value_age_days:.1f}")
 
     if issues:
-        return False, f"{schema}.{table} failed -> " + "; ".join(issues)
+        return False, f"{schema}.{table} failed -> " + _format_issues(issues)
     return True, f"{schema}.{table} " + ", ".join(detail_parts)
 
 
@@ -613,67 +786,181 @@ def _check_fred_series(
     cur: Any,
     *,
     required_series: tuple[str, ...],
+    min_series: int,
+    min_rows: int,
     max_age_days: int,
     now_utc: datetime,
 ) -> tuple[bool, str]:
-    union = " UNION ALL ".join(
-        [f"SELECT series_id, observation_date FROM econ.{table}" for table in _ECO_TABLES]
-    )
+    union_parts: list[str] = []
+    for schema_name, table_name, series_column, date_column in _FRED_RAW_TABLES:
+        if not _table_exists(cur, schema=schema_name, table=table_name):
+            continue
+        if not _column_exists(cur, schema=schema_name, table=table_name, column=series_column):
+            continue
+        if not _column_exists(cur, schema=schema_name, table=table_name, column=date_column):
+            continue
+        union_parts.append(
+            f"SELECT {series_column}::text AS series_id, {date_column}::timestamp AS observation_date "
+            f"FROM {schema_name}.{table_name} "
+            f"WHERE {series_column} IS NOT NULL AND {date_column} IS NOT NULL"
+        )
+
+    if not union_parts:
+        return False, "fred local universe failed -> no supported raw FRED long tables found"
+
+    union = " UNION ALL ".join(union_parts)
+    scope = "env override" if required_series else "all local raw FRED series"
+    where_clause = "WHERE series_id = ANY(%s)" if required_series else ""
     query = (
-        "WITH econ_union AS ("
+        "WITH fred_union AS ("
         + union
         + ") "
         + "SELECT series_id, COUNT(*)::BIGINT AS row_count, MAX(observation_date) AS latest "
-        + "FROM econ_union WHERE series_id = ANY(%s) GROUP BY series_id"
+        + f"FROM fred_union {where_clause} GROUP BY series_id"
     )
-    cur.execute(query, (list(required_series),))
+    cur.execute(query, (list(required_series),) if required_series else None)
     rows = cur.fetchall()
     by_series = {row[0].upper(): {"rows": int(row[1]), "latest": row[2]} for row in rows}
     issues: list[str] = []
+    row_total = sum(info["rows"] for info in by_series.values())
+    latest_values = [info["latest"] for info in by_series.values() if info["latest"] is not None]
 
-    for series_id in required_series:
-        info = by_series.get(series_id)
-        if info is None:
-            issues.append(f"{series_id}: missing")
-            continue
-        if info["rows"] < 1:
-            issues.append(f"{series_id}: rows=0")
-            continue
-        age_days = _age_days(info["latest"], now_utc)
-        if age_days is None:
-            issues.append(f"{series_id}: no latest observation")
-        elif age_days > max_age_days:
-            issues.append(f"{series_id}: stale age_days={age_days:.1f} (>{max_age_days})")
+    if len(by_series) < min_series:
+        issues.append(f"series={len(by_series)} (<{min_series})")
+    if row_total < min_rows:
+        issues.append(f"rows={row_total} (<{min_rows})")
+    latest = max(latest_values) if latest_values else None
+    latest_age_days = _age_days(latest, now_utc)
+    if latest_age_days is None:
+        issues.append("no latest FRED observation")
+    elif latest_age_days > max_age_days:
+        issues.append(f"stale FRED universe latest age_days={latest_age_days:.1f} (>{max_age_days})")
+
+    series_to_check = required_series if required_series else tuple(sorted(by_series))
+    if required_series:
+        for series_id in series_to_check:
+            info = by_series.get(series_id)
+            if info is None:
+                issues.append(f"{series_id}: missing")
+                continue
+            if info["rows"] < 1:
+                issues.append(f"{series_id}: rows=0")
+                continue
+            age_days = _age_days(info["latest"], now_utc)
+            if age_days is None:
+                issues.append(f"{series_id}: no latest observation")
+            elif age_days > max_age_days:
+                issues.append(f"{series_id}: stale age_days={age_days:.1f} (>{max_age_days})")
 
     if issues:
-        return False, "fred core series failed -> " + "; ".join(issues)
-    return True, f"fred core series passed for {len(required_series)} ids"
+        return False, f"fred local universe failed ({scope}) -> " + _format_issues(issues)
+    return (
+        True,
+        f"fred local universe passed ({scope}) -> rows={row_total}, series={len(by_series)}, latest={latest}, latest_age_days={latest_age_days:.1f}",
+    )
 
 
 def _check_weather_series(
     cur: Any,
     *,
     min_weather_series: int,
+    min_weather_rows: int,
     max_age_days: int,
     now_utc: datetime,
 ) -> tuple[bool, str]:
+    union_parts: list[str] = []
+    for schema_name, table_name, series_expr, date_column in _WEATHER_RAW_TABLES:
+        if not _table_exists(cur, schema=schema_name, table=table_name):
+            continue
+        if not _column_exists(cur, schema=schema_name, table=table_name, column=date_column):
+            continue
+        union_parts.append(
+            f"SELECT ({series_expr})::text AS series_id, {date_column}::timestamp AS observation_date "
+            f"FROM {schema_name}.{table_name} "
+            f"WHERE {date_column} IS NOT NULL"
+        )
+
+    if not union_parts:
+        return False, "weather local universe failed -> no supported raw weather tables found"
+
+    union = " UNION ALL ".join(union_parts)
     cur.execute(
-        "SELECT COUNT(DISTINCT series_id)::BIGINT AS series_count, MAX(observation_date) AS latest "
-        "FROM econ.weather_1d"
+        "WITH weather_union AS ("
+        + union
+        + ") "
+        + "SELECT COUNT(*)::BIGINT AS row_count, "
+        + "COUNT(DISTINCT series_id)::BIGINT AS series_count, "
+        + "MAX(observation_date) AS latest "
+        + "FROM weather_union"
     )
-    series_count, latest = cur.fetchone()
-    series_count = int(series_count)
+    row_count, series_count, latest = cur.fetchone()
+    row_count = int(row_count or 0)
+    series_count = int(series_count or 0)
+    issues: list[str] = []
 
     if series_count < min_weather_series:
-        return False, f"econ.weather_1d distinct series={series_count} (<{min_weather_series})"
+        issues.append(f"series={series_count} (<{min_weather_series})")
+    if row_count < min_weather_rows:
+        issues.append(f"rows={row_count} (<{min_weather_rows})")
 
     age_days = _age_days(latest, now_utc)
     if age_days is None:
-        return False, "econ.weather_1d has no latest observation_date"
-    if age_days > max_age_days:
-        return False, f"econ.weather_1d stale age_days={age_days:.1f} (>{max_age_days})"
+        issues.append("no latest observation_date")
+    elif age_days > max_age_days:
+        issues.append(f"stale observation_date age_days={age_days:.1f} (>{max_age_days})")
 
-    return True, f"econ.weather_1d series={series_count}, age_days={age_days:.1f}"
+    if issues:
+        return False, "weather local universe failed -> " + _format_issues(issues)
+    return True, f"weather local universe rows={row_count}, series={series_count}, age_days={age_days:.1f}"
+
+
+def _check_alt_source_tables(
+    cur: Any,
+    *,
+    min_rows: int,
+    max_age_days: int,
+    now_utc: datetime,
+) -> tuple[bool, str]:
+    issues: list[str] = []
+    details: list[str] = []
+    total_rows = 0
+
+    for schema_name, table_name, date_column in _ALT_RAW_TABLES:
+        if not _table_exists(cur, schema=schema_name, table=table_name):
+            issues.append(f"{schema_name}.{table_name}: missing")
+            continue
+        if not _column_exists(cur, schema=schema_name, table=table_name, column=date_column):
+            issues.append(f"{schema_name}.{table_name}: missing {date_column}")
+            continue
+
+        query = sql.SQL(
+            "SELECT COUNT(*)::BIGINT AS row_count, MAX({date_col}) AS latest_value "
+            "FROM {schema_name}.{table_name}"
+        ).format(
+            date_col=sql.Identifier(date_column),
+            schema_name=sql.Identifier(schema_name),
+            table_name=sql.Identifier(table_name),
+        )
+        cur.execute(query)
+        row_count, latest_value = cur.fetchone()
+        row_count = int(row_count or 0)
+        total_rows += row_count
+        if row_count < min_rows:
+            issues.append(f"{schema_name}.{table_name}: rows={row_count} (<{min_rows})")
+            continue
+
+        age_days = _age_days(latest_value, now_utc)
+        if age_days is None:
+            issues.append(f"{schema_name}.{table_name}: no latest {date_column}")
+        elif age_days > max_age_days:
+            issues.append(
+                f"{schema_name}.{table_name}: stale {date_column} age_days={age_days:.1f} (>{max_age_days})"
+            )
+        details.append(f"{schema_name}.{table_name}[rows={row_count}]")
+
+    if issues:
+        return False, "alt/econ source tables failed -> " + _format_issues(issues)
+    return True, f"alt/econ source tables passed -> total_rows={total_rows}, " + ", ".join(details)
 
 
 def _check_profarmer(
@@ -947,16 +1234,12 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         "blockers": [],
     }
 
-    if dry_run:
-        result["status"] = "dry-run"
-        return result
-
-    db_url = resolve_cloud_db_url()
+    db_url = resolve_local_training_db_url()
     if not db_url:
         result["status"] = "blocked"
         result["ready"] = False
         result["blockers"] = [
-            "Cloud DB URL is not configured. Configure DATABASE_URL, SUPABASE_DB_URL, POSTGRES_URL_NON_POOLING, or SUPABASE_POOLER_URL."
+            "Local AG DB URL is not configured. Configure FUSION_LOCAL_TRAINING_DB_URL or LOCAL_TRAINING_DB_URL."
         ]
         return result
 
@@ -1004,17 +1287,42 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         conn.autocommit = True
         cur = conn.cursor()
 
+        required_symbols, symbol_scope_detail = _discover_local_symbols(cur, contract=contract)
+        pass_flag, detail = _check_symbol_scope(
+            required_symbols,
+            contract=contract,
+            detail=symbol_scope_detail,
+        )
+        checks.append({"check": "local_symbol_scope", "passed": pass_flag, "detail": detail})
+        if not pass_flag:
+            blockers.append(detail)
+
+        pass_flag, detail = _check_source_row_floor(
+            cur,
+            schema="raw",
+            table="databento_ohlcv_1h",
+            date_column="ts_event",
+            min_rows=contract.min_hourly_source_rows,
+            max_age_hours=contract.max_hourly_price_age_hours,
+            max_age_days=None,
+            now_utc=now_utc,
+        )
+        checks.append({"check": "local_hourly_source_rows", "passed": pass_flag, "detail": detail})
+        if not pass_flag:
+            blockers.append(detail)
+
         pass_flag, detail = _check_symbol_table(
             cur,
-            table="price_1d",
-            ts_column="bucket_ts",
-            required_symbols=contract.required_symbols,
+            schema="raw",
+            table="databento_ohlcv_1d",
+            ts_column="trade_date",
+            required_symbols=required_symbols,
             min_rows=contract.min_daily_rows_per_symbol,
             max_age_hours=None,
             max_age_days=contract.max_daily_price_age_days,
             now_utc=now_utc,
         )
-        checks.append({"check": "price_1d_symbols", "passed": pass_flag, "detail": detail})
+        checks.append({"check": "local_price_1d_symbols", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
@@ -1034,63 +1342,85 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
 
         pass_flag, detail = _check_symbol_table(
             cur,
-            table="price_1h",
-            ts_column="bucket_ts",
-            required_symbols=contract.required_symbols,
+            schema="raw",
+            table="databento_ohlcv_1h",
+            ts_column="ts_event",
+            required_symbols=required_symbols,
             min_rows=contract.min_hourly_rows_per_symbol,
             max_age_hours=contract.max_hourly_price_age_hours,
             max_age_days=None,
             now_utc=now_utc,
         )
-        checks.append({"check": "price_1h_symbols", "passed": pass_flag, "detail": detail})
+        checks.append({"check": "local_price_1h_symbols", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
         pass_flag, detail = _check_ohlc_integrity(
             cur,
-            table="price_1d",
-            required_symbols=contract.required_symbols,
+            schema="raw",
+            table="databento_ohlcv_1d",
+            required_symbols=required_symbols,
             max_violations=contract.max_daily_ohlc_violations,
         )
-        checks.append({"check": "price_1d_ohlc", "passed": pass_flag, "detail": detail})
+        checks.append({"check": "local_price_1d_ohlc", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
         pass_flag, detail = _check_ohlc_integrity(
             cur,
-            table="price_1h",
-            required_symbols=contract.required_symbols,
+            schema="raw",
+            table="databento_ohlcv_1h",
+            required_symbols=required_symbols,
             max_violations=contract.max_hourly_ohlc_violations,
         )
-        checks.append({"check": "price_1h_ohlc", "passed": pass_flag, "detail": detail})
+        checks.append({"check": "local_price_1h_ohlc", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
         pass_flag, detail = _check_fred_series(
             cur,
             required_series=contract.required_fred_series,
+            min_series=contract.min_fred_series,
+            min_rows=contract.min_fred_rows,
             max_age_days=contract.max_factor_age_days,
             now_utc=now_utc,
         )
-        checks.append({"check": "fred_core_series", "passed": pass_flag, "detail": detail})
+        checks.append({"check": "fred_local_universe", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
         pass_flag, detail = _check_weather_series(
             cur,
             min_weather_series=contract.min_weather_series,
+            min_weather_rows=contract.min_weather_rows,
             max_age_days=contract.max_factor_age_days,
             now_utc=now_utc,
         )
-        checks.append({"check": "weather_contract", "passed": pass_flag, "detail": detail})
+        checks.append({"check": "weather_local_universe", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
-        pass_flag, detail = _check_profarmer(
+        pass_flag, detail = _check_alt_source_tables(
             cur,
-            max_age_days=contract.max_profarmer_age_days,
+            min_rows=contract.min_alt_rows,
+            max_age_days=contract.max_factor_age_days,
             now_utc=now_utc,
         )
+        checks.append({"check": "alt_local_sources", "passed": pass_flag, "detail": detail})
+        if not pass_flag:
+            blockers.append(detail)
+
+        if _table_exists(cur, schema="alt", table="profarmer_news"):
+            pass_flag, detail = _check_profarmer(
+                cur,
+                max_age_days=contract.max_profarmer_age_days,
+                now_utc=now_utc,
+            )
+        else:
+            pass_flag, detail = (
+                False,
+                "alt.profarmer_news missing from local AG DB; cloud-only ProFarmer is not an AG-ready local source",
+            )
         checks.append({"check": "profarmer_news", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
@@ -1107,6 +1437,21 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
             now_utc=now_utc,
         )
         checks.append({"check": "training_matrix", "passed": pass_flag, "detail": detail})
+        if not pass_flag:
+            blockers.append(detail)
+
+        pass_flag, detail = _check_table_rows_and_age(
+            cur,
+            schema="training",
+            table="matrix_targets_1d",
+            date_column="trade_date",
+            freshness_column="ingested_at",
+            min_rows=contract.min_matrix_rows,
+            max_freshness_age_days=contract.max_factor_age_days,
+            max_value_age_days=contract.max_training_trade_date_age_days,
+            now_utc=now_utc,
+        )
+        checks.append({"check": "training_matrix_targets", "passed": pass_flag, "detail": detail})
         if not pass_flag:
             blockers.append(detail)
 
@@ -1129,7 +1474,7 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         if contract.single_matrix_training_contract:
             checks.append(
                 {
-                    "check": "cloud_specialist_contract",
+                    "check": "local_specialist_contract",
                     "passed": True,
                     "detail": "skipped specialist_signals/specialist_features checks (TRAINING_SINGLE_MATRIX_CONTRACT=1)",
                 }
@@ -1210,14 +1555,13 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
             if not pass_flag:
                 blockers.append(detail)
 
-        pass_flag, detail = _check_price_ingest_jobs(
-            cur,
-            max_age_hours=contract.max_hourly_price_age_hours,
-            now_utc=now_utc,
+        checks.append(
+            {
+                "check": "price_ingest_runs",
+                "passed": True,
+                "detail": "skipped for local AG readiness; local raw tables and training matrix freshness are authoritative",
+            }
         )
-        checks.append({"check": "price_ingest_runs", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
 
         if contract.require_options_data:
             pass_flag, detail = _check_options_data(
@@ -1234,7 +1578,7 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
                 {
                     "check": "options_data",
                     "passed": True,
-                    "detail": "skipped (TRAINING_REQUIRE_OPTIONS=0)",
+                    "detail": "excluded from AG readiness by policy (TRAINING_REQUIRE_OPTIONS=0)",
                 }
             )
 
