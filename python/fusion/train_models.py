@@ -505,6 +505,8 @@ def _split_temporal(
     model_columns = ["trade_date", *feature_columns(frame.columns), label]
     clean = frame[model_columns].copy()
     clean[label] = pd.to_numeric(clean[label], errors="coerce")
+    if int(clean[label].notna().sum()) == 0:
+        raise TrainingContractError(f"{label} has no numeric values after coercion")
     clean = clean.dropna(subset=[label])
     numeric_cols = [column for column in model_columns if column not in {"trade_date", label}]
     for column in numeric_cols:
@@ -530,6 +532,21 @@ def _split_temporal(
     train = clean.iloc[:train_end].drop(columns=["trade_date"]).copy()
     val = clean.iloc[val_start:val_end].drop(columns=["trade_date"])
     test = clean.iloc[test_start:].drop(columns=["trade_date"])
+    for split_name, split_frame in (("train", train), ("validation", val), ("test", test)):
+        if not pd.api.types.is_numeric_dtype(split_frame[label]):
+            raise TrainingContractError(
+                f"{label} is not numeric in {split_name} split: dtype={split_frame[label].dtype}"
+            )
+        unsafe_features = [
+            column
+            for column in split_frame.columns
+            if column != label and not pd.api.types.is_numeric_dtype(split_frame[column])
+        ]
+        if unsafe_features:
+            preview = ", ".join(unsafe_features[:10])
+            raise TrainingContractError(
+                f"non-numeric feature columns in {split_name} split before AutoGluon fit: {preview}"
+            )
 
     meta = {
         "rows": n_rows,

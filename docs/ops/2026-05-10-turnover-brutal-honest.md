@@ -39,8 +39,8 @@ File now stale: `docs/ops/2026-05-10-checkpoint-19-ag-data-cleanup-validation-tr
 1. End-to-end approved AG training completion.
 Current status: broken/incomplete.
 Evidence: two partial run directories exist, neither completed all horizons or wrote final run history metadata.
-- `models/fusion/v16-scaffold-20260510T232703Z-60fbedb1/`
-- `models/fusion/v16-scaffold-20260510T233101Z-85cf0d13/`
+- `models/fusion/_failed_runs/2026-05-10/v16-scaffold-20260510T232703Z-60fbedb1/`
+- `models/fusion/_failed_runs/2026-05-10/v16-scaffold-20260510T233101Z-85cf0d13/`
 Blast radius: AG cannot treat this as a production-grade completed training run.
 
 2. Training runtime consistency.
@@ -123,31 +123,31 @@ Rule: isolate AG-runtime fixes in a clearly scoped branch/worktree or explicit c
 ## 7) What's Left To Get Done For AG
 
 Priority 1 - Fix and validate training stability path.
-Status: open.
-Dependencies: keep `python/fusion/train_models.py` label coercion fix or equivalent; define model-family retry scope.
+Status: partially recovered; final approved training still open.
+Dependencies: keep `python/fusion/train_models.py` label coercion and pre-fit dtype guard; use the locked neural-family exclusion retry scope.
 Done looks like: one approved run completes all horizons and writes final run metadata with no manual kill.
 
 Priority 2 - Decide retry strategy for model families.
-Status: open.
-Dependencies: explicit decision whether to exclude `FASTAI` (and any other unstable families) for the next approved run.
-Done looks like: documented contract for retry model selection and command recorded.
+Status: decided for next retry.
+Dependencies: next approved retry excludes `FASTAI` and `NN_TORCH` with `AUTOGLUON_MODEL_SELECTION_MODE=exclude_only` and `AUTOGLUON_EXCLUDED_MODEL_TYPES=FASTAI,NN_TORCH`.
+Done looks like: documented contract for retry model selection and command recorded; training still requires explicit approval before launch.
 
 Priority 3 - Clean partial run artifact ambiguity.
-Status: open.
+Status: recovered.
 Dependencies: decision to keep or archive/delete partial run dirs:
-- `models/fusion/v16-scaffold-20260510T232703Z-60fbedb1/`
-- `models/fusion/v16-scaffold-20260510T233101Z-85cf0d13/`
-Done looks like: artifact policy applied and documented.
+- `models/fusion/_failed_runs/2026-05-10/v16-scaffold-20260510T232703Z-60fbedb1/`
+- `models/fusion/_failed_runs/2026-05-10/v16-scaffold-20260510T233101Z-85cf0d13/`
+Done looks like: artifact policy applied and documented in `docs/ops/2026-05-11-checkpoint-20-ag-training-incident-recovery.md`.
 
 Priority 4 - Update checkpoint evidence to current truth.
-Status: open.
+Status: recovered.
 Dependencies: include training-attempt timeline and outcomes after Checkpoint 19.
-Done looks like: checkpoint docs no longer imply "no approved training started".
+Done looks like: checkpoint docs no longer imply "no approved training started" as final current truth.
 
 Priority 5 - Commit or discard AG runtime patch intentionally.
-Status: open.
-Dependencies: explicit approval of `python/fusion/train_models.py` change.
-Done looks like: patch is either committed with rationale/tests or intentionally reverted with replacement fix.
+Status: recovered pending final commit/push.
+Dependencies: `python/fusion/train_models.py` label coercion is retained and hardened with a pre-fit dtype guard plus focused unit tests.
+Done looks like: patch is committed with rationale/tests.
 
 Priority 6 - Re-run final validation packet after successful training.
 Status: blocked by Priority 1.

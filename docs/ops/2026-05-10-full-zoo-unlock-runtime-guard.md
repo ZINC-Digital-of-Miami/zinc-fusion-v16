@@ -100,3 +100,16 @@ This preserves dashboard contract while legacy rows still exist.
 - Non-approved/non-safe runtime no longer reaches fit execution path.
 - 70% directional-accuracy rollback threshold is enforced in training code.
 - Legacy trusted-fill horizon mismatch is normalized at API edge until new trusted-fill rows are written.
+
+## Postscript - 2026-05-11 Incident Recovery
+
+The "no non-dry-run training executed" scope statement above was true for the runtime-guard change window only. Later approved May 10 training attempts failed/terminated before completing all horizons.
+
+Next approved retry policy is neural-family excluded and documented only:
+
+```bash
+AUTOGLUON_MODEL_SELECTION_MODE=exclude_only
+AUTOGLUON_EXCLUDED_MODEL_TYPES=FASTAI,NN_TORCH
+```
+
+Do not run another approved training command without explicit user approval and a written timeout policy.

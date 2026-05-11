@@ -4,6 +4,16 @@ Date: 2026-05-10
 Repository: /Volumes/Satechi Hub/ZINC-FUSION-V16
 Status: COMPLETE (training still blocked pending user review)
 
+## Postscript - 2026-05-11 Incident Recovery
+
+This checkpoint captured the state before the later approved May 10 training attempts. Its "no non-dry-run training" statements are true only for the checkpoint window below, not for the final May 10 state.
+
+After this checkpoint, two approved training attempts were launched and did not complete:
+- `v16-scaffold-20260510T232703Z-60fbedb1` failed during the first horizon after target dtype and FastAI Decimal runtime failures.
+- `v16-scaffold-20260510T233101Z-85cf0d13` reached the first horizon and stalled during `NeuralNetFastAI_BAG_L1` before final run metadata.
+
+The partial artifacts were archived under `models/fusion/_failed_runs/2026-05-10/` and are documented in `docs/ops/2026-05-11-checkpoint-20-ag-training-incident-recovery.md`.
+
 ## Objective
 Finalize and verify local + cloud AG data quality under the single-matrix contract, produce a hard evidence gate, and keep non-dry-run training disabled until explicit user approval.
 
@@ -128,14 +138,15 @@ Readiness + dry-run train:
 | Matrix family coverage | all rows contain required families | `6439/6439` for all 4 families | PASS |
 | Matrix payload width | `>=20` min keys (contract) | `min=375` | PASS |
 | Train readiness | `ready=true` | `true` | PASS |
-| Train execution guard | dry-run only | dry-run only, no approved training | PASS |
+| Train execution guard | dry-run only during this checkpoint | dry-run only in this checkpoint window; later superseded by approved failed attempts | PASS at checkpoint time |
 
 ## 5) Final Verdict and Training Hold
 
 Final verdict: **GO (FOR USER REVIEW ONLY)**
 
 Training hold remains active:
-- No non-dry-run AG training was started.
+- No non-dry-run AG training was started during this checkpoint window.
+- Later approved May 10 training attempts were started and failed/terminated; see the postscript and Checkpoint 20.
 - Explicit approval is still required before any training run with `approved=True` / `--approve-training`.
 
 Operational lock:
