@@ -46,12 +46,18 @@ _FRED_RAW_TABLES: tuple[tuple[str, str, str, str], ...] = (
     ("raw", "fred_rates_20251215", "series_id", "date"),
 )
 
-_WEATHER_RAW_TABLES: tuple[tuple[str, str, str, str], ...] = (
+_WEATHER_SOURCE_TABLES: tuple[tuple[str, str, str, str], ...] = (
+    ("econ", "weather_1d", "series_id", "observation_date"),
     ("raw", "weather_observations_1d", "station_id || ':' || variable_id", "as_of_date"),
     ("raw", "noaa_weather_1d", "station_id", "observation_date"),
 )
 
-_ALT_RAW_TABLES: tuple[tuple[str, str, str], ...] = (
+_ALT_SOURCE_TABLES: tuple[tuple[str, str, str], ...] = (
+    ("alt", "profarmer_news", "published_at"),
+    ("alt", "news_events", "published_at"),
+    ("alt", "legislation_1d", "published_at"),
+    ("alt", "fed_speeches", "published_at"),
+    ("alt", "executive_actions", "published_at"),
     ("raw", "news_buckets", "published_at"),
     ("raw", "bucket_news", "date"),
     ("raw", "usda_wasde", "report_date"),
@@ -869,7 +875,7 @@ def _check_weather_series(
     now_utc: datetime,
 ) -> tuple[bool, str]:
     union_parts: list[str] = []
-    for schema_name, table_name, series_expr, date_column in _WEATHER_RAW_TABLES:
+    for schema_name, table_name, series_expr, date_column in _WEATHER_SOURCE_TABLES:
         if not _table_exists(cur, schema=schema_name, table=table_name):
             continue
         if not _column_exists(cur, schema=schema_name, table=table_name, column=date_column):
@@ -881,7 +887,7 @@ def _check_weather_series(
         )
 
     if not union_parts:
-        return False, "weather local universe failed -> no supported raw weather tables found"
+        return False, "weather local universe failed -> no supported local weather source tables found"
 
     union = " UNION ALL ".join(union_parts)
     cur.execute(
@@ -923,14 +929,14 @@ def _check_alt_source_tables(
 ) -> tuple[bool, str]:
     issues: list[str] = []
     details: list[str] = []
+    stale_details: list[str] = []
     total_rows = 0
+    latest_values: list[Any] = []
 
-    for schema_name, table_name, date_column in _ALT_RAW_TABLES:
+    for schema_name, table_name, date_column in _ALT_SOURCE_TABLES:
         if not _table_exists(cur, schema=schema_name, table=table_name):
-            issues.append(f"{schema_name}.{table_name}: missing")
             continue
         if not _column_exists(cur, schema=schema_name, table=table_name, column=date_column):
-            issues.append(f"{schema_name}.{table_name}: missing {date_column}")
             continue
 
         query = sql.SQL(
@@ -945,22 +951,36 @@ def _check_alt_source_tables(
         row_count, latest_value = cur.fetchone()
         row_count = int(row_count or 0)
         total_rows += row_count
-        if row_count < min_rows:
-            issues.append(f"{schema_name}.{table_name}: rows={row_count} (<{min_rows})")
+        if row_count <= 0:
             continue
+        latest_values.append(latest_value)
+        details.append(f"{schema_name}.{table_name}[rows={row_count}]")
 
         age_days = _age_days(latest_value, now_utc)
         if age_days is None:
-            issues.append(f"{schema_name}.{table_name}: no latest {date_column}")
+            stale_details.append(f"{schema_name}.{table_name}: no latest {date_column}")
         elif age_days > max_age_days:
-            issues.append(
+            stale_details.append(
                 f"{schema_name}.{table_name}: stale {date_column} age_days={age_days:.1f} (>{max_age_days})"
             )
-        details.append(f"{schema_name}.{table_name}[rows={row_count}]")
 
+    if total_rows < min_rows:
+        issues.append(f"rows={total_rows} (<{min_rows})")
+    latest = max((_as_utc_datetime(value) for value in latest_values), default=None)
+    age_days = _age_days(latest, now_utc)
+    if age_days is None:
+        issues.append("no latest populated alt/econ source timestamp")
+    elif age_days > max_age_days:
+        issues.append(f"latest populated source stale age_days={age_days:.1f} (>{max_age_days})")
     if issues:
         return False, "alt/econ source tables failed -> " + _format_issues(issues)
-    return True, f"alt/econ source tables passed -> total_rows={total_rows}, " + ", ".join(details)
+
+    detail = f"alt/econ source tables passed -> total_rows={total_rows}, latest_age_days={age_days:.1f}"
+    if details:
+        detail += ", populated=" + ", ".join(details)
+    if stale_details:
+        detail += ", stale_supporting_sources=" + _format_issues(stale_details)
+    return True, detail
 
 
 def _check_profarmer(

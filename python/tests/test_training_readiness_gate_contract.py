@@ -30,6 +30,16 @@ class TrainingReadinessGateContractTest(unittest.TestCase):
         self.assertFalse(contract.enforce_cloud_local_parity)
         self.assertFalse(contract.require_options_data)
 
+    def test_readiness_gate_prefers_normalized_local_mirrors(self) -> None:
+        self.assertIn(
+            ("econ", "weather_1d", "series_id", "observation_date"),
+            training_readiness_gate._WEATHER_SOURCE_TABLES,
+        )
+        self.assertIn(
+            ("alt", "profarmer_news", "published_at"),
+            training_readiness_gate._ALT_SOURCE_TABLES,
+        )
+
     def test_dry_run_evaluates_gate_and_can_block(self) -> None:
         with patch.object(
             training_readiness_gate,
