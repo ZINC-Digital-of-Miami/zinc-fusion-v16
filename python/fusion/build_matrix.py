@@ -7,7 +7,7 @@ import pandas as pd
 import psycopg2
 
 from .artifacts import feature_columns, matrix_path, target_columns, write_parquet
-from .config import HORIZONS, TARGET_TEMPLATE, load_config
+from .config import HORIZONS, TARGET_TEMPLATE, resolve_cloud_db_url
 
 
 _MATRIX_SQL = """
@@ -174,11 +174,10 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
             "status": "dry-run",
         }
 
-    cfg = load_config()
-    db_url = cfg.supabase_db_url or cfg.supabase_pooler_url
+    db_url = resolve_cloud_db_url()
     if not db_url:
         raise RuntimeError(
-            "DATABASE_URL (or SUPABASE_DB_URL/POSTGRES_URL_NON_POOLING/POSTGRES_URL) is not set"
+            "Cloud DB URL is not set. Configure DATABASE_URL, SUPABASE_DB_URL, POSTGRES_URL_NON_POOLING, or SUPABASE_POOLER_URL."
         )
 
     with psycopg2.connect(db_url, connect_timeout=10, application_name="fusion_build_matrix") as conn:

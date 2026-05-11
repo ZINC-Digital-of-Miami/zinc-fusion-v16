@@ -18,16 +18,11 @@ from .artifacts import (
     specialist_features_path,
     target_columns,
 )
-from .config import SPECIALISTS, load_config
+from .config import SPECIALISTS, resolve_cloud_db_url
 
 
 class PromotionApprovalError(RuntimeError):
     pass
-
-
-def _resolve_db_url() -> str | None:
-    cfg = load_config()
-    return cfg.supabase_db_url or cfg.supabase_pooler_url
 
 
 def _json_from_row(row: pd.Series, *, exclude: set[str]) -> str:
@@ -177,10 +172,10 @@ def run(*, dry_run: bool = True, approved: bool = False) -> dict[str, object]:
     if not approved:
         raise PromotionApprovalError("Cloud promotion requires explicit approval. Pass approved=True or --execute.")
 
-    db_url = _resolve_db_url()
+    db_url = resolve_cloud_db_url()
     if not db_url:
         raise RuntimeError(
-            "DATABASE_URL (or SUPABASE_DB_URL/POSTGRES_URL_NON_POOLING/POSTGRES_URL) is not set"
+            "Cloud DB URL is not set. Configure DATABASE_URL, SUPABASE_DB_URL, POSTGRES_URL_NON_POOLING, or SUPABASE_POOLER_URL."
         )
 
     with psycopg2.connect(db_url, connect_timeout=10, application_name="fusion_promote_to_cloud") as conn:

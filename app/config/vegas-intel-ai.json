@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-09T07:09:43-04:00",
+  "generatedAt": "2026-05-10T07:01:51-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,12 +7,12 @@
   "snapshot": {
     "activeEvents": 21,
     "highPriorityAccounts": 10,
-    "updatedAt": "2026-05-09T07:09:43-04:00"
+    "updatedAt": "2026-05-10T07:01:51-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "The current event stack shows 10 demand windows inside 14 days and 11 inside 30 days, which means 47.6% of the visible 21-event inventory is front-loaded into the next two weeks. Kevin should treat the EDC window as the primary outreach clock.",
+      "body": "The current event stack shows 10 demand windows inside 14 days and 11 inside 30 days, which means 47.6% of the visible 21-event inventory is front-loaded before or during EDC Week. With EDC Week running May 13-19 and the main festival May 15-17, Kevin should treat the next three days as the primary outreach clock.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Driven Demand Window Risk",
         "strategicObjective": "Map near-term event concentration to procurement and service-demand timing so account outreach aligns with real demand spikes.",
@@ -35,8 +35,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-09T07:09:43-04:00",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10T07:01:51-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
@@ -44,7 +44,7 @@
         "sourceRecords": [
           {
             "source": "Visit Las Vegas",
-            "recordHint": "EDC Week and Electric Daisy Carnival event dates used for 14d/30d counts",
+            "recordHint": "EDC Week May 13-19, 2026 and Electric Daisy Carnival May 15-17, 2026 used for 14d and 30d concentration math",
             "observedAt": "2026-05-09T07:09:43-04:00",
             "url": "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
           }
@@ -57,10 +57,10 @@
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "Ten accounts already clear the active priority threshold, and the next two-week EDC cluster argues for calling high-score accounts before broad prospecting. The sequencing logic remains score threshold first, event urgency second, and service readiness third while CL sits at 95.42 and energy remains the lead buyer risk channel.",
+      "body": "All 10 active tracked accounts currently clear the high-priority bar, and EDC Week starts in 3 days. Kevin should call highest-score, highest-impact accounts first rather than broad prospecting, because the timing edge now comes from sequencing, not additional discovery, while energy remains the lead buyer-risk backdrop.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account-Level Sales Execution Strategy",
-        "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer\u2019s demand timing and service profile.",
+        "strategicObjective": "Generate account-targeted sales strategy that links oil-cost control narrative to each customer’s demand timing and service profile.",
         "neuralConnectionThesis": "Sales efficiency rises when Kevin leads with the accounts already showing both priority-score support and imminent event-driven demand pressure.",
         "quantResearchProtocol": [
           "Count accounts above the active priority threshold and compare that count with near-term event load.",
@@ -80,8 +80,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-09T07:09:43-04:00",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10T07:01:51-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.customer_scores",
@@ -116,7 +116,7 @@
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "There are 10 active tracked accounts in the current AI layer, and all 10 are still effectively high-priority because the score-threshold set and the active-account set overlap completely in this snapshot. That makes sequencing discipline more important than additional account discovery.",
+      "body": "There are 10 active tracked accounts in the current AI layer, and all 10 are effectively high-priority, which means the overlap is 100%. That turns the problem from account filtering into sequence control, event alignment, and service coordination.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account Priority and Opportunity Concentration",
         "strategicObjective": "Identify highest-value account opportunities with explicit reasoning tied to event sensitivity, volume pattern, and service window alignment.",
@@ -139,8 +139,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-09T07:09:43-04:00",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10T07:01:51-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -157,7 +157,7 @@
           {
             "source": "vegas.customer_scores",
             "table": "vegas.customer_scores",
-            "recordHint": "high-priority count equals active-account count in current snapshot",
+            "recordHint": "high-priority count equals active-account count, implying 100% overlap in current snapshot",
             "observedAt": "2026-05-09T07:09:43-04:00"
           },
           {
@@ -175,7 +175,7 @@
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer rows exist for every tracked account, which is a coverage positive, but equipment-count telemetry is still pending direct sync. Operationally that means service planning can be complete on identity coverage, but not yet on equipment-intensity precision during the EDC demand window.",
+      "body": "Fryer rows exist for all 10 tracked accounts, so identity coverage is 100%, but fryer-count telemetry is still pending direct sync. Operationally that means service planning can be complete on who needs attention, but not yet on exact equipment-intensity during the EDC demand window.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Assess fryer lifecycle risk against demand windows to prevent service disruption and emergency replacement cost exposure.",
@@ -198,8 +198,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-09T07:09:43-04:00",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10T07:01:51-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.fryers",

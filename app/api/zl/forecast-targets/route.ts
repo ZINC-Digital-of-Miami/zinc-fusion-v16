@@ -13,6 +13,24 @@ type ForecastTarget = {
 };
 
 const AG_HORIZON_DAYS = [30, 90, 180] as const;
+const LEGACY_HORIZON_MAP: Record<number, (typeof AG_HORIZON_DAYS)[number]> = {
+  7: 30,
+  14: 90,
+  30: 180,
+};
+
+function normalizeHorizon(row: {
+  horizon_days: number;
+  model_version: string | null;
+}): number | null {
+  if (AG_HORIZON_DAYS.includes(row.horizon_days as (typeof AG_HORIZON_DAYS)[number])) {
+    return row.horizon_days;
+  }
+  if (row.model_version?.startsWith("trusted-fill-v1")) {
+    return LEGACY_HORIZON_MAP[row.horizon_days] ?? null;
+  }
+  return null;
+}
 
 function horizonLabel(days: number): string {
   if (days === 30) return "1M";
@@ -28,7 +46,7 @@ export async function GET() {
     const { data: rows, error } = await supabase
       .schema("forecasts")
       .from("target_zones")
-      .select("forecast_date, horizon_days, p30, p50, p70")
+      .select("forecast_date, horizon_days, p30, p50, p70, model_version")
       .order("forecast_date", { ascending: false })
       .limit(60);
 
@@ -48,18 +66,32 @@ export async function GET() {
 
     const asOfDate = rows[0].forecast_date;
     const latestRows = rows.filter((r) => r.forecast_date === asOfDate);
-    const agRows = latestRows.filter((r) => AG_HORIZON_DAYS.includes(r.horizon_days as (typeof AG_HORIZON_DAYS)[number]));
-
-    const targets: ForecastTarget[] = agRows
-      .sort((a, b) => a.horizon_days - b.horizon_days)
-      .map((r) => ({
-        id: `${r.forecast_date}-${r.horizon_days}`,
-        horizonDays: r.horizon_days,
-        horizonLabel: horizonLabel(r.horizon_days),
-        priceLow: Number(r.p30),
-        priceHigh: Number(r.p70),
-        oofPrice: Number(r.p50),
+    const deduped = new Map<number, ForecastTarget>();
+    for (const row of latestRows) {
+      const horizonDays = normalizeHorizon(row);
+      if (!horizonDays) continue;
+      if (deduped.has(horizonDays)) continue;
+      deduped.set(horizonDays, {
+        id: `${row.forecast_date}-${horizonDays}`,
+        horizonDays,
+        horizonLabel: horizonLabel(horizonDays),
+        priceLow: Number(row.p30),
+        priceHigh: Number(row.p70),
+        oofPrice: Number(row.p50),
         coveragePct: null,
+      });
+    }
+
+    const targets: ForecastTarget[] = [...deduped.values()]
+      .sort((a, b) => a.horizonDays - b.horizonDays)
+      .map((r) => ({
+        id: r.id,
+        horizonDays: r.horizonDays,
+        horizonLabel: r.horizonLabel,
+        priceLow: r.priceLow,
+        priceHigh: r.priceHigh,
+        oofPrice: r.oofPrice,
+        coveragePct: r.coveragePct,
       }));
 
     return NextResponse.json({

@@ -503,7 +503,9 @@ def _split_temporal(
     horizon: int,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, object]]:
     model_columns = ["trade_date", *feature_columns(frame.columns), label]
-    clean = frame[model_columns].dropna(subset=[label]).copy()
+    clean = frame[model_columns].copy()
+    clean[label] = pd.to_numeric(clean[label], errors="coerce")
+    clean = clean.dropna(subset=[label])
     numeric_cols = [column for column in model_columns if column not in {"trade_date", label}]
     for column in numeric_cols:
         clean[column] = pd.to_numeric(clean[column], errors="coerce")

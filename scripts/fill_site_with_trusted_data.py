@@ -53,6 +53,8 @@ YAHOO_SYMBOLS = {
     "zm": "ZM=F",
 }
 
+FORECAST_HORIZONS_DAYS = (30, 90, 180)
+
 VEGAS_EVENT_SOURCES = [
     {
         "name": "WWE WrestleMania 42",
@@ -628,9 +630,9 @@ def percentile_price_bands(close_values: list[float], spot: float) -> dict[int, 
     if len(close_values) < 40:
         # Hard floor for deterministic output when history is short.
         return {
-            7: (spot * 0.97, spot, spot * 1.03, 0.62),
-            14: (spot * 0.95, spot, spot * 1.05, 0.59),
-            30: (spot * 0.92, spot, spot * 1.08, 0.55),
+            30: (spot * 0.92, spot, spot * 1.08, 0.62),
+            90: (spot * 0.86, spot, spot * 1.15, 0.58),
+            180: (spot * 0.80, spot, spot * 1.24, 0.55),
         }
 
     returns = []
@@ -642,9 +644,9 @@ def percentile_price_bands(close_values: list[float], spot: float) -> dict[int, 
         returns.append(math.log(cur / prev))
     if len(returns) < 30:
         return {
-            7: (spot * 0.97, spot, spot * 1.03, 0.62),
-            14: (spot * 0.95, spot, spot * 1.05, 0.59),
-            30: (spot * 0.92, spot, spot * 1.08, 0.55),
+            30: (spot * 0.92, spot, spot * 1.08, 0.62),
+            90: (spot * 0.86, spot, spot * 1.15, 0.58),
+            180: (spot * 0.80, spot, spot * 1.24, 0.55),
         }
 
     recent = returns[-60:]
@@ -654,7 +656,7 @@ def percentile_price_bands(close_values: list[float], spot: float) -> dict[int, 
     z70 = 0.5244005127080409
 
     output: dict[int, tuple[float, float, float, float]] = {}
-    for horizon in (7, 14, 30):
+    for horizon in FORECAST_HORIZONS_DAYS:
         drift = mu * horizon
         spread = sigma * math.sqrt(horizon)
         p50 = spot * math.exp(drift)
@@ -987,7 +989,7 @@ def main() -> None:
     spot = zl.value if zl.value is not None else (yahoo["zl"].close_values[-1] if yahoo["zl"].close_values else 0.0)
     target_bands = percentile_price_bands(yahoo["zl"].close_values, spot)
     forecast_date = trade_date
-    model_version = "trusted-fill-v1"
+    model_version = "trusted-fill-v2-ag-horizons"
 
     # Vegas-derived tables.
     vegas_events_future = [e for e in vegas_events if e["event_date"] >= trade_date]

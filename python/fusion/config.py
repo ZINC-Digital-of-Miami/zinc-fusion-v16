@@ -21,12 +21,14 @@ SPECIALISTS: Final[list[str]] = [
 HORIZONS: Final[list[int]] = [30, 90, 180]  # 1m, 3m, 6m calendar labels for Chris-facing copy.
 
 TARGET_TEMPLATE: Final[str] = "target_price_{h}d"
+DEFAULT_LOCAL_TRAINING_DB_URL: Final[str] = "postgresql://zincdigital@localhost:5432/fusion"
 
 
 @dataclass(frozen=True)
 class PipelineConfig:
     supabase_db_url: str | None
     supabase_pooler_url: str | None
+    local_training_db_url: str
     model_version: str
     local_data_dir: Path
     model_artifact_dir: Path
@@ -59,7 +61,22 @@ def load_config() -> PipelineConfig:
             os.getenv("SUPABASE_POOLER_URL"),
             os.getenv("POSTGRES_URL"),
         ),
+        local_training_db_url=_first_non_empty(
+            os.getenv("FUSION_LOCAL_TRAINING_DB_URL"),
+            os.getenv("LOCAL_TRAINING_DB_URL"),
+            DEFAULT_LOCAL_TRAINING_DB_URL,
+        )
+        or DEFAULT_LOCAL_TRAINING_DB_URL,
         model_version=os.getenv("MODEL_VERSION", "v16-scaffold"),
         local_data_dir=local_data_dir,
         model_artifact_dir=model_artifact_dir,
     )
+
+
+def resolve_cloud_db_url() -> str | None:
+    cfg = load_config()
+    return cfg.supabase_db_url or cfg.supabase_pooler_url
+
+
+def resolve_local_training_db_url() -> str:
+    return load_config().local_training_db_url

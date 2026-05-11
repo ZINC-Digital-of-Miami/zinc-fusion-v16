@@ -1,0 +1,10 @@
+{
+  "expected_tables_count": 80,
+  "live_tables_count": 80,
+  "tables_missing_from_live": [],
+  "tables_extra_in_live": [],
+  "expected_functions_count": 3,
+  "live_functions_count": 3,
+  "functions_missing_from_live": [],
+  "functions_extra_in_live": []
+}

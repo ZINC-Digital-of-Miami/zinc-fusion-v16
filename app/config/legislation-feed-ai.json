@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-09T07:09:43-04:00",
+  "generatedAt": "2026-05-10T07:01:51-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,7 +7,7 @@
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "The current refresh contains 2 relevant policy items. The lead item is H.R.7567 (119th) - Farm, Food, and National Security Act of 2026, and the secondary item is a Federal Register trade-policy review notice; that pairing matters because it keeps farm-program and trade-enforcement language on the same watchlist even without a broad legislative wave.",
+      "body": "The current relevant-policy stack shows 5 visible items across 4 sources. H.R.7567 remains the lead soybean-oil watch item because it carries the clearest long-horizon farm-program transmission path, while the Commerce review notice is the only item with a direct trade-enforcement angle.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Procurement Impact Synthesis",
         "strategicObjective": "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
@@ -30,8 +30,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.congress.gov",
@@ -40,26 +40,26 @@
         "sourceRecords": [
           {
             "source": "Congress.gov",
-            "recordHint": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
-            "observedAt": "2026-05-09T07:09:43-04:00",
+            "recordHint": "H.R.7567 introduced 2026-02-13 and referred to House Agriculture",
+            "observedAt": "2026-05-10T07:01:51-04:00",
             "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           },
           {
             "source": "Federal Register",
-            "recordHint": "Antidumping or Countervailing Duty Order, Finding, or Suspended Investigation; Opportunity To Request Administrative Review and Join Annual Inquiry Service List; Note Regarding Format of Review Requests",
+            "recordHint": "Commerce administrative review notice published 2026-05-04",
             "observedAt": "2026-05-04T00:00:00Z",
             "url": "https://www.federalregister.gov/documents/2026/05/04/2026-08559/antidumping-or-countervailing-duty-order-finding-or-suspended-investigation-opportunity-to-request"
           }
         ],
         "notes": [
-          "The current policy tape is sparse but relevant.",
-          "Card ranking is based on direct procurement transmission rather than institutional prominence."
+          "Ranking is based on soybean-oil transmission speed, not institutional prominence.",
+          "The current window is sparse enough that relevance still matters more than raw count."
         ]
       }
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Source breadth is narrow in this refresh: Congress.gov contributes 1 item and the Federal Register contributes 1 item. That is a 50/50 split, so confidence should come from relevance screening rather than volume or source breadth.",
+      "body": "Source breadth is still narrow but no longer binary: 5 relevant items are spread across 4 sources, with Agriculture Department carrying 2 of 5 entries and Congress.gov, Commerce, and Labor each carrying 1 of 5. That is a 40/20/20/20 distribution, so confidence should come from transmission relevance, not breadth alone.",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Concentration and Signal Reliability",
         "strategicObjective": "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
@@ -82,8 +82,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.congress.gov",
@@ -92,26 +92,26 @@
         "sourceRecords": [
           {
             "source": "Congress.gov",
-            "recordHint": "1 current relevant bill item in AI snapshot window",
-            "observedAt": "2026-05-09T07:09:43-04:00",
+            "recordHint": "1 current relevant congressional item in snapshot window",
+            "observedAt": "2026-05-10T07:01:51-04:00",
             "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           },
           {
             "source": "Federal Register",
-            "recordHint": "1 current relevant rule/review item in AI snapshot window",
-            "observedAt": "2026-05-04T00:00:00Z",
-            "url": "https://www.federalregister.gov/documents/2026/05/04/2026-08559/antidumping-or-countervailing-duty-order-finding-or-suspended-investigation-opportunity-to-request"
+            "recordHint": "4 department-sourced rule or notice items surfaced through Federal Register feeds",
+            "observedAt": "2026-05-10",
+            "url": "https://www.federalregister.gov"
           }
         ],
         "notes": [
-          "Source breadth math is explicit: 2 items, 2 sources, 50/50 share.",
-          "Interpretation remains conservative because the policy tape is sparse."
+          "Source concentration math is explicit: 5 items across 4 visible source labels.",
+          "Breadth is adequate for monitoring but still too thin for aggressive posture changes."
         ]
       }
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "The visible tag mix resolves into policy and tariff pressure rather than a broad unresolved taxonomy. That gives the feed more usable structure than a generic policy-only tape, but it is still too sparse to call a full legislative wave.",
+      "body": "Only 2 of the 5 visible items carry explicit policy or tariff tags, while the remaining 3 resolve into macro, crush-adjacent trade administration, and fed/admin operations. That gives the tape enough structure to rank watch priorities, but not enough density to call a broad legislative wave.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify which policy themes carry the highest procurement risk contribution in the current window.",
@@ -134,8 +134,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "asOf": "2026-05-10",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.congress.gov",
@@ -144,20 +144,20 @@
         "sourceRecords": [
           {
             "source": "Congress.gov",
-            "recordHint": "farm-bill item tagged for policy relevance",
-            "observedAt": "2026-05-09T07:09:43-04:00",
+            "recordHint": "farm-bill item carries macro ag-program relevance",
+            "observedAt": "2026-05-10T07:01:51-04:00",
             "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           },
           {
             "source": "Federal Register",
-            "recordHint": "trade-review item tagged for tariff/policy relevance",
-            "observedAt": "2026-05-04T00:00:00Z",
-            "url": "https://www.federalregister.gov/documents/2026/05/04/2026-08559/antidumping-or-countervailing-duty-order-finding-or-suspended-investigation-opportunity-to-request"
+            "recordHint": "department notices contribute crush, fed, policy, and tariff-adjacent tags",
+            "observedAt": "2026-05-10",
+            "url": "https://www.federalregister.gov"
           }
         ],
         "notes": [
-          "Theme interpretation is item-level and tag-aware.",
-          "Current tag structure is specific enough to separate trade-enforcement risk from generic policy chatter."
+          "Theme pressure is ranked from the live five-item mix, not a generic policy bucket.",
+          "Current taxonomy is usable for prioritization but still sparse for regime-calling."
         ]
       }
     }
@@ -166,19 +166,42 @@
     {
       "source": "Congress.gov",
       "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
-      "publishedAt": "2026-05-07T17:39:50.310158Z",
+      "publishedAt": "2026-05-07T17:39:50.310158+00:00",
       "tags": [
-        "policy",
-        "agriculture"
+        "macro"
       ]
     },
     {
-      "source": "Federal Register",
+      "source": "Commerce Department",
       "title": "Antidumping or Countervailing Duty Order, Finding, or Suspended Investigation; Opportunity To Request Administrative Review and Join Annual Inquiry Service List; Note Regarding Format of Review Requests",
-      "publishedAt": "2026-05-04T00:00:00Z",
+      "publishedAt": "2026-05-04T00:00:00+00:00",
+      "tags": [
+        "crush"
+      ]
+    },
+    {
+      "source": "Agriculture Department",
+      "title": "2026/2027 Rates Charged for AMS Services",
+      "publishedAt": "2026-04-30T00:00:00+00:00",
+      "tags": [
+        "fed"
+      ]
+    },
+    {
+      "source": "Agriculture Department",
+      "title": "Submission for OMB Review; Comment Request",
+      "publishedAt": "2026-04-27T00:00:00+00:00",
       "tags": [
         "policy",
         "tariff"
+      ]
+    },
+    {
+      "source": "Labor Department",
+      "title": "Joint Employer Status Under the Fair Labor Standards Act, Family and Medical Leave Act, and Migrant and Seasonal Agricultural Worker Protection Act",
+      "publishedAt": "2026-04-23T00:00:00+00:00",
+      "tags": [
+        "policy"
       ]
     }
   ]

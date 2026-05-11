@@ -3,6 +3,26 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import type { ApiEnvelope, ForecastSummary } from "@/lib/contracts/api";
 
+const AG_HORIZON_DAYS = [30, 90, 180] as const;
+const LEGACY_HORIZON_MAP: Record<number, (typeof AG_HORIZON_DAYS)[number]> = {
+  7: 30,
+  14: 90,
+  30: 180,
+};
+
+function normalizeHorizon(row: {
+  horizon_days: number;
+  model_version: string | null;
+}): number | null {
+  if (AG_HORIZON_DAYS.includes(row.horizon_days as (typeof AG_HORIZON_DAYS)[number])) {
+    return row.horizon_days;
+  }
+  if (row.model_version?.startsWith("trusted-fill-v1")) {
+    return LEGACY_HORIZON_MAP[row.horizon_days] ?? null;
+  }
+  return null;
+}
+
 export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
@@ -36,12 +56,19 @@ export async function GET() {
     const latestDate = rows[0].forecast_date;
     const latestRows = rows.filter((r) => r.forecast_date === latestDate);
 
-    const forecasts: ForecastSummary[] = latestRows.map((row) => ({
-      horizonDays: row.horizon_days,
-      predictedPrice: Number(row.predicted_price),
-      hitProbability: Number(row.hit_probability ?? 0),
-      modelVersion: row.model_version,
-    }));
+    const deduped = new Map<number, ForecastSummary>();
+    for (const row of latestRows) {
+      const horizonDays = normalizeHorizon(row);
+      if (!horizonDays) continue;
+      if (deduped.has(horizonDays)) continue;
+      deduped.set(horizonDays, {
+        horizonDays,
+        predictedPrice: Number(row.predicted_price),
+        hitProbability: Number(row.hit_probability ?? 0),
+        modelVersion: row.model_version,
+      });
+    }
+    const forecasts = [...deduped.values()].sort((a, b) => a.horizonDays - b.horizonDays);
 
     const envelope: ApiEnvelope<ForecastSummary[]> = {
       ok: true,

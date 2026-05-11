@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-09T07:09:43-04:00",
+  "generatedAt": "2026-05-10T07:01:51-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture remains ACCUMULATE because average pressure is 36.9 while energy stress is 59.2, leaving a 22.3-point lead-channel premium that still argues for staged execution instead of waiting for a perfect entry.",
-    "updatedAt": "2026-05-09T07:09:43-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because the latest verified Friday-close stack still shows average pressure at 36.9 and energy stress at 59.2, leaving a 22.3-point lead-channel premium that favors staged execution over passive waiting.",
+    "updatedAt": "2026-05-10T07:01:51-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Current posture stays ACCUMULATE. Energy stress at 59.2 and volatility stress at 43.2 argue for tranche execution because the lead-risk channel is 22.3 points above the 36.9 average-pressure baseline.",
+      "body": "Weekend refresh still supports ACCUMULATE. Energy stress at 59.2 and volatility stress at 43.2 sit 22.3 and 6.3 points above the 36.9 average-pressure baseline, so splitting orders across windows still lowers timing regret versus waiting for one cleaner print.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
@@ -36,7 +36,7 @@
       },
       "provenance": {
         "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",
@@ -71,7 +71,7 @@
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Current ordering is energy stress 59.2, vix stress 43.2, china tension 38.2, tariff threat 25.7, and crush pressure 18.4. The gap between first and second is 16.0 points, so the stack remains energy-led rather than balanced.",
+      "body": "The stack remains energy stress 59.2, vix stress 43.2, china tension 38.2, tariff threat 25.7, and crush pressure 18.4. The 16.0-point gap between first and second says this is still an energy-led network, not a broad synchronized squeeze.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
@@ -95,7 +95,7 @@
       },
       "provenance": {
         "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json"
@@ -116,7 +116,7 @@
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Average pressure is 36.9, lead pressure is 59.2, and the spread is 22.3. That is a neutral-to-cautious buyer regime: not systemic panic, but still too asymmetric to justify passive waiting while energy remains first in the stack.",
+      "body": "Average pressure is 36.9, lead pressure is 59.2, and the spread is 22.3. For a physical buyer, that asymmetry means the cost of waiting is still larger than the cost of modestly over-staging size while Friday-close data remains the latest verified tape.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",
@@ -140,7 +140,7 @@
       },
       "provenance": {
         "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",

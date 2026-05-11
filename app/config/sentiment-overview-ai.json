@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-09T07:09:43-04:00",
+  "generatedAt": "2026-05-10T07:01:51-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -8,13 +8,13 @@
     "headlineCount": 13,
     "sentimentScore": 12,
     "cotBias": "bullish",
-    "updatedAt": "2026-05-09T07:09:43-04:00"
+    "updatedAt": "2026-05-10T07:01:51-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Seven high-signal macro/policy rows are active inside the current seven-day window, and policy uncertainty at 273.21 keeps the narrative tone elevated even though the broader dashboard average is only 36.9.",
+        "body": "Seven macro and policy rows are active inside the current seven-day window, which is 53.8% of the 13-row tape. Policy uncertainty at 273.21 keeps the narrative tone elevated even though the broader dashboard average is only 36.9.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Policy Sentiment Transmission",
           "strategicObjective": "Classify macro and policy narrative pressure regimes that can change soybean oil procurement timing risk before hard price confirmation.",
@@ -38,7 +38,7 @@
         },
         "provenance": {
           "asOf": "2026-05-08",
-          "generatedAt": "2026-05-09T07:09:43-04:00",
+          "generatedAt": "2026-05-10T07:01:51-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "alt.news_events",
@@ -66,7 +66,7 @@
       },
       {
         "title": "Flow Narrative",
-        "body": "The seven-day feed carries 13 rows with energy tags 2, tariff tags 2, and China tags 0. That mix keeps the tape concentrated in energy and policy rather than broad across every soy-complex channel.",
+        "body": "The seven-day feed carries 13 rows, with energy tags 2 and tariff tags 2. That means 30.8% of the visible tape is concentrated in the same two channels already driving buyer risk, while China-tagged rows remain at zero.",
         "strategicSpecialInstructions": {
           "cardTopic": "Positioning and Participation Flow Sentiment",
           "strategicObjective": "Interpret whether current positioning flow supports stable price discovery or increases fragility for procurement execution windows.",
@@ -90,7 +90,7 @@
         },
         "provenance": {
           "asOf": "2026-05-08",
-          "generatedAt": "2026-05-09T07:09:43-04:00",
+          "generatedAt": "2026-05-10T07:01:51-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "alt.news_events",
@@ -118,7 +118,7 @@
       },
       {
         "title": "Procurement Narrative",
-        "body": "CoT bias remains bullish with net length 168,887 and a 23.93% open-interest ratio, while the broader dashboard average is 36.9 and energy stress still leads at 59.2. That combination supports staged buying with daily re-checks rather than passive waiting.",
+        "body": "CoT bias remains bullish with net length 168,887 and a 23.93% open-interest ratio, while the broader dashboard average is 36.9 and energy stress still leads at 59.2. That combination still supports staged buying with daily re-checks rather than passive waiting.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
           "strategicObjective": "Convert sentiment and flow conditions into buyer-ready pacing guidance that minimizes timing regret under uncertainty.",
@@ -142,7 +142,7 @@
         },
         "provenance": {
           "asOf": "2026-05-08",
-          "generatedAt": "2026-05-09T07:09:43-04:00",
+          "generatedAt": "2026-05-10T07:01:51-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://publicreporting.cftc.gov",
@@ -171,7 +171,7 @@
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "Latest soybean-oil CoT context still reads bullish with net length 168,887 and a 23.93% ratio of open interest. That is supportive, but it is not a reason to ignore energy-led pass-through risk.",
+      "body": "Latest soybean-oil CoT context still reads bullish with net length 168,887 and a 23.93% open-interest ratio. That supports trend persistence, but it does not neutralize the energy-led replacement-cost channel.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
         "strategicObjective": "Determine whether managed-money bias contributes to stabilizing or destabilizing procurement-cost expectations.",
@@ -195,7 +195,7 @@
       },
       "provenance": {
         "asOf": "2026-05-05",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://publicreporting.cftc.gov",
@@ -223,7 +223,7 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "Headline velocity is moderate rather than explosive: 13 rows in 7 days, with concentration in energy (2) and tariff (2) narratives instead of a broad all-channel shock pulse. That supports daily monitoring, not intraday panic scanning.",
+      "body": "Headline velocity is moderate rather than explosive: 13 rows across 7 days is 1.86 rows per day, with concentration in energy (2) and tariff (2) rather than a broad all-channel shock pulse. That supports daily monitoring, not intraday panic scanning.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
         "strategicObjective": "Assess whether headline velocity is producing actionable regime signal or noisy churn for procurement decisions.",
@@ -247,7 +247,7 @@
       },
       "provenance": {
         "asOf": "2026-05-08",
-        "generatedAt": "2026-05-09T07:09:43-04:00",
+        "generatedAt": "2026-05-10T07:01:51-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "alt.news_events",

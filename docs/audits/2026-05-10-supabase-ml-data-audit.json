@@ -1,0 +1,2145 @@
+{
+  "audit_timestamp_utc": "2026-05-10T14:43:45.658628+00:00",
+  "phase1_inventory": {
+    "mkt.price_1d": {
+      "schema": "mkt",
+      "table": "price_1d",
+      "ts_column": "bucket_ts",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 24349,
+      "min_ts": "2000-03-15T00:00:00+00:00",
+      "max_ts": "2026-05-08T00:00:00+00:00",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "symbol",
+          "type": "text"
+        },
+        {
+          "name": "bucket_ts",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "open",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "high",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "low",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "close",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "volume",
+          "type": "bigint"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "price_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "price_1d_symbol_bucket_ts_key",
+          "type": "u",
+          "definition": "UNIQUE (symbol, bucket_ts)"
+        }
+      ]
+    },
+    "mkt.price_1h": {
+      "schema": "mkt",
+      "table": "price_1h",
+      "ts_column": "bucket_ts",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 309367,
+      "min_ts": "2010-06-06T23:00:00+00:00",
+      "max_ts": "2026-05-08T20:00:00+00:00",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "symbol",
+          "type": "text"
+        },
+        {
+          "name": "bucket_ts",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "open",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "high",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "low",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "close",
+          "type": "numeric(12,4)"
+        },
+        {
+          "name": "volume",
+          "type": "bigint"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "price_1h_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "price_1h_symbol_bucket_ts_key",
+          "type": "u",
+          "definition": "UNIQUE (symbol, bucket_ts)"
+        }
+      ]
+    },
+    "econ.rates_1d": {
+      "schema": "econ",
+      "table": "rates_1d",
+      "ts_column": "observation_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 195524,
+      "min_ts": "1954-07-01",
+      "max_ts": "2026-05-09",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "series_id",
+          "type": "text"
+        },
+        {
+          "name": "observation_date",
+          "type": "date"
+        },
+        {
+          "name": "value",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "rates_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "rates_1d_series_id_observation_date_key",
+          "type": "u",
+          "definition": "UNIQUE (series_id, observation_date)"
+        }
+      ]
+    },
+    "econ.commodities_1d": {
+      "schema": "econ",
+      "table": "commodities_1d",
+      "ts_column": "observation_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 34392,
+      "min_ts": "1967-01-01",
+      "max_ts": "2026-05-04",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "series_id",
+          "type": "text"
+        },
+        {
+          "name": "observation_date",
+          "type": "date"
+        },
+        {
+          "name": "value",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "commodities_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "commodities_1d_series_id_observation_date_key",
+          "type": "u",
+          "definition": "UNIQUE (series_id, observation_date)"
+        }
+      ]
+    },
+    "econ.vol_indices_1d": {
+      "schema": "econ",
+      "table": "vol_indices_1d",
+      "ts_column": "observation_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 13962,
+      "min_ts": "1990-01-02",
+      "max_ts": "2026-05-07",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "series_id",
+          "type": "text"
+        },
+        {
+          "name": "observation_date",
+          "type": "date"
+        },
+        {
+          "name": "value",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "vol_indices_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "vol_indices_1d_series_id_observation_date_key",
+          "type": "u",
+          "definition": "UNIQUE (series_id, observation_date)"
+        }
+      ]
+    },
+    "econ.activity_1d": {
+      "schema": "econ",
+      "table": "activity_1d",
+      "ts_column": "observation_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 15102,
+      "min_ts": "1985-01-01",
+      "max_ts": "2026-05-07",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "series_id",
+          "type": "text"
+        },
+        {
+          "name": "observation_date",
+          "type": "date"
+        },
+        {
+          "name": "value",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "activity_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "activity_1d_series_id_observation_date_key",
+          "type": "u",
+          "definition": "UNIQUE (series_id, observation_date)"
+        }
+      ]
+    },
+    "econ.weather_1d": {
+      "schema": "econ",
+      "table": "weather_1d",
+      "ts_column": "observation_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 659884,
+      "min_ts": "2005-01-01",
+      "max_ts": "2026-05-09",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "series_id",
+          "type": "text"
+        },
+        {
+          "name": "observation_date",
+          "type": "date"
+        },
+        {
+          "name": "value",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "weather_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "weather_1d_series_id_observation_date_key",
+          "type": "u",
+          "definition": "UNIQUE (series_id, observation_date)"
+        }
+      ]
+    },
+    "alt.profarmer_news": {
+      "schema": "alt",
+      "table": "profarmer_news",
+      "ts_column": "published_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 8494,
+      "min_ts": "2000-01-01T00:00:00+00:00",
+      "max_ts": "2026-05-08T18:55:55.647000+00:00",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "external_id",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "body",
+          "type": "text"
+        },
+        {
+          "name": "source",
+          "type": "text"
+        },
+        {
+          "name": "specialist_tags",
+          "type": "text[]"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "profarmer_news_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "profarmer_news_external_id_key",
+          "type": "u",
+          "definition": "UNIQUE (external_id)"
+        }
+      ]
+    },
+    "alt.news_events": {
+      "schema": "alt",
+      "table": "news_events",
+      "ts_column": "published_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 1153,
+      "min_ts": "2000-01-01T00:00:00+00:00",
+      "max_ts": "2026-05-07T14:00:00+00:00",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "external_id",
+          "type": "text"
+        },
+        {
+          "name": "source",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "body",
+          "type": "text"
+        },
+        {
+          "name": "specialist_tags",
+          "type": "text[]"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "news_events_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "news_events_external_id_key",
+          "type": "u",
+          "definition": "UNIQUE (external_id)"
+        }
+      ]
+    },
+    "alt.legislation_1d": {
+      "schema": "alt",
+      "table": "legislation_1d",
+      "ts_column": "published_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 2683,
+      "min_ts": "2000-01-01T00:00:00+00:00",
+      "max_ts": "2026-05-07T00:00:00+00:00",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "external_id",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "summary",
+          "type": "text"
+        },
+        {
+          "name": "source",
+          "type": "text"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "legislation_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "legislation_1d_external_id_key",
+          "type": "u",
+          "definition": "UNIQUE (external_id)"
+        }
+      ]
+    },
+    "alt.fed_speeches": {
+      "schema": "alt",
+      "table": "fed_speeches",
+      "ts_column": "published_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 0,
+      "min_ts": null,
+      "max_ts": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "external_id",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "summary",
+          "type": "text"
+        },
+        {
+          "name": "source",
+          "type": "text"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "fed_speeches_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "fed_speeches_external_id_key",
+          "type": "u",
+          "definition": "UNIQUE (external_id)"
+        }
+      ]
+    },
+    "alt.executive_actions": {
+      "schema": "alt",
+      "table": "executive_actions",
+      "ts_column": "published_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 10,
+      "min_ts": "2026-04-21T18:49:23+00:00",
+      "max_ts": "2026-05-05T16:52:13+00:00",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "external_id",
+          "type": "text"
+        },
+        {
+          "name": "title",
+          "type": "text"
+        },
+        {
+          "name": "summary",
+          "type": "text"
+        },
+        {
+          "name": "source",
+          "type": "text"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "executive_actions_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "executive_actions_external_id_key",
+          "type": "u",
+          "definition": "UNIQUE (external_id)"
+        }
+      ]
+    },
+    "training.matrix_1d": {
+      "schema": "training",
+      "table": "matrix_1d",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_snapshot",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "matrix_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "matrix_1d_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_signals_1d": {
+      "schema": "training",
+      "table": "specialist_signals_1d",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "signal_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_signals_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_signals_1d_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_crush": {
+      "schema": "training",
+      "table": "specialist_features_crush",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_crush_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_crush_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_china": {
+      "schema": "training",
+      "table": "specialist_features_china",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_china_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_china_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_fx": {
+      "schema": "training",
+      "table": "specialist_features_fx",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_fx_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_fx_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_fed": {
+      "schema": "training",
+      "table": "specialist_features_fed",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_fed_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_fed_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_tariff": {
+      "schema": "training",
+      "table": "specialist_features_tariff",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_tariff_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_tariff_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_energy": {
+      "schema": "training",
+      "table": "specialist_features_energy",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_energy_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_energy_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_biofuel": {
+      "schema": "training",
+      "table": "specialist_features_biofuel",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_biofuel_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_biofuel_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_palm": {
+      "schema": "training",
+      "table": "specialist_features_palm",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_palm_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_palm_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_volatility": {
+      "schema": "training",
+      "table": "specialist_features_volatility",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_volatility_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_volatility_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_substitutes": {
+      "schema": "training",
+      "table": "specialist_features_substitutes",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_substitutes_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_substitutes_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "training.specialist_features_trump_effect": {
+      "schema": "training",
+      "table": "specialist_features_trump_effect",
+      "ts_column": "trade_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 6439,
+      "min_ts": "2001-01-23",
+      "max_ts": "2026-05-08",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "trade_date",
+          "type": "date"
+        },
+        {
+          "name": "feature_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "specialist_features_trump_effect_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "specialist_features_trump_effect_trade_date_key",
+          "type": "u",
+          "definition": "UNIQUE (trade_date)"
+        }
+      ]
+    },
+    "forecasts.production_1d": {
+      "schema": "forecasts",
+      "table": "production_1d",
+      "ts_column": "forecast_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 0,
+      "min_ts": null,
+      "max_ts": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "forecast_date",
+          "type": "date"
+        },
+        {
+          "name": "horizon_days",
+          "type": "integer"
+        },
+        {
+          "name": "predicted_price",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "model_version",
+          "type": "text"
+        },
+        {
+          "name": "feature_snapshot",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "production_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "production_1d_forecast_date_horizon_days_model_version_key",
+          "type": "u",
+          "definition": "UNIQUE (forecast_date, horizon_days, model_version)"
+        }
+      ]
+    },
+    "forecasts.garch_forecasts": {
+      "schema": "forecasts",
+      "table": "garch_forecasts",
+      "ts_column": "forecast_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 0,
+      "min_ts": null,
+      "max_ts": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "forecast_date",
+          "type": "date"
+        },
+        {
+          "name": "horizon_days",
+          "type": "integer"
+        },
+        {
+          "name": "volatility_forecast",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "garch_forecasts_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "garch_forecasts_forecast_date_horizon_days_key",
+          "type": "u",
+          "definition": "UNIQUE (forecast_date, horizon_days)"
+        }
+      ]
+    },
+    "forecasts.monte_carlo_runs": {
+      "schema": "forecasts",
+      "table": "monte_carlo_runs",
+      "ts_column": "forecast_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 0,
+      "min_ts": null,
+      "max_ts": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "run_id",
+          "type": "uuid"
+        },
+        {
+          "name": "forecast_date",
+          "type": "date"
+        },
+        {
+          "name": "horizon_days",
+          "type": "integer"
+        },
+        {
+          "name": "simulation_index",
+          "type": "integer"
+        },
+        {
+          "name": "terminal_price",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "monte_carlo_runs_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "monte_carlo_runs_run_id_horizon_days_simulation_index_key",
+          "type": "u",
+          "definition": "UNIQUE (run_id, horizon_days, simulation_index)"
+        }
+      ]
+    },
+    "forecasts.probability_distributions": {
+      "schema": "forecasts",
+      "table": "probability_distributions",
+      "ts_column": "forecast_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 0,
+      "min_ts": null,
+      "max_ts": null,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "forecast_date",
+          "type": "date"
+        },
+        {
+          "name": "horizon_days",
+          "type": "integer"
+        },
+        {
+          "name": "distribution_payload",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "probability_distributions_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "probability_distributions_forecast_date_horizon_days_key",
+          "type": "u",
+          "definition": "UNIQUE (forecast_date, horizon_days)"
+        }
+      ]
+    },
+    "forecasts.target_zones": {
+      "schema": "forecasts",
+      "table": "target_zones",
+      "ts_column": "forecast_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 3,
+      "min_ts": "2026-05-07",
+      "max_ts": "2026-05-07",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "forecast_date",
+          "type": "date"
+        },
+        {
+          "name": "horizon_days",
+          "type": "integer"
+        },
+        {
+          "name": "p30",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "p50",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "p70",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "model_version",
+          "type": "text"
+        },
+        {
+          "name": "generated_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "target_zones_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "target_zones_forecast_date_horizon_days_model_version_key",
+          "type": "u",
+          "definition": "UNIQUE (forecast_date, horizon_days, model_version)"
+        }
+      ]
+    },
+    "forecasts.forecast_summary_1d": {
+      "schema": "forecasts",
+      "table": "forecast_summary_1d",
+      "ts_column": "forecast_date",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 3,
+      "min_ts": "2026-05-07",
+      "max_ts": "2026-05-07",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "forecast_date",
+          "type": "date"
+        },
+        {
+          "name": "horizon_days",
+          "type": "integer"
+        },
+        {
+          "name": "predicted_price",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "hit_probability",
+          "type": "numeric(18,6)"
+        },
+        {
+          "name": "model_version",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "forecast_summary_1d_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "forecast_summary_1d_forecast_date_horizon_days_model_versio_key",
+          "type": "u",
+          "definition": "UNIQUE (forecast_date, horizon_days, model_version)"
+        }
+      ]
+    },
+    "ops.ingest_run": {
+      "schema": "ops",
+      "table": "ingest_run",
+      "ts_column": "started_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 581,
+      "min_ts": "2026-04-14T17:05:51.135718+00:00",
+      "max_ts": "2026-05-10T14:09:00.223400+00:00",
+      "columns": [
+        {
+          "name": "run_id",
+          "type": "uuid"
+        },
+        {
+          "name": "job_name",
+          "type": "text"
+        },
+        {
+          "name": "source",
+          "type": "text"
+        },
+        {
+          "name": "status",
+          "type": "text"
+        },
+        {
+          "name": "started_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "finished_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "records_upserted",
+          "type": "integer"
+        },
+        {
+          "name": "error_message",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "ingest_run_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (run_id)"
+        }
+      ]
+    },
+    "ops.source_registry": {
+      "schema": "ops",
+      "table": "source_registry",
+      "ts_column": "ingested_at",
+      "exists": true,
+      "relkind": "r",
+      "owner_role": "postgres",
+      "row_count": 14,
+      "min_ts": "2026-03-21T01:59:27.518779+00:00",
+      "max_ts": "2026-05-07T17:40:18.863962+00:00",
+      "columns": [
+        {
+          "name": "source_id",
+          "type": "text"
+        },
+        {
+          "name": "source_name",
+          "type": "text"
+        },
+        {
+          "name": "owner",
+          "type": "text"
+        },
+        {
+          "name": "cadence",
+          "type": "text"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean"
+        },
+        {
+          "name": "metadata",
+          "type": "jsonb"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone"
+        },
+        {
+          "name": "ingested_at",
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "source_registry_pkey",
+          "type": "p",
+          "definition": "PRIMARY KEY (source_id)"
+        }
+      ]
+    },
+    "functions": [
+      {
+        "schema": "ops",
+        "name": "ingest_trusted_site_fill",
+        "args": ""
+      },
+      {
+        "schema": "ops",
+        "name": "mark_stale_ingest_runs",
+        "args": ""
+      },
+      {
+        "schema": "ops",
+        "name": "refresh_dashboard_summary",
+        "args": ""
+      }
+    ],
+    "materialized_views": [],
+    "cron_jobs": [
+      {
+        "jobid": 3,
+        "jobname": "ingest_zl_intraday",
+        "schedule": "7 * * * *",
+        "command": "SELECT ingest_zl_intraday()",
+        "nodename": "localhost",
+        "nodeport": 5432,
+        "database": "postgres",
+        "username": "postgres",
+        "active": true
+      },
+      {
+        "jobid": 4,
+        "jobname": "rollup_zl_daily",
+        "schedule": "9 * * * *",
+        "command": "SELECT rollup_zl_daily()",
+        "nodename": "localhost",
+        "nodeport": 5432,
+        "database": "postgres",
+        "username": "postgres",
+        "active": true
+      },
+      {
+        "jobid": 8,
+        "jobname": "trusted_site_fill",
+        "schedule": "17 11 * * 1",
+        "command": "SELECT ops.ingest_trusted_site_fill()",
+        "nodename": "localhost",
+        "nodeport": 5432,
+        "database": "postgres",
+        "username": "postgres",
+        "active": true
+      }
+    ]
+  },
+  "phase3_quality": {
+    "price_1d_symbols": [
+      {
+        "symbol": "AW",
+        "rows": 3963,
+        "min_ts": "2010-06-07T00:00:00+00:00",
+        "max_ts": "2026-05-05T00:00:00+00:00"
+      },
+      {
+        "symbol": "CL",
+        "rows": 1353,
+        "min_ts": "2022-01-02T00:00:00+00:00",
+        "max_ts": "2026-05-08T00:00:00+00:00"
+      },
+      {
+        "symbol": "CPO",
+        "rows": 175,
+        "min_ts": "2010-06-07T00:00:00+00:00",
+        "max_ts": "2024-03-11T00:00:00+00:00"
+      },
+      {
+        "symbol": "HE",
+        "rows": 4004,
+        "min_ts": "2010-06-07T00:00:00+00:00",
+        "max_ts": "2026-05-05T00:00:00+00:00"
+      },
+      {
+        "symbol": "ZL",
+        "rows": 6619,
+        "min_ts": "2000-03-15T00:00:00+00:00",
+        "max_ts": "2026-05-08T00:00:00+00:00"
+      },
+      {
+        "symbol": "ZM",
+        "rows": 4117,
+        "min_ts": "2010-06-06T00:00:00+00:00",
+        "max_ts": "2026-05-08T00:00:00+00:00"
+      },
+      {
+        "symbol": "ZS",
+        "rows": 4118,
+        "min_ts": "2010-06-06T00:00:00+00:00",
+        "max_ts": "2026-05-08T00:00:00+00:00"
+      }
+    ],
+    "price_1h_symbols": [
+      {
+        "symbol": "AW",
+        "rows": 16991,
+        "min_ts": "2010-06-07T13:00:00+00:00",
+        "max_ts": "2026-05-05T18:00:00+00:00"
+      },
+      {
+        "symbol": "CL",
+        "rows": 25717,
+        "min_ts": "2022-01-02T23:00:00+00:00",
+        "max_ts": "2026-05-08T20:00:00+00:00"
+      },
+      {
+        "symbol": "CPO",
+        "rows": 310,
+        "min_ts": "2010-06-07T15:00:00+00:00",
+        "max_ts": "2024-03-11T14:00:00+00:00"
+      },
+      {
+        "symbol": "HE",
+        "rows": 38714,
+        "min_ts": "2010-06-07T14:00:00+00:00",
+        "max_ts": "2026-05-05T18:00:00+00:00"
+      },
+      {
+        "symbol": "ZL",
+        "rows": 75878,
+        "min_ts": "2010-06-06T23:00:00+00:00",
+        "max_ts": "2026-05-08T18:00:00+00:00"
+      },
+      {
+        "symbol": "ZM",
+        "rows": 75874,
+        "min_ts": "2010-06-06T23:00:00+00:00",
+        "max_ts": "2026-05-08T18:00:00+00:00"
+      },
+      {
+        "symbol": "ZS",
+        "rows": 75883,
+        "min_ts": "2010-06-06T23:00:00+00:00",
+        "max_ts": "2026-05-08T18:00:00+00:00"
+      }
+    ],
+    "duplicates_mkt.price_1d": 0,
+    "duplicates_mkt.price_1h": 0,
+    "duplicates_training.matrix_1d": 0,
+    "duplicates_training.specialist_signals_1d": 0,
+    "ohlc_violations_price_1d": {
+      "high": 0,
+      "low": 0
+    },
+    "ohlc_violations_price_1h": {
+      "high": 0,
+      "low": 0
+    },
+    "null_profile_price_1d": {
+      "open": 0,
+      "high": 0,
+      "low": 0,
+      "close": 0,
+      "volume": 0
+    },
+    "training_matrix_key_coverage": {
+      "rows": 6439,
+      "missing_close": 0,
+      "missing_zs_close": 2321,
+      "missing_zm_close": 2322,
+      "missing_cl_close": 5339
+    },
+    "staleness_price_1d_zl": "2 days, 14:43:45.997790",
+    "staleness_price_1h_zl": "1 day, 20:43:45.997790",
+    "staleness_econ_rates_1d": "1 day, 14:43:45.997790",
+    "staleness_alt_profarmer_news": "1 day, 19:47:50.350790",
+    "weekday_gap_days_price_1d": {
+      "ZL": 318,
+      "ZS": 143,
+      "ZM": 143,
+      "CL": 5
+    },
+    "hourly_gaps_gt_2h": [
+      {
+        "symbol": "CL",
+        "gaps": 260
+      },
+      {
+        "symbol": "ZL",
+        "gaps": 4008
+      },
+      {
+        "symbol": "ZM",
+        "gaps": 4007
+      },
+      {
+        "symbol": "ZS",
+        "gaps": 4008
+      }
+    ],
+    "row_count_drift_price_1d_last30_vs_prev30": {
+      "current": 93.0,
+      "previous": 91.0,
+      "drift_ratio": 0.02197802197802198
+    }
+  },
+  "phase4_leakage": {
+    "matrix_target_label_contamination": {
+      "rows": 6439,
+      "rows_with_target_keys": 0
+    },
+    "specialist_target_delta_match_ratios": [
+      {
+        "specialist": "crush",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "china",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "fx",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "fed",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "tariff",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "energy",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "biofuel",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "palm",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "volatility",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "substitutes",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      },
+      {
+        "specialist": "trump_effect",
+        "rows": 6439,
+        "ratio_30": 0.0,
+        "ratio_90": 0.0,
+        "ratio_180": 0.0
+      }
+    ],
+    "signal_identity_ratios": [
+      {
+        "family": "1",
+        "rows": 6439,
+        "same_count": 19,
+        "identity_ratio": 0.0029507687529119427
+      },
+      {
+        "family": "2",
+        "rows": 6439,
+        "same_count": 19,
+        "identity_ratio": 0.0029507687529119427
+      },
+      {
+        "family": "conf",
+        "rows": 6439,
+        "same_count": 0,
+        "identity_ratio": 0.0
+      }
+    ],
+    "materialized_views_count": 0
+  },
+  "phase5_drift": {
+    "live_tables": [
+      "alt.congress_bills",
+      "alt.executive_actions",
+      "alt.fed_speeches",
+      "alt.ice_enforcement",
+      "alt.legislation_1d",
+      "alt.news_events",
+      "alt.profarmer_news",
+      "alt.tariff_deadlines",
+      "analytics.chart_overlays",
+      "analytics.dashboard_metrics",
+      "analytics.driver_attribution_1d",
+      "analytics.market_posture",
+      "analytics.regime_state_1d",
+      "analytics.risk_metrics",
+      "econ.activity_1d",
+      "econ.commodities_1d",
+      "econ.inflation_1d",
+      "econ.labor_1d",
+      "econ.money_1d",
+      "econ.rates_1d",
+      "econ.vol_indices_1d",
+      "econ.weather_1d",
+      "forecasts.forecast_summary_1d",
+      "forecasts.garch_forecasts",
+      "forecasts.monte_carlo_runs",
+      "forecasts.probability_distributions",
+      "forecasts.production_1d",
+      "forecasts.target_zones",
+      "mkt.cftc_1w",
+      "mkt.etf_1d",
+      "mkt.futures_1d",
+      "mkt.fx_1d",
+      "mkt.latest_price",
+      "mkt.options_1d",
+      "mkt.price_15m",
+      "mkt.price_1d",
+      "mkt.price_1h",
+      "mkt.price_1m",
+      "mkt.vol_surface",
+      "ops.data_quality_log",
+      "ops.ingest_run",
+      "ops.pipeline_alerts",
+      "ops.source_registry",
+      "supply.argentina_crush_1m",
+      "supply.china_imports_1m",
+      "supply.conab_production_1m",
+      "supply.eia_biodiesel_1m",
+      "supply.epa_rin_1d",
+      "supply.fas_gats_1m",
+      "supply.lcfs_credits_1w",
+      "supply.mpob_palm_1m",
+      "supply.panama_canal_1d",
+      "supply.usda_exports_1w",
+      "supply.usda_wasde_1m",
+      "training.board_crush_1d",
+      "training.matrix_1d",
+      "training.model_audit",
+      "training.model_registry",
+      "training.oof_core_1d",
+      "training.prediction_accuracy",
+      "training.specialist_features_biofuel",
+      "training.specialist_features_china",
+      "training.specialist_features_crush",
+      "training.specialist_features_energy",
+      "training.specialist_features_fed",
+      "training.specialist_features_fx",
+      "training.specialist_features_palm",
+      "training.specialist_features_substitutes",
+      "training.specialist_features_tariff",
+      "training.specialist_features_trump_effect",
+      "training.specialist_features_volatility",
+      "training.specialist_signals_1d",
+      "training.training_runs",
+      "vegas.casinos",
+      "vegas.customer_scores",
+      "vegas.event_impact",
+      "vegas.events",
+      "vegas.fryers",
+      "vegas.restaurants",
+      "vegas.venues"
+    ],
+    "live_functions": [
+      "ops.ingest_trusted_site_fill",
+      "ops.mark_stale_ingest_runs",
+      "ops.refresh_dashboard_summary"
+    ]
+  }
+}
