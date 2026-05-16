@@ -1,0 +1,34 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "c4d54e65c1de7a8f76dd579e9303c7ff0b42c3ed",
+  "prompts": {
+    "db1464a85aac9370": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3140-c43e-7982-bb07-2c9f1b982c0b",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Kirk Musick, MS, MBA <zincmiami@gmail.com>",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 7,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    },
+    "ee887af294cec8b4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3173-36c0-7173-ada9-8902d6f824d3",
+        "model": "unknown"
+      },
+      "human_author": "Kirk Musick, MS, MBA <zincmiami@gmail.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
