@@ -7,6 +7,7 @@ from typing import Any
 
 import pandas as pd
 import psycopg2
+from psycopg2 import sql as pgsql
 from psycopg2.extras import execute_values
 
 from .artifacts import (
@@ -111,14 +112,13 @@ def _promote_specialist(cur: Any, specialist: str, frame: pd.DataFrame) -> int:
         (row["trade_date"], _json_from_row(row, exclude={"trade_date"}))
         for _, row in frame.iterrows()
     ]
-    table_name = f"training.specialist_features_{specialist}"
-    cur.execute(f"TRUNCATE TABLE {table_name}")
+    table_id = pgsql.Identifier("training", f"specialist_features_{specialist}")
+    cur.execute(pgsql.SQL("TRUNCATE TABLE {}").format(table_id))
     execute_values(
         cur,
-        f"""
-        INSERT INTO {table_name} (trade_date, feature_payload, created_at, ingested_at)
-        VALUES %s
-        """,
+        pgsql.SQL(
+            "INSERT INTO {} (trade_date, feature_payload, created_at, ingested_at) VALUES %s"
+        ).format(table_id),
         rows,
         template="(%s, %s::jsonb, NOW(), NOW())",
         page_size=1000,

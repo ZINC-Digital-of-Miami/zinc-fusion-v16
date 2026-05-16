@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 import pandas as pd
 import psycopg2
+from psycopg2 import sql as pgsql
 from psycopg2.extras import execute_values
 
 from .artifacts import (
@@ -193,15 +194,18 @@ def _ensure_training_tables(cur: Any) -> None:
 
     for specialist in SPECIALISTS:
         cur.execute(
-            f"""
-            CREATE TABLE IF NOT EXISTS training.specialist_features_{specialist} (
+            pgsql.SQL("""
+            CREATE TABLE IF NOT EXISTS {schema}.{table} (
               id BIGSERIAL PRIMARY KEY,
               trade_date DATE NOT NULL UNIQUE,
               feature_payload JSONB NOT NULL DEFAULT '{{}}'::jsonb,
               created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
               ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
             )
-            """
+            """).format(
+                schema=pgsql.Identifier("training"),
+                table=pgsql.Identifier(f"specialist_features_{specialist}"),
+            )
         )
 
     cur.execute(
@@ -291,13 +295,13 @@ def _load_signals(cur: Any, signals: pd.DataFrame) -> int:
 
 def _load_specialist(cur: Any, specialist: str, frame: pd.DataFrame) -> int:
     rows = [(row["trade_date"], _json_from_row(row, exclude={"trade_date"})) for _, row in frame.iterrows()]
-    cur.execute(f"TRUNCATE TABLE training.specialist_features_{specialist}")
+    table_id = pgsql.Identifier("training", f"specialist_features_{specialist}")
+    cur.execute(pgsql.SQL("TRUNCATE TABLE {}").format(table_id))
     execute_values(
         cur,
-        f"""
-        INSERT INTO training.specialist_features_{specialist} (trade_date, feature_payload, created_at, ingested_at)
-        VALUES %s
-        """,
+        pgsql.SQL(
+            "INSERT INTO {} (trade_date, feature_payload, created_at, ingested_at) VALUES %s"
+        ).format(table_id),
         rows,
         template="(%s, %s::jsonb, NOW(), NOW())",
         page_size=1000,

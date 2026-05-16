@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import psycopg2
+from psycopg2 import sql as pgsql
 from psycopg2.extras import Json, execute_values
 
 from .config import resolve_cloud_db_url, resolve_local_training_db_url
@@ -264,7 +265,7 @@ def _ensure_manifest_table(cur: Any) -> None:
 
 
 def _ensure_target_table(cur: Any, spec: MirrorTable) -> None:
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {spec.schema}")
+    cur.execute(pgsql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(pgsql.Identifier(spec.schema)))
     cur.execute(spec.create_sql)
     for index_sql in spec.indexes_sql:
         cur.execute(index_sql)
@@ -283,15 +284,16 @@ def _fetch_rows(cur: Any, spec: MirrorTable, *, batch_size: int) -> list[tuple[A
 
 def _replace_local_table(cur: Any, spec: MirrorTable, rows: list[tuple[Any, ...]], *, page_size: int) -> int:
     _ensure_target_table(cur, spec)
-    cur.execute(f"TRUNCATE TABLE {spec.fq_name} RESTART IDENTITY")
+    table_id = pgsql.Identifier(spec.schema, spec.table)
+    cur.execute(pgsql.SQL("TRUNCATE TABLE {} RESTART IDENTITY").format(table_id))
     if not rows:
         return 0
-    columns = ", ".join(spec.columns)
+    col_ids = pgsql.SQL(", ").join(pgsql.Identifier(c) for c in spec.columns)
     template = "(" + ", ".join(["%s"] * len(spec.columns)) + ")"
     values = [tuple(_normalize_value(value) for value in row) for row in rows]
     execute_values(
         cur,
-        f"INSERT INTO {spec.fq_name} ({columns}) VALUES %s",
+        pgsql.SQL("INSERT INTO {} ({}) VALUES %s").format(table_id, col_ids),
         values,
         template=template,
         page_size=page_size,
