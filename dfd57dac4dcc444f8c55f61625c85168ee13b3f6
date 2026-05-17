@@ -1,0 +1,56 @@
+scripts/fusion_guard.py
+  0487484e8bad0d6e 13-14,59,92-105,108-109,115,234,278-290,295-296,298,306-309,324
+docs/ops/2026-05-16-quality-playbook-upstream-install.md
+  db1464a85aac9370 1-7,9-10,17,24-29,31-32,35-44
+  0487484e8bad0d6e 8,11-16,18-23,30,33-34
+  ee887af294cec8b4 45
+scripts/qplaybook.py
+  0487484e8bad0d6e 14,34-38,43-44,318-319,324-325,328-366
+  db1464a85aac9370 1-13,15-33,39-42,45-317,320-323,326-327,367-402
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "dfd57dac4dcc444f8c55f61625c85168ee13b3f6",
+  "prompts": {
+    "0487484e8bad0d6e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e33aa-d8fd-78c1-b1d5-15f7bd6a5eee",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Kirk Musick, MS, MBA <zincmiami@gmail.com>",
+      "messages": [],
+      "total_additions": 120,
+      "total_deletions": 20,
+      "accepted_lines": 109,
+      "overriden_lines": 0
+    },
+    "db1464a85aac9370": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3140-c43e-7982-bb07-2c9f1b982c0b",
+        "model": "gpt-5.3-codex"
+      },
+      "human_author": "Kirk Musick, MS, MBA <zincmiami@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 379,
+      "overriden_lines": 0
+    },
+    "ee887af294cec8b4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3173-36c0-7173-ada9-8902d6f824d3",
+        "model": "unknown"
+      },
+      "human_author": "Kirk Musick, MS, MBA <zincmiami@gmail.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
