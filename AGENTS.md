@@ -14,7 +14,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 
 **Active dashboard work plan:** [`docs/plans/2026-05-17-dashboard-revised-work-plan.md`](docs/plans/2026-05-17-dashboard-revised-work-plan.md) — 8 waves, gotchas inventory, OpenRouter AI migration, ProFarmer, Glide.
 
-**Repository gotchas:** [`/memories/repo/dashboard-plan-and-gotchas.md`](/memories/repo/dashboard-plan-and-gotchas.md) — 10 critical gotchas including duplicate dashboard pages, service role abuse, envelope divergence, training gate. Read before touching code.
+**Repository gotchas:** the active dashboard work plan contains the current gotchas inventory. If a `memories/repo/dashboard-plan-and-gotchas.md` file exists in the workspace or configured memory store, read it as supplemental context; do not fail a task solely because that optional memory file is absent.
 
 ---
 
@@ -73,9 +73,9 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 3. **Run evaluation gates.** Each phase has specific checks. Don't declare done until they pass.
 4. **One task at a time.** Finish what was asked before touching anything else.
 5. **No "while I'm here" refactors.** Stay scoped.
-6. **Memory first.** Search memory at session start, store decisions immediately.
-7. **Brainstorm before building.** Use the superpowers brainstorming skill for any non-trivial feature.
-8. **Verify before claiming done.** Use the superpowers verification skill.
+6. **Memory first.** Search available project memory before scoped work. Use Kilo local recall or a configured memory MCP when present. If no memory write tool is available, do not claim persistence; document durable decisions in the relevant `docs/decisions/`, `docs/plans/`, or authority doc update.
+7. **Plan before building.** For non-trivial feature, schema, architecture, or workflow changes, audit repo reality first, create numbered decision checkpoints, identify approval gates, then implement only after the scoped path is clear.
+8. **Verify before claiming done.** Run the smallest relevant check for the changed surface and apply `docs/agent-safety-gates.md`: any failed, unavailable, warning-only, or skipped required check means `STATUS: INCOMPLETE`.
 9. **Checkpoint before implementation.** For non-trivial planning work, audit repo reality first, structure the plan as numbered decision checkpoints, run one Ralph Loop per checkpoint, and update docs after each locked decision.
 10. **Fail-closed completion.** Read `docs/INDEX.md`, `docs/MASTER_PLAN.md`, and `docs/agent-safety-gates.md` at startup. If any required check is `FAIL`, `NOT RUN`, warning-only, or aborted, report `STATUS: INCOMPLETE`.
 11. **Source and generated artifacts are separate lanes.** Source/config/tooling changes require generated `quality/` artifacts to be regenerated and verified before quality can be claimed current.
@@ -249,18 +249,18 @@ These are planned for the dashboard but NOT launch blockers. Add them after Phas
 
 ## Mandatory Session Startup
 
-Before ANY response, code, or analysis:
+Before code edits, architecture claims, phase claims, or planning decisions:
 
-1. **Memory search** — Query knowledge graph for prior decisions relevant to the current task.
-2. **Read the migration plan** — If you haven't read it this session, read it.
-3. **Check what phase you're in** — Don't work on Phase 5 stuff if Phase 2 isn't done.
-4. **Plan before acting** — Use sequential thinking for multi-step tasks.
+1. **Memory search** — Search Kilo local recall or the configured memory MCP for decisions relevant to the current task. If memory tooling is unavailable, state `memory search: NOT RUN` in the report.
+2. **Authority docs** — Read `docs/INDEX.md`, `docs/MASTER_PLAN.md`, `docs/agent-safety-gates.md`, and `docs/plans/2026-03-17-v16-migration-plan.md` before touching architecture, schema, phase, ML, or data-flow work.
+3. **Phase check** — Identify the active execution phase and next gate from repository evidence, not assumptions.
+4. **Scoped plan** — For multi-step work, record the minimal todo/checkpoint sequence and approval gates before editing.
 
 ```
-Memory(search) -> Plan -> Execute -> Memory(store) -> Report
+Memory(search or NOT RUN) -> Authority docs -> Phase check -> Scoped plan -> Execute -> Verify -> Report
 ```
 
-Every task follows this sequence. No exceptions.
+Every non-trivial task follows this sequence. For trivial one-command or informational requests, answer directly and report any check that was intentionally not run.
 
 ---
 
@@ -302,14 +302,14 @@ You never cut corners. Not on naming. Not on constraints. Not on relationships. 
 You don't fake work. If you're unsure about something, you say so and go find the answer. You don't guess and dress it up as confidence. Honesty about what you know and don't know is how trust gets built.
 You document your reasoning as you go. Every design decision gets a why, not just a what. Six months from now, someone (probably you) needs to understand the thinking behind every table, every foreign key, every index.
 
-Your process — every time, no exceptions:
+Your process for non-trivial work:
 
-Explore — Read the full codebase. Understand what exists. Map the current state.
-Inventory — Document what you found. What entities exist? What relationships? What's missing? What's broken?
-Clarify — Only now do you bring questions to me, and they should be sharp, specific questions that show you've already done your homework.
-Design — Propose the model. Show the schema, the relationships, the constraints. Explain every decision.
-Validate — Stress-test your own design. What breaks? What edge cases exist? What happens at scale?
-Implement — Build it right. Migrations, seed data, documentation — the whole thing, not just the pretty diagram.
+Explore — Read the authority docs and the files directly governing the requested surface. Do not claim full-codebase knowledge unless the relevant directories were actually inspected.
+Inventory — Record current entities, writers, readers, contracts, phase/gate state, missing pieces, and blockers with file paths.
+Clarify — Ask only sharp, bounded questions after the repo audit shows a real ambiguity that blocks safe progress.
+Design — State the proposed data model, API contract, workflow, or UI behavior with constraints, ownership, and failure modes.
+Validate — Identify what could break, which gate proves safety, and what status must be reported if verification cannot run.
+Implement — Apply the smallest scoped change, update required docs/contracts, and verify the changed surface before claiming status.
 
 ## ZINC Fusion V16 Ralph Loop Planning Standard
 

@@ -56,3 +56,6 @@ supabase/.temp/
 Data/
 data/fusion/
 models/fusion/
+
+# local agent automation memory, not source
+$CODEX_HOME/

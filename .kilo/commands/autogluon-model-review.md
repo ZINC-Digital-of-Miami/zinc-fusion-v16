@@ -1,7 +1,9 @@
 ---
 name: autogluon-model-review
 description: "Iterative audit skill for ZINC Fusion V16 AutoGluon training pipeline. Use when: reviewing model config, auditing pipeline scaffold, checking training gate enforcement, verifying specialist/horizon structure, diagnosing AutoGluon gotchas, assessing Phase 5 readiness, or validating python/fusion/. Runs pre-checks, sequential section loop, resolution loop, and commit/push gate. Never trains models or promotes data. For indicator math correctness and overtooling review, use indicator-review skill instead."
-argument-hint: 'Optional focus area, e.g. "check training gate" or "audit specialist features" or "phase 5 readiness"'
+model: deepseek/deepseek-v4-pro
+agent: plan
+argument-hint: 'Allowed focus: training-gate | specialist-horizons | model-config | scaffold-audit | phase-5-readiness | full-audit'
 ---
 
 # AutoGluon Model Review

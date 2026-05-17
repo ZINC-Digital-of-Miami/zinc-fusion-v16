@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint app components hooks lib proxy.ts next.config.ts tailwind.config.ts eslint.config.mjs --max-warnings=0",
     "guard:pre-commit": "python3 scripts/fusion_guard.py pre-commit",

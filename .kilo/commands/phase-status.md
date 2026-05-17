@@ -1,13 +1,24 @@
 ---
 name: phase-status
 description: "Assess the current execution phase of ZINC Fusion V16 by checking for concrete evidence of each phase's completion (Phases 0–5+). Checks health routes, migration files, page stubs, chart wiring, pg_cron functions, and Python pipeline files. Also verifies gate pass evidence and Checkpoint 10 pre-Phase 2 cleanup items. Outputs a phase table with DONE/PARTIAL/IN PROGRESS status and a single next action."
-argument-hint: 'Optional focus, e.g. "phase 2 only" or "gate verification only"'
+model: deepseek/deepseek-v4-pro
+agent: plan
+argument-hint: 'Allowed focus: full-status | phase-0 | phase-1 | phase-1.5 | phase-2 | gate-verification | cleanup-readiness'
 ---
 
 # Phase Status
 
 Assess the current execution phase of ZINC Fusion V16 by checking for concrete
 evidence of each phase's completion.
+
+## Required Inputs
+
+Read these before assigning a phase status:
+
+- `AGENTS.md`
+- `docs/MASTER_PLAN.md`
+- `docs/agent-safety-gates.md`
+- `docs/plans/2026-03-17-v16-migration-plan.md`
 
 ## Evidence Checks
 
@@ -21,15 +32,12 @@ evidence of each phase's completion.
 | 4 | pg_cron+http functions written | `supabase/migrations/` (look for ingest functions) |
 | 5 | Python pipeline produces real output | `python/fusion/*.py` (check for scaffold vs real) |
 
-## Also Check
+## Gate Evidence Checks
 
 - `docs/verification/gate-*` files for gate pass evidence
 - `scripts/verify/gate*.sh` existence and last run
-- Checkpoint 10 pre-Phase 2 cleanup items:
-  - Mock data in 3 routes (R13)
-  - GARCH/MC pipeline order bug (R14)
-  - Python connection test (validation #1)
-  - Vercel project isolation
+- `docs/decisions/` checkpoint documents that define cleanup blockers or approvals
+- Any required check listed in `docs/agent-safety-gates.md` that is `FAIL`, `NOT RUN`, warning-only, or stale
 
 ## Output Format
 
@@ -49,11 +57,8 @@ GATE VERIFICATION:
   Gate 2: [PASSED date / NOT RUN]
   ...
 
-PRE-PHASE-2 CLEANUP (from Checkpoint 10):
-  [ ] Mock data violations fixed (R13)
-  [ ] GARCH/MC pipeline order fixed (R14)
-  [ ] Python connection test passed (validation #1)
-  [ ] Vercel project isolation verified
+OPEN CLEANUP / APPROVAL BLOCKERS:
+  [ ] [blocker ID or document path] — [status + evidence]
 
 CURRENT PHASE: Phase [N]
 NEXT ACTION: [one sentence]

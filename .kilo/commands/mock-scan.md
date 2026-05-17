@@ -1,7 +1,9 @@
 ---
 name: mock-scan
-description: "Scan the ZINC Fusion V16 codebase for Hard Rule #11 violations: ZERO mock data. Searches app/, components/, lib/, python/ for hardcoded data arrays, mock DataFrames, and string markers (MOCK, placeholder, demo, synthetic, fake, dummy). Reports known CP10 violators (3 routes). Outputs PASS or FAIL verdict with file:line locations."
-argument-hint: 'Optional scope, e.g. "app/ only" or "python/ only" or leave blank for full scan'
+description: "Scan the ZINC Fusion V16 codebase for Hard Rule #11 violations: ZERO mock data. Searches app/, components/, lib/, and python/ for hardcoded data arrays, mock DataFrames, and explicit fake-data markers. Outputs PASS or FAIL with file:line evidence."
+model: deepseek/deepseek-v4-pro
+agent: plan
+argument-hint: 'Allowed scope: full-scan | app | components | lib | python | api-routes'
 ---
 
 # Mock Scan
@@ -18,9 +20,11 @@ Search these directories: `app/`, `components/`, `lib/`, `python/`
 1. **Hardcoded data arrays** in API route handlers (e.g., `return NextResponse.json([{ price: 100 }])`)
 2. **Python mock DataFrames** (e.g., `pd.DataFrame({'close': [100, 101]})`)
 3. **String markers**: `MOCK`, `mock`, `placeholder`, `TODO: replace`, `sample`, `demo`, `synthetic`, `fake`, `dummy`, `hardcoded`
-4. **Known violators from Checkpoint 10:**
+4. **AI snapshot API routes requiring real data provenance:**
+   - `app/api/dashboard/risk-factors/route.ts`
    - `app/api/strategy/posture/route.ts`
    - `app/api/sentiment/overview/route.ts`
+   - `app/api/legislation/feed/route.ts`
    - `app/api/vegas/intel/route.ts`
 
 ## Output Format
@@ -33,10 +37,12 @@ VIOLATIONS FOUND: [N]
   1. [file:line] — [pattern matched] — [snippet]
   2. ...
 
-KNOWN CP10 VIOLATORS:
-  - app/api/strategy/posture/route.ts: [STILL PRESENT / FIXED]
-  - app/api/sentiment/overview/route.ts: [STILL PRESENT / FIXED]
-  - app/api/vegas/intel/route.ts: [STILL PRESENT / FIXED]
+AI SNAPSHOT ROUTES:
+  - app/api/dashboard/risk-factors/route.ts: [REAL DATA / VIOLATION / NOT PRESENT]
+  - app/api/strategy/posture/route.ts: [REAL DATA / VIOLATION / NOT PRESENT]
+  - app/api/sentiment/overview/route.ts: [REAL DATA / VIOLATION / NOT PRESENT]
+  - app/api/legislation/feed/route.ts: [REAL DATA / VIOLATION / NOT PRESENT]
+  - app/api/vegas/intel/route.ts: [REAL DATA / VIOLATION / NOT PRESENT]
 
 VERDICT: PASS (zero violations) / FAIL ([N] violations)
 ```

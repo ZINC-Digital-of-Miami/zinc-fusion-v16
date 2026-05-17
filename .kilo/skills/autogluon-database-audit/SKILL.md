@@ -1,7 +1,7 @@
 ---
 name: autogluon-database-audit
 description: "Audit the database-facing contract of the ZINC Fusion V16 AutoGluon pipeline. Use when: reviewing how AutoGluon outputs map into `training`, `forecasts`, and `analytics`; checking OOF/registry/feature-importance persistence; validating promotion gates; auditing local artifact vs cloud table boundaries; or verifying that AutoGluon database writes obey horizon, target, and approval rules. Runs pre-flight, contract loop, artifact-boundary loop, promotion gate loop, approval gate, and re-audit. Never starts training."
-argument-hint: 'Focus area, e.g. "registry" or "promotion gate" or "OOF outputs" or "all AutoGluon DB contracts"'
+argument-hint: 'Allowed focus: registry | oof-outputs | forecast-persistence | promotion-gate | artifact-boundary | full-audit'
 ---
 
 # AutoGluon Database Audit

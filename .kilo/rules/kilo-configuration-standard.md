@@ -14,11 +14,13 @@ Use `.kilo/` as the only write target for all configuration.
 {workspace}/
 ├── AGENTS.md
 └── .kilo/
+    ├── commands/
     ├── rules/
+    ├── workflows/
     ├── skills/
     │   └── {skill-name}/
     │       └── SKILL.md
-    └── workflows/
+    └── kilo.json
 ```
 
 Global (optional):
@@ -171,15 +173,26 @@ Rules:
 
 ---
 
-## COMMANDS (CURRENT STATE)
+## COMMANDS
 
-- Custom commands exist but filesystem path is not yet fully standardized in public docs
-- DO NOT rely on command file paths for core workflows
+Path:
 
-Policy:
+```text
+.kilo/commands/{command-name}.md
+```
 
-- Use `AGENTS.md` + rules + skills + workflows as the primary system
-- Revisit commands once the path standard stabilizes
+Format:
+
+- Markdown files with YAML frontmatter.
+- Required frontmatter: `name`, `description`, `model`, and `argument-hint`.
+- Use `agent` when the command must run under a specific Kilo agent such as `plan` for read-only audits or `build` for implementation workflows.
+
+Rules:
+
+- Every command in this repository must use `model: deepseek/deepseek-v4-pro` unless the user explicitly approves a model change in the same workstream.
+- Command text must name the exact authority docs, skills, workflows, directories, and approval gates it depends on.
+- Do not use catch-all prompts such as `all`, `as needed`, or `if possible` without defining the exact behavior they trigger.
+- Commands may route to skills or workflows, but they must not duplicate or weaken skill approval gates.
 
 ---
 

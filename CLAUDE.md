@@ -1,76 +1,26 @@
-# CLAUDE.md — ZINC-FUSION-V16
+# CLAUDE.md — ZINC-FUSION-V16 Compatibility Stub
 
-**All project rules, hard rules, tech stack, phases, and architecture decisions live in
-[`AGENTS.md`](AGENTS.md).** Read it before doing anything.
+This repository is governed by Kilo configuration. `AGENTS.md` is the only project behavior authority.
 
-**Active work plan & gotchas:** [`docs/plans/2026-05-17-dashboard-revised-work-plan.md`](docs/plans/2026-05-17-dashboard-revised-work-plan.md) and [`/memories/repo/dashboard-plan-and-gotchas.md`](/memories/repo/dashboard-plan-and-gotchas.md). ALWAYS read these after AGENTS.md.
+## Required Reading Order
 
----
+Before architecture, schema, phase, ML, data-flow, or non-trivial implementation work, read these files in order:
 
-## First Session Setup — Claude Code Only
+1. `AGENTS.md`
+2. `docs/INDEX.md`
+3. `docs/MASTER_PLAN.md`
+4. `docs/agent-safety-gates.md`
+5. `docs/plans/2026-03-17-v16-migration-plan.md`
+6. `docs/plans/2026-05-17-dashboard-revised-work-plan.md` when the task touches dashboard, AI snapshots, OpenRouter migration, ProFarmer, Glide, or page wiring
 
-### 1. Install Claude Code Plugins
+## Kilo Operating Rules
 
-Install in this order — process skills first, then domain skills:
+- Use `.kilo/` as the source of truth for commands, rules, skills, workflows, and project Kilo settings.
+- Do not install or reference Claude-only plugins as required workflow dependencies.
+- Use Kilo local recall or the configured memory MCP for memory search. If neither is available, report `memory search: NOT RUN` instead of inventing persisted memory.
+- Use the matching `.kilo/skills/*/SKILL.md` workflow for schema, data, ML, AutoGluon, phase-gate, local/cloud, and indicator audits.
+- Follow `docs/agent-safety-gates.md` for completion status. Any failed, skipped, unavailable, warning-only, or aborted required check means `STATUS: INCOMPLETE`.
 
-```bash
-# TIER 1: Process Skills (install these FIRST — they govern HOW you work)
-/install-plugin superpowers
-# Gives you: brainstorming, TDD, debugging, code review, writing-plans, verification
+## Legacy Baseline Rule
 
-# TIER 2: Code Quality (install before writing any code)
-/install-plugin pr-review-toolkit
-/install-plugin code-simplifier
-/install-plugin commit-commands
-
-# TIER 3: Stack-Specific (install when you start building)
-/install-plugin vercel          # Deployment, logs, env management
-/install-plugin frontend-design # UI components, design system
-
-# TIER 4: Optional but Useful
-/install-plugin playwright      # Browser testing (useful for ProFarmer scraper testing)
-```
-
-**Why this order matters:** Superpowers enforces brainstorming before coding, TDD before implementation, and verification before claiming done. Without it, agents tend to cowboy — especially on a fresh repo where there's no existing code to constrain them.
-
-### 2. Configure MCP Servers
-
-These MCP servers should be active for this workspace:
-
-| Server                      | Purpose                                                      | Required? |
-| --------------------------- | ------------------------------------------------------------ | --------- |
-| `memory`                    | Knowledge graph — persist decisions across sessions          | **Yes**   |
-| `sequentialthinking`        | Structured problem-solving for multi-step tasks              | **Yes**   |
-| `context7`                  | Up-to-date library docs (Supabase, Next.js, shadcn)          | **Yes**   |
-| `supabase`                  | Direct Supabase management (migrations, SQL, edge functions) | **Yes**   |
-| `puppeteer` or `playwright` | Browser automation (ProFarmer testing)                       | Later     |
-
-**Memory API Contract:** Use graph API tools (`search_nodes`, `create_entities`, `add_observations`, `read_graph`). NOT simple-memory tools (`search_memory`, `list_memories`). If the wrong tools appear, fix the MCP config before proceeding.
-
-### 3. Read The Migration Plan
-
-Before writing ANY code, read the full migration plan:
-
-```
-docs/plans/2026-03-17-v16-migration-plan.md
-```
-
-Pay special attention to Sections 4, 5, 10, and 11.
-
-### 4. Understand the Legacy Baseline Reference
-
-legacy baseline lives at a separate path (likely `/Volumes/Satechi Hub/ZINC-FUSION-legacy baseline/` or wherever the user has it). It is a **reference library**, not a source of code. You study it for:
-
-- What the chart looks like and how it behaves
-- What data contracts the API routes serve
-- What the landing page design looks like
-- What the Vegas Intel page contains
-- How specialists generate signals
-
-You do NOT:
-
-- Copy files from legacy baseline
-- Import legacy baseline modules
-- Reuse legacy baseline's Prisma migrations
-- Carry over legacy baseline's `.env` files
-- Port legacy baseline's Inngest functions
+The legacy baseline may be used only as a visual or behavioral reference. Never copy code, migrations, env files, Inngest jobs, or implementation details from it into V16.

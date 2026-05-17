@@ -1,23 +1,50 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
+  "logLevel": "INFO",
   "model": "deepseek/deepseek-v4-pro",
   "small_model": "deepseek/deepseek-v4-pro",
   "enabled_providers": ["openrouter"],
+  "provider": {
+    "openrouter": {
+      "whitelist": ["deepseek/deepseek-v4-pro"],
+      "options": {
+        "timeout": 600000,
+        "chunkTimeout": 120000
+      }
+    }
+  },
+  "default_agent": "build",
+  "share": "disabled",
+  "autoupdate": "notify",
   "snapshot": true,
   "auto_collapse_reasoning": true,
   "terminal_command_display": "collapsed",
+  "instructions": [
+    "AGENTS.md",
+    "docs/INDEX.md",
+    "docs/MASTER_PLAN.md",
+    "docs/agent-safety-gates.md"
+  ],
   "watcher": {
     "ignore": [
       ".git/**",
       ".next/**",
+      ".vercel/**",
       "node_modules/**",
+      ".kilo/node_modules/**",
+      ".kilo/worktrees/**",
       "coverage/**",
       "dist/**",
       "build/**",
       "quality/**",
-      ".kilo/worktrees/**",
+      "logs/**",
+      "playwright-report/**",
+      "test-results/**",
+      "data/fusion/**",
+      "models/fusion/**",
       "$CODEX_HOME/**",
-      "*.log"
+      "*.log",
+      ".DS_Store"
     ]
   },
   "tool_output": {
@@ -30,100 +57,136 @@
     "tail_turns": 4,
     "reserved": 20000
   },
+  "lsp": true,
   "experimental": {
-    "codebase_search": true
+    "codebase_search": true,
+    "openTelemetry": false
   },
   "permission": {
     "read": "allow",
     "list": "allow",
     "glob": "allow",
     "grep": "allow",
+    "lsp": "allow",
+    "codesearch": "allow",
+    "semantic_search": "allow",
+    "repo_overview": "allow",
     "edit": "ask",
     "bash": "ask",
     "task": "ask",
     "webfetch": "ask",
     "websearch": "ask",
-    "external_directory": "deny",
-    "todowrite": "ask",
+    "repo_clone": "deny",
+    "skill": "allow",
+    "external_directory": {
+      "/Users/zincdigital/.config/kilo/**": "allow",
+      "/Users/zincdigital/.kilo/**": "allow",
+      "/Users/zincdigital/.kilocode/**": "allow",
+      "/Users/zincdigital/.opencode/**": "allow",
+      "/Users/zincdigital/.local/share/kilo/tool-output/**": "allow",
+      "/var/folders/wz/8sk53hkd7t94kq73n8b4n4jc0000gn/T/kilo/**": "allow",
+      "*": "deny"
+    },
+    "todowrite": "allow",
     "question": "ask",
     "doom_loop": "deny"
   },
   "agent": {
-    "ask": {
+    "build": {
+      "description": "Default implementation agent for scoped ZINC Fusion V16 changes after repository reality and phase gates are checked.",
       "model": "deepseek/deepseek-v4-pro",
-      "steps": 4,
-      "permission": {
-        "read": "allow",
-        "list": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "edit": "deny",
-        "bash": "ask",
-        "task": "deny",
-        "webfetch": "ask",
-        "websearch": "ask",
-        "external_directory": "deny",
-        "todowrite": "ask",
-        "question": "ask",
-        "doom_loop": "deny"
-      }
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "steps": 20
+    },
+    "general": {
+      "description": "General-purpose agent for mixed research, implementation, and verification tasks that do not require a narrower audit skill.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.15,
+      "top_p": 0.9,
+      "steps": 16
     },
     "plan": {
+      "description": "Planning-only agent for phase, schema, architecture, and implementation sequencing decisions. It may inspect files and run read-only commands, but must not edit files.",
       "model": "deepseek/deepseek-v4-pro",
-      "steps": 8,
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "steps": 10,
       "permission": {
-        "read": "allow",
-        "list": "allow",
-        "glob": "allow",
-        "grep": "allow",
         "edit": "deny",
         "bash": "ask",
-        "task": "ask",
-        "webfetch": "ask",
-        "websearch": "ask",
-        "external_directory": "deny",
-        "todowrite": "ask",
-        "question": "ask",
-        "doom_loop": "deny"
+        "task": "ask"
+      }
+    },
+    "explore": {
+      "description": "Read-only codebase exploration agent for locating files, mapping dependencies, and summarizing repo reality before edits.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.05,
+      "top_p": 0.8,
+      "steps": 12,
+      "permission": {
+        "edit": "deny",
+        "bash": "ask",
+        "task": "deny"
+      }
+    },
+    "scout": {
+      "description": "Fast read-only search agent for finding exact code, docs, migrations, and config surfaces without modifying the workspace.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.05,
+      "top_p": 0.8,
+      "steps": 8,
+      "permission": {
+        "edit": "deny",
+        "bash": "ask",
+        "task": "deny"
+      }
+    },
+    "ask": {
+      "description": "Read-first answer agent for direct questions. It should cite files when discussing repo behavior and avoid making changes unless the user explicitly switches to implementation.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.15,
+      "top_p": 0.9,
+      "steps": 6,
+      "permission": {
+        "edit": "deny",
+        "task": "deny"
       }
     },
     "debug": {
+      "description": "Diagnosis agent for reproducing failures, isolating root causes, and applying minimal fixes after evidence points to a specific changed surface.",
       "model": "deepseek/deepseek-v4-pro",
-      "steps": 12,
-      "permission": {
-        "read": "allow",
-        "list": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "edit": "ask",
-        "bash": "ask",
-        "task": "ask",
-        "webfetch": "ask",
-        "websearch": "ask",
-        "external_directory": "deny",
-        "todowrite": "ask",
-        "question": "ask",
-        "doom_loop": "deny"
-      }
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "steps": 16
     },
     "orchestrator": {
+      "description": "Coordinator agent for multi-step work that needs todo tracking, focused subagents, implementation, and verification in one session.",
       "model": "deepseek/deepseek-v4-pro",
-      "steps": 16,
-      "permission": {
-        "read": "allow",
-        "list": "allow",
-        "glob": "allow",
-        "grep": "allow",
-        "edit": "ask",
-        "bash": "ask",
-        "task": "ask",
-        "webfetch": "ask",
-        "websearch": "ask",
-        "external_directory": "deny",
-        "todowrite": "ask",
-        "question": "ask",
-        "doom_loop": "deny"
-      }
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "steps": 24
+    },
+    "title": {
+      "description": "Session title generation only. Must not call tools or change files.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.2,
+      "steps": 2,
+      "permission": "deny"
+    },
+    "summary": {
+      "description": "Session summary generation only. Must preserve decisions, blockers, changed files, and verification status without inventing facts.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.1,
+      "steps": 4,
+      "permission": "deny"
+    },
+    "compaction": {
+      "description": "Context compaction only. Must preserve project hard rules, active phase, user approvals, changed files, and verification state.",
+      "model": "deepseek/deepseek-v4-pro",
+      "temperature": 0.05,
+      "steps": 4,
+      "permission": "deny"
     }
   }
 }

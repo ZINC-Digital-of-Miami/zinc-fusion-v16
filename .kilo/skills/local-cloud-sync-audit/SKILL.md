@@ -1,7 +1,7 @@
 ---
 name: local-cloud-sync-audit
 description: "Audit and build the ZINC Fusion V16 local/cloud Supabase wiring. Use when: checking environment variable contracts, verifying cloud-canonical architecture, auditing pooler vs direct connection paths, reviewing migration drift, validating linked-project state, checking Vault/pg_cron wiring, or diagnosing sync ambiguity between local compute and cloud database state. Runs pre-flight, environment loop, connection-path loop, drift loop, secret/scheduling loop, approval gate, and re-verification. Never starts local Supabase or Docker in this repo."
-argument-hint: 'Focus area, e.g. "env contract" or "pooler vs direct" or "migration drift" or "Vault/cron" or "all"'
+argument-hint: 'Allowed focus: env-contract | connection-paths | migration-drift | vault-cron | linked-project | full-audit'
 ---
 
 # Local-Cloud Sync Audit
@@ -39,7 +39,8 @@ Stop if any item fails.
 PRE-FLIGHT CHECKLIST
 ─────────────────────────────────────────────────────────────
 [ ] Read AGENTS.md and the migration plan sections covering architecture and jobs
-[ ] Read /memories/repo/local-cloud-architecture.md and /memories/repo/supabase-state.md
+[ ] Search Kilo local recall or configured memory MCP for local/cloud Supabase decisions; if unavailable, record `memory search: NOT RUN`
+[ ] If `memories/repo/local-cloud-architecture.md` or `memories/repo/supabase-state.md` exists in this workspace, read it; if absent, record `memory files: MISSING`
 [ ] Confirm focus area for this invocation
 [ ] git status reviewed — note unrelated dirty files before touching anything
 [ ] Confirm user intent: audit only vs approved implementation

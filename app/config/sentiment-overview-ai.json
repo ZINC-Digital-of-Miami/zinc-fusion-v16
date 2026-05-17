@@ -1,148 +1,141 @@
 {
-  "generatedAt": "2026-05-10T07:01:51-04:00",
+  "generatedAt": "2026-05-17T07:17:18-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "overview": {
-    "headlineCount": 13,
-    "sentimentScore": 12,
+    "headlineCount": 20,
+    "sentimentScore": 94.0,
     "cotBias": "bullish",
-    "updatedAt": "2026-05-10T07:01:51-04:00"
+    "updatedAt": "2026-05-17T07:17:18-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Seven macro and policy rows are active inside the current seven-day window, which is 53.8% of the 13-row tape. Policy uncertainty at 273.21 keeps the narrative tone elevated even though the broader dashboard average is only 36.9.",
+        "body": "Macro-policy sentiment cooled materially into the May 14 data cut: the Economic Policy Uncertainty Index is 151.67, down from the higher early-May prints, so the narrative regime shifted from shock-watch to monitor-only. The remaining live stress is no longer broad policy fear; it is energy pass-through.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Policy Sentiment Transmission",
-          "strategicObjective": "Classify macro and policy narrative pressure regimes that can change soybean oil procurement timing risk before hard price confirmation.",
-          "neuralConnectionThesis": "Narrative pressure becomes procurement-relevant when policy density remains high enough to reinforce existing energy and volatility stress rather than fading as one-off noise.",
+          "strategicObjective": "Classify whether macro-policy narrative pressure is actively changing soybean-oil procurement timing.",
+          "neuralConnectionThesis": "Macro narrative only becomes procurement-relevant when policy fear stays persistent enough to reinforce physical or energy-market stress.",
           "quantResearchProtocol": [
-            "Count macro and policy-tagged rows in the active seven-day window.",
-            "Cross-map narrative density to the current policy uncertainty reading and energy-risk state.",
-            "Distinguish narrative persistence from one-day bursts.",
-            "Translate the confirmed narrative regime into buyer pacing language."
+            "Track policy-uncertainty level and short-window trend.",
+            "Compare narrative pressure with the live lead driver.",
+            "Classify the regime as shock-watch or monitor-only.",
+            "Translate the regime into buyer urgency language."
           ],
           "inferenceConstraints": [
-            "Do not call a regime shift from headlines alone.",
-            "Do not ignore the difference between elevated tone and actionable shock.",
-            "Do not write sentiment copy without a buyer consequence."
+            "Do not call a regime shift from one headline pulse.",
+            "Do not ignore conflicting cross-channel evidence.",
+            "Do not emit generic sentiment language without buyer impact."
           ],
           "outputRequirements": [
-            "Quote the active row count and uncertainty level.",
-            "State whether the macro tone is persistent or decaying.",
-            "Explain what the tone means for procurement timing."
+            "State the macro sentiment regime.",
+            "Quote the uncertainty level.",
+            "Provide the procurement timing consequence."
           ]
         },
         "provenance": {
-          "asOf": "2026-05-08",
-          "generatedAt": "2026-05-10T07:01:51-04:00",
+          "asOf": "2026-05-14",
+          "generatedAt": "2026-05-17T07:17:18-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
-            "alt.news_events",
-            "https://fred.stlouisfed.org/series/USEPUINDXD"
+            "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
+            "alt.news_events"
           ],
           "sourceRecords": [
             {
-              "source": "alt.news_events",
-              "table": "alt.news_events",
-              "recordHint": "macro+policy row count = 7 in current seven-day window",
-              "observedAt": "2026-05-09T07:09:43-04:00"
+              "source": "FRED",
+              "recordHint": "Economic Policy Uncertainty latest reading",
+              "observedAt": "2026-05-14",
+              "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
             },
             {
-              "source": "FRED",
-              "recordHint": "USEPUINDXD latest value used for macro tone framing",
-              "observedAt": "2026-05-07T00:00:00Z",
-              "url": "https://fred.stlouisfed.org/series/USEPUINDXD"
+              "source": "alt.news_events",
+              "recordHint": "latest seven-day macro and policy narrative rows",
+              "observedAt": "2026-05-17T07:17:18-04:00",
+              "table": "alt.news_events"
             }
           ],
           "notes": [
-            "Macro narrative is based on row density plus uncertainty level.",
-            "The card distinguishes elevated tone from confirmed systemic shock."
+            "Macro narrative is anchored to a live uncertainty-series read plus the active headline window.",
+            "Energy remains the lead channel even after policy cooled."
           ]
         }
       },
       {
         "title": "Flow Narrative",
-        "body": "The seven-day feed carries 13 rows, with energy tags 2 and tariff tags 2. That means 30.8% of the visible tape is concentrated in the same two channels already driving buyer risk, while China-tagged rows remain at zero.",
+        "body": "The active seven-day tape holds 20 rows, but only 2 are energy-tagged, 2 are tariff-tagged, and 0 are China-tagged. That means headline velocity is present, but soy-specific thematic density is still thin; the tape is informative, not crowded.",
         "strategicSpecialInstructions": {
           "cardTopic": "Positioning and Participation Flow Sentiment",
-          "strategicObjective": "Interpret whether current positioning flow supports stable price discovery or increases fragility for procurement execution windows.",
-          "neuralConnectionThesis": "A concentrated narrative cluster around energy and tariff channels makes procurement more fragile because buyers face confirmation risk from exactly the channels already driving the dashboard.",
+          "strategicObjective": "Determine whether the current headline mix supports stable price discovery or a fragile narrative regime.",
+          "neuralConnectionThesis": "Headline flow becomes dangerous for buyers when thematic density and persistence reinforce each other; sparse mixed headlines mostly raise monitoring needs, not panic action.",
           "quantResearchProtocol": [
-            "Count total rows and by-tag concentrations in the active sentiment window.",
-            "Compare narrative concentration with current lead dashboard drivers.",
-            "Classify whether the flow is broad, concentrated, or decaying.",
-            "Translate concentration into execution-risk language for the buyer."
+            "Count active rows and tag density over the last seven days.",
+            "Separate total velocity from soy-relevant density.",
+            "Classify the tape as sparse, balanced, or crowded.",
+            "Tie the result to monitoring frequency."
           ],
           "inferenceConstraints": [
-            "Do not assume balanced participation when the tag mix is concentrated.",
-            "Do not confuse narrative concentration with outright directional certainty.",
-            "Do not omit the link between concentration and execution fragility."
+            "Do not equate headline count with regime certainty.",
+            "Do not overfit one thematic cluster without density confirmation.",
+            "Do not suppress uncertainty when the tape is sparse."
           ],
           "outputRequirements": [
-            "Report the tag counts and concentration judgment.",
-            "State whether the flow reinforces current dashboard risk leaders.",
-            "Provide near-term monitoring emphasis."
+            "State row count and key tag counts.",
+            "Explain whether the tape is sparse or crowded.",
+            "Provide the monitoring implication."
           ]
         },
         "provenance": {
-          "asOf": "2026-05-08",
-          "generatedAt": "2026-05-10T07:01:51-04:00",
+          "asOf": "2026-05-17T07:17:18-04:00",
+          "generatedAt": "2026-05-17T07:17:18-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
-            "alt.news_events",
-            "app/config/dashboard-risk-factors-ai.json"
+            "alt.news_events"
           ],
           "sourceRecords": [
             {
               "source": "alt.news_events",
-              "table": "alt.news_events",
-              "recordHint": "seven-day tag mix: energy=2, tariff=2, china=0",
-              "observedAt": "2026-05-09T07:09:43-04:00"
-            },
-            {
-              "source": "app/config/dashboard-risk-factors-ai.json",
-              "table": "app/config/dashboard-risk-factors-ai.json",
-              "recordHint": "lead driver stack used to compare narrative concentration with live risk leadership",
-              "observedAt": "2026-05-09T07:09:43-04:00"
+              "recordHint": "latest seven-day sentiment rows and tag counts",
+              "observedAt": "2026-05-17T07:17:18-04:00",
+              "table": "alt.news_events"
             }
           ],
           "notes": [
-            "Flow narrative compares tag concentration against the live dashboard stack.",
-            "Concentration is treated as execution fragility, not as outright directional certainty."
+            "Flow narrative is density-based, not hype-based.",
+            "Sparse thematic density reduces the value of dramatic language."
           ]
         }
       },
       {
         "title": "Procurement Narrative",
-        "body": "CoT bias remains bullish with net length 168,887 and a 23.93% open-interest ratio, while the broader dashboard average is 36.9 and energy stress still leads at 59.2. That combination still supports staged buying with daily re-checks rather than passive waiting.",
+        "body": "CFTC is still bullish with managed-money net length of 171,812 contracts, or 24.23% of open interest, but the broad risk network cooled to 31.7. That combination says the right buyer psychology is disciplined accumulation: respect the possibility of upside reflex, but do not confuse that with a need for one-shot execution.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
-          "strategicObjective": "Convert sentiment and flow conditions into buyer-ready pacing guidance that minimizes timing regret under uncertainty.",
-          "neuralConnectionThesis": "The buyer error here is either waiting too long for cleaner sentiment or overreacting to noisy headlines; explicit cadence rules reduce both forms of regret.",
+          "strategicObjective": "Convert sentiment, positioning, and risk-network conditions into a buyer-ready pacing posture.",
+          "neuralConnectionThesis": "Buyer outcomes improve when bullish positioning is translated into pacing rules instead of emotional urgency.",
           "quantResearchProtocol": [
-            "Combine CoT bias, overall sentiment score, and dashboard posture into one pacing view.",
-            "Judge whether the sentiment regime is supportive, conflicting, or unstable for execution.",
-            "Tie the regime to a reassessment cadence rather than a one-time recommendation.",
-            "State invalidation triggers for the pacing rule."
+            "Use CoT bias and managed-money ratio as the positioning anchor.",
+            "Cross-check the position signal against the average risk network.",
+            "Classify buyer psychology as calm, disciplined, or urgent.",
+            "State the pacing rule that follows from the classification."
           ],
           "inferenceConstraints": [
-            "Do not turn buyer guidance into a binary trade call.",
-            "Do not ignore the conflict between bullish positioning and elevated energy risk.",
-            "Do not omit the reassessment cadence."
+            "Do not issue binary buy-or-wait language without uncertainty framing.",
+            "Do not ignore asymmetric upside reflex risk when the market is net long.",
+            "Do not recommend static cadence in mixed-risk conditions."
           ],
           "outputRequirements": [
-            "State the buyer pacing rule.",
-            "Explain the sentiment conflict or support clearly.",
-            "Give explicit conditions that would change the cadence."
+            "Provide concrete pacing guidance.",
+            "Quote the CoT math.",
+            "State the trigger that would force a posture change."
           ]
         },
         "provenance": {
-          "asOf": "2026-05-08",
-          "generatedAt": "2026-05-10T07:01:51-04:00",
+          "asOf": "2026-04-28",
+          "generatedAt": "2026-05-17T07:17:18-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://publicreporting.cftc.gov",
@@ -151,125 +144,118 @@
           "sourceRecords": [
             {
               "source": "CFTC PRE",
-              "recordHint": "latest soybean oil managed-money net and ratio",
-              "observedAt": "2026-05-05",
+              "recordHint": "latest soybean-oil managed-money positioning",
+              "observedAt": "2026-04-28",
               "url": "https://publicreporting.cftc.gov"
             },
             {
               "source": "app/config/dashboard-risk-factors-ai.json",
-              "table": "app/config/dashboard-risk-factors-ai.json",
-              "recordHint": "current buyer risk stack used to reconcile sentiment with procurement posture",
-              "observedAt": "2026-05-09T07:09:43-04:00"
+              "recordHint": "current average risk-network score",
+              "observedAt": "2026-05-17T07:17:18-04:00",
+              "table": "app/config/dashboard-risk-factors-ai.json"
             }
           ],
           "notes": [
-            "Procurement narrative keeps bullish positioning from being misread as a clean relief signal.",
-            "Cadence guidance is explicit because the tape remains energy-led."
+            "Procurement narrative combines positioning with network pressure instead of treating either one as sufficient by itself.",
+            "Recommendation stays buyer-side and pacing-focused."
           ]
         }
       }
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "Latest soybean-oil CoT context still reads bullish with net length 168,887 and a 23.93% open-interest ratio. That supports trend persistence, but it does not neutralize the energy-led replacement-cost channel.",
+      "body": "The latest soybean-oil CoT print (2026-04-28) shows bullish managed-money bias with net length 171,812 contracts and a 24.23% open-interest share. That is supportive of upside reflex risk, but it is still a weekly positioning signal, not a real-time panic trigger.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
-        "strategicObjective": "Determine whether managed-money bias contributes to stabilizing or destabilizing procurement-cost expectations.",
-        "neuralConnectionThesis": "Bullish positioning can stabilize the trend direction while simultaneously increasing buyer risk if a confirming catalyst forces faster repricing.",
+        "strategicObjective": "Determine whether managed-money positioning is stabilizing or destabilizing soybean-oil procurement expectations.",
+        "neuralConnectionThesis": "Large bullish net length can amplify price reflexes even when the broader network is not in crisis.",
         "quantResearchProtocol": [
-          "Read the latest CoT bias, net, and open-interest ratio together rather than separately.",
-          "Compare positioning support with the current dashboard lead-risk channel.",
-          "Classify whether positioning is supportive, stretched, or fragile for buyers.",
-          "Translate the result into a caution level for procurement timing."
+          "Read the latest managed-money net and ratio to open interest.",
+          "Classify the bias with a confidence caveat because CoT is weekly.",
+          "Cross-map the bias against current volatility and energy conditions.",
+          "Translate the result into buyer caution level."
         ],
         "inferenceConstraints": [
-          "Do not equate bullish bias with low risk for a physical buyer.",
           "Do not treat weekly CoT as real-time certainty.",
-          "Do not omit how positioning interacts with the live risk stack."
+          "Do not equate size with durability of conviction.",
+          "Do not omit freshness caveats."
         ],
         "outputRequirements": [
-          "Quote the bias, net, and ratio.",
-          "State whether the posture is supportive or destabilizing for buyers.",
-          "Explain what would change the interpretation."
+          "State the bias class and math.",
+          "Explain the procurement consequence.",
+          "Say what would change the interpretation."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-05",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-04-28",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "https://publicreporting.cftc.gov",
-          "app/config/dashboard-risk-factors-ai.json"
+          "https://publicreporting.cftc.gov"
         ],
         "sourceRecords": [
           {
             "source": "CFTC PRE",
-            "recordHint": "latest bullish bias, net length, and open-interest ratio",
-            "observedAt": "2026-05-05",
+            "recordHint": "latest soybean-oil managed-money positioning",
+            "observedAt": "2026-04-28",
             "url": "https://publicreporting.cftc.gov"
-          },
-          {
-            "source": "app/config/dashboard-risk-factors-ai.json",
-            "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "energy-risk cross-check for buyer interpretation",
-            "observedAt": "2026-05-09T07:09:43-04:00"
           }
         ],
         "notes": [
-          "Positioning remains buyer-interpreted rather than trader-interpreted.",
-          "Weekly CoT data is explicitly tempered by the live energy-risk stack."
+          "Bias classification is weekly and must be read with freshness discipline.",
+          "Output is buyer-facing, not speculative positioning advice."
         ]
       }
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "Headline velocity is moderate rather than explosive: 13 rows across 7 days is 1.86 rows per day, with concentration in energy (2) and tariff (2) rather than a broad all-channel shock pulse. That supports daily monitoring, not intraday panic scanning.",
+      "body": "The highest-signal current public item in the energy stack is EIA's May 15 note that U.S. industrial natural-gas consumption is expected to hit records in 2026 and 2027, while the most soybean-oil-adjacent recent EIA note remains the May 7 piece on renewable diesel and SAF exports. The flow is useful for context, but it is not dense enough to overrule price and positioning math.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
-        "strategicObjective": "Assess whether headline velocity is producing actionable regime signal or noisy churn for procurement decisions.",
-        "neuralConnectionThesis": "Velocity matters only when the headlines cluster around the same channels already carrying the pricing load; otherwise buyers overpay for noise.",
+        "strategicObjective": "Assess whether the current headline stream is producing actionable signal or just adding narrative noise.",
+        "neuralConnectionThesis": "Headline velocity only becomes actionable when it is thematically coherent and persistent enough to reinforce live market pressure.",
         "quantResearchProtocol": [
-          "Measure total row count, channel concentration, and recency of the dominant tags.",
-          "Compare headline concentration with current dashboard driver leadership.",
-          "Classify the tape as signal, watch, or noise for a physical buyer.",
-          "Turn that classification into a monitoring cadence recommendation."
+          "Track 24-hour and seven-day headline density.",
+          "Identify whether the active tape is energy-led, policy-led, or mixed.",
+          "Compare headline concentration with the live market drivers.",
+          "Set monitoring cadence from coherence, not count alone."
         ],
         "inferenceConstraints": [
-          "Do not infer urgency from volume alone.",
-          "Do not ignore whether the headlines are concentrated in the same channels as price risk.",
-          "Do not recommend high-frequency monitoring without evidence."
+          "Do not infer a regime shift from headline velocity alone.",
+          "Do not ignore low thematic density.",
+          "Do not provide cadence advice without coherence checks."
         ],
         "outputRequirements": [
-          "Report the headline count and concentration pattern.",
-          "State whether the tape is signal or noise.",
-          "Specify the monitoring cadence."
+          "State whether the tape is signal or noise dominant.",
+          "Describe the expected persistence horizon.",
+          "Provide a monitoring cadence recommendation."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-15",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "alt.news_events",
-          "app/config/dashboard-risk-factors-ai.json"
+          "https://www.eia.gov/rss/todayinenergy.xml",
+          "alt.news_events"
         ],
         "sourceRecords": [
           {
-            "source": "alt.news_events",
-            "table": "alt.news_events",
-            "recordHint": "current seven-day row count and concentration pattern",
-            "observedAt": "2026-05-09T07:09:43-04:00"
+            "source": "EIA",
+            "recordHint": "Today in Energy feed latest item",
+            "observedAt": "Fri, 15 May 2026 09:00:00 EST",
+            "url": "https://www.eia.gov/todayinenergy/detail.php?id=67686"
           },
           {
-            "source": "app/config/dashboard-risk-factors-ai.json",
-            "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "live driver ranking used to test coherence with headline flow",
-            "observedAt": "2026-05-09T07:09:43-04:00"
+            "source": "alt.news_events",
+            "recordHint": "seven-day headline-tag window",
+            "observedAt": "2026-05-17T07:17:18-04:00",
+            "table": "alt.news_events"
           }
         ],
         "notes": [
-          "Headline-flow interpretation is coherence-based, not volume-only.",
-          "Monitoring cadence is daily because the tape is concentrated but not broad-system explosive."
+          "Headline-flow framing gives more weight to thematic coherence than to raw count.",
+          "The tape is still too sparse for regime-calling on headlines alone."
         ]
       }
     }

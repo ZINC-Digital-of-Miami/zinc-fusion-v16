@@ -1,7 +1,7 @@
 ---
 name: supabase-build-planning
 description: "Plan and stage the build-out of ZINC Fusion V16 Supabase schemas when data sources and contracts are still evolving. Use when: building all schemas from scratch, deciding how to model uncertain source inputs, sequencing migrations across the 9 schemas, defining writer/reader boundaries, locking source-agnostic table contracts, or turning open-ended database ideas into a checkpointed build plan. Runs pre-flight, source-volatility loop, schema-ownership loop, table-contract loop, migration-slice loop, approval gate, and implementation handoff. Never invents fake data or treats uncertain inputs as settled fact."
-argument-hint: 'Focus area, e.g. "all schemas" or "source inventory" or "mkt/econ buildout" or "training/forecasts contracts"'
+argument-hint: 'Allowed focus: source-inventory | schema-ownership | mkt-econ | training-forecasts | migration-slices | full-plan'
 ---
 
 # Supabase Build Planning

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
@@ -40,7 +41,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <Header />
+            <Suspense fallback={null}>
+              <Header />
+            </Suspense>
             {children}
           </TooltipProvider>
         </ThemeProvider>

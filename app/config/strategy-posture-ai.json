@@ -1,101 +1,101 @@
 {
-  "generatedAt": "2026-05-10T07:01:51-04:00",
+  "generatedAt": "2026-05-17T07:17:18-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture remains ACCUMULATE because the latest verified Friday-close stack still shows average pressure at 36.9 and energy stress at 59.2, leaving a 22.3-point lead-channel premium that favors staged execution over passive waiting.",
-    "updatedAt": "2026-05-10T07:01:51-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because the current average pressure is 31.7 and only one channel, energy at 54.3, is materially above neutral. That supports staged buying instead of a full stop or panic fill.",
+    "updatedAt": "2026-05-17T07:17:18-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Weekend refresh still supports ACCUMULATE. Energy stress at 59.2 and volatility stress at 43.2 sit 22.3 and 6.3 points above the 36.9 average-pressure baseline, so splitting orders across windows still lowers timing regret versus waiting for one cleaner print.",
+      "body": "Current contract math still favors staged execution. Average pressure is 31.7, but energy sits 22.6 points above the stack at 54.3; CL is 101.02 and up +5.87% over five sessions, so splitting coverage windows still reduces timing regret versus waiting for a cleaner print.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
-        "strategicObjective": "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
-        "neuralConnectionThesis": "When one dominant risk channel sits materially above the average network score, spreading execution windows lowers timing regret more effectively than seeking a perfect entry.",
+        "strategicObjective": "Quantify whether current market structure supports staged, one-shot, or defer-and-watch soybean-oil contracting.",
+        "neuralConnectionThesis": "When one risk channel stays clearly above the network average, spreading execution windows lowers timing regret more effectively than chasing the perfect fill.",
         "quantResearchProtocol": [
-          "Use the average pressure, top-driver score, and top-driver spread as the primary execution-structure inputs.",
-          "Classify whether the risk network supports one-shot, staged, or defer-and-watch execution.",
-          "Anchor the buyer recommendation in replacement-cost control rather than speculative return seeking.",
-          "Require explicit invalidation triggers tied to energy and volatility moderation."
+          "Use average pressure, lead-driver score, and lead-driver spread as the core structure inputs.",
+          "Separate staged execution from one-shot execution by comparing latency risk with over-coverage risk.",
+          "Keep the recommendation buyer-side and replacement-cost focused.",
+          "Define explicit invalidation triggers tied to energy and volatility moderation."
         ],
         "inferenceConstraints": [
-          "Do not recommend one-shot execution while the lead channel remains materially above the average stack.",
-          "Do not describe staging without quantifying why staging is preferred.",
+          "Do not recommend one-shot execution while energy remains the lead channel.",
+          "Do not describe staging without quantifying why staging is superior.",
           "Do not present procurement guidance as a trade idea."
         ],
         "outputRequirements": [
           "State the preferred contract structure.",
-          "Quote the key score math behind the recommendation.",
+          "Quote the score math behind the recommendation.",
           "List the conditions that would justify changing the structure."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-17T07:17:18-04:00",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",
-          "https://finance.yahoo.com/quote/CL=F",
-          "https://fred.stlouisfed.org/series/OVXCLS"
+          "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo",
+          "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
         ],
         "sourceRecords": [
           {
             "source": "app/config/dashboard-risk-factors-ai.json",
-            "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "current energy and volatility synthesis",
-            "observedAt": "2026-05-09T07:09:43-04:00"
+            "recordHint": "current risk-factor synthesis used for contract timing",
+            "observedAt": "2026-05-17T07:17:18-04:00",
+            "table": "app/config/dashboard-risk-factors-ai.json"
           },
           {
             "source": "Yahoo Finance",
-            "recordHint": "CL close used for cost-pass-through framing",
-            "observedAt": "2026-05-08T04:00:00Z",
-            "url": "https://finance.yahoo.com/quote/CL=F"
+            "recordHint": "CL close for pass-through framing",
+            "observedAt": "2026-05-15T04:00:00+00:00",
+            "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo"
           },
           {
             "source": "FRED",
-            "recordHint": "OVX latest close used for execution-friction framing",
-            "observedAt": "2026-05-07T00:00:00Z",
-            "url": "https://fred.stlouisfed.org/series/OVXCLS"
+            "recordHint": "OVX close for execution-stress framing",
+            "observedAt": "2026-05-14",
+            "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
           }
         ],
         "notes": [
-          "Execution structure is justified from lead-channel asymmetry, not generic caution language.",
-          "Buyer guidance is replacement-cost control, not speculative timing."
+          "Contract-window guidance is driven by lead-driver dominance, not generic caution language.",
+          "Recommendation is explicitly buyer-side."
         ]
       }
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "The stack remains energy stress 59.2, vix stress 43.2, china tension 38.2, tariff threat 25.7, and crush pressure 18.4. The 16.0-point gap between first and second says this is still an energy-led network, not a broad synchronized squeeze.",
+      "body": "Current driver order is energy 54.3, volatility 41.3, China 36.3, crush 18.9, and policy 7.8. The key takeaway is that the network is not broadly hot; it is top-heavy, with energy doing most of the work.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
-        "strategicObjective": "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
-        "neuralConnectionThesis": "Ranking matters because a single dominant channel should drive monitoring cadence, while lower-ranked channels determine whether the dominant signal is likely to spread or fade.",
+        "strategicObjective": "Rank the active drivers by marginal buyer impact so monitoring time stays on the right channels.",
+        "neuralConnectionThesis": "Procurement risk is shaped by channel ordering and spread, not just by the average level of stress.",
         "quantResearchProtocol": [
-          "List the full ordered stack and compute the first-to-second and first-to-average score gaps.",
-          "Explain whether the regime is concentrated or broad-based.",
-          "Tie lower-ranked channels to confirmation risk rather than giving them equal weight.",
-          "Convert the ranked stack into practical buyer monitoring priorities."
+          "Order each driver by current score and note the spread from the network average.",
+          "Separate dominant drivers from background channels.",
+          "Call out whether the stack is broad or concentrated.",
+          "Translate the stack into concrete monitoring priority."
         ],
         "inferenceConstraints": [
-          "Do not flatten the stack into a generic mixed-risk statement.",
-          "Do not give secondary channels equal urgency when the score gaps are wide.",
-          "Do not omit the confirmation role of lower-ranked channels."
+          "Do not collapse the waterfall into an undifferentiated summary.",
+          "Do not hide conflict or concentration inside the stack.",
+          "Do not assign confidence without freshness context."
         ],
         "outputRequirements": [
-          "Provide the ordered stack with score math.",
-          "Explain what the gaps mean for monitoring priority.",
-          "Translate the ranking into buyer action focus."
+          "Provide the ordered stack.",
+          "State whether the stack is broad or concentrated.",
+          "Explain the monitoring consequence for a buyer."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-17T07:17:18-04:00",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json"
@@ -103,66 +103,73 @@
         "sourceRecords": [
           {
             "source": "app/config/dashboard-risk-factors-ai.json",
-            "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "ordered driver scores from daily refresh",
-            "observedAt": "2026-05-09T07:09:43-04:00"
+            "recordHint": "ordered driver scores for strategy waterfall",
+            "observedAt": "2026-05-17T07:17:18-04:00",
+            "table": "app/config/dashboard-risk-factors-ai.json"
           }
         ],
         "notes": [
-          "Waterfall output keeps the lead-channel gap explicit.",
-          "Secondary channels are treated as confirmation risk, not equal-weight threats."
+          "The waterfall is derived directly from the refreshed driver-score stack.",
+          "Ordering is based on buyer impact, not institutional prominence."
         ]
       }
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Average pressure is 36.9, lead pressure is 59.2, and the spread is 22.3. For a physical buyer, that asymmetry means the cost of waiting is still larger than the cost of modestly over-staging size while Friday-close data remains the latest verified tape.",
+      "body": "ZL is 73.88 and down -1.83% over five sessions, while CL is up +5.87%. That divergence, plus a 22.6-point energy premium over the average stack, means buyer latency risk is still larger than over-coverage risk even though the full network cooled to 31.7.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
-        "strategicObjective": "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",
-        "neuralConnectionThesis": "Buyer risk is driven less by the mean score than by the asymmetry between the lead threat and the rest of the network, because that gap determines the cost of waiting.",
+        "strategicObjective": "Express near-term soybean-oil procurement risk in explicit asymmetry and latency-risk terms.",
+        "neuralConnectionThesis": "For buyers, moderate average pressure can still justify action if one live channel remains strong enough to reprice costs faster than the physical market is moving.",
         "quantResearchProtocol": [
-          "Compute average pressure, top pressure, and top-minus-average spread every refresh.",
-          "Classify the regime as contained, asymmetric, or synchronized stress.",
-          "Map asymmetry to decision-latency cost versus over-hedge cost for a physical buyer.",
-          "Use posture language that Chris can act on without translation."
+          "Compare ZL movement with crude movement and the network average.",
+          "Measure the premium of the lead channel over the stack average.",
+          "Classify whether timing risk or over-hedge risk is larger.",
+          "Tie the answer to cadence and monitoring rules."
         ],
         "inferenceConstraints": [
-          "Do not call the regime neutral if the asymmetry remains wide.",
-          "Do not describe risk without stating what waiting costs.",
-          "Do not bury the math in narrative-only wording."
+          "Do not call risk neutral when one channel is still materially elevated.",
+          "Do not omit latency implications from the math.",
+          "Do not hide cross-market divergence."
         ],
         "outputRequirements": [
-          "State the three core metrics and regime label.",
-          "Explain why latency risk is or is not dominant.",
-          "Provide cadence guidance in plain buyer language."
+          "State the risk regime in buyer language.",
+          "Explain latency risk versus over-coverage risk.",
+          "Provide a specific cadence recommendation."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-08",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-17T07:17:18-04:00",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "app/config/dashboard-risk-factors-ai.json",
-          "https://publicreporting.cftc.gov"
+          "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=1mo",
+          "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo",
+          "app/config/dashboard-risk-factors-ai.json"
         ],
         "sourceRecords": [
           {
-            "source": "app/config/dashboard-risk-factors-ai.json",
-            "table": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "current average and lead-score math",
-            "observedAt": "2026-05-09T07:09:43-04:00"
+            "source": "Yahoo Finance",
+            "recordHint": "ZL close and five-session move",
+            "observedAt": "2026-05-15T04:00:00+00:00",
+            "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=1mo"
           },
           {
-            "source": "CFTC PRE",
-            "recordHint": "managed-money bias used to frame latency risk sensitivity",
-            "observedAt": "2026-05-05",
-            "url": "https://publicreporting.cftc.gov"
+            "source": "Yahoo Finance",
+            "recordHint": "CL close and five-session move",
+            "observedAt": "2026-05-15T04:00:00+00:00",
+            "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo"
+          },
+          {
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "average and lead-driver scores",
+            "observedAt": "2026-05-17T07:17:18-04:00",
+            "table": "app/config/dashboard-risk-factors-ai.json"
           }
         ],
         "notes": [
-          "Risk math is reported in buyer terms and does not hide latency cost.",
-          "Spread-to-average logic remains the core asymmetry measure."
+          "Risk-metric framing is based on cross-market divergence plus lead-driver dominance.",
+          "Cadence recommendation stays buyer-focused."
         ]
       }
     }

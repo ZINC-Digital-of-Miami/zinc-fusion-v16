@@ -1,7 +1,7 @@
 ---
 name: indicator-review
 description: "Math, logic, and signal-value audit for ZINC Fusion V16 indicators. Use when: verifying indicator math is correct, checking whether an indicator actually adds signal for ZL soybean oil forecasting, identifying overtooled or redundant features, auditing chart-side calculations, reviewing specialist feature logic, or assessing GARCH/Monte Carlo parameter choices. Runs pre-flight, per-layer math loop, usefulness/overtooling loop, and commit gate. Never trains models or modifies production data."
-argument-hint: 'Focus area, e.g. "chart indicators" or "specialist features" or "garch spec" or "overtooling audit"'
+argument-hint: 'Allowed focus: chart-indicators | specialist-features | garch | monte-carlo | overtooling | full-audit'
 ---
 
 # Indicator Review

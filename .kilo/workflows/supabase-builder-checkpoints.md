@@ -6,7 +6,7 @@ Provide a stable checkpoint workflow for Supabase builder work in ZINC Fusion V1
 
 ## Steps
 
-1. Read `AGENTS.md`, the migration plan, and any relevant local-cloud memory notes.
+1. Read `AGENTS.md`, `docs/MASTER_PLAN.md`, `docs/agent-safety-gates.md`, `docs/plans/2026-03-17-v16-migration-plan.md`, and any existing repo memory note under `memories/` that directly matches the task. If memory notes are absent, record `memory notes: MISSING` instead of assuming prior decisions.
 2. Treat `docs/plans/2026-03-17-v16-migration-plan.md` as canonical. Do not let a checkpoint note become a parallel source of truth.
 3. Classify the task: schema build planning, local/cloud sync, schema/RLS, pg_cron/Vault wiring, ML database design, or AutoGluon promotion contract.
 4. State the business and product goal this task serves before locking any technical decision.
@@ -22,7 +22,7 @@ Provide a stable checkpoint workflow for Supabase builder work in ZINC Fusion V1
    Decide whether the task belongs in `pg_cron` + `http`, a read-only route, or a gated promotion path.
 10. Lock Checkpoint 5: validation evidence.
     Decide the smallest proof required before the task can be claimed complete.
-11. If ambiguity remains, ask sharp questions and present bounded options with a recommended path instead of guessing.
+11. If ambiguity remains after the repository audit, ask sharp questions and present 2-3 bounded options with one recommended path instead of guessing.
 12. Update the canonical migration plan with any locked decision or explicitly confirm the existing section already captures it.
 13. Only after all checkpoints are clear, implement the approved change and run the matching audit skill again.
 

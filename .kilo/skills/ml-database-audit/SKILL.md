@@ -1,7 +1,7 @@
 ---
 name: ml-database-audit
 description: "Audit or design the ML database contract for ZINC Fusion V16. Use when: reviewing `training`, `forecasts`, or `analytics` schemas; checking writer/reader boundaries; validating Target Zone storage; reviewing quant feature persistence; deciding what stays local versus what is promoted to cloud; or assessing whether ML table design matches the migration plan and phase gates. Runs pre-flight, schema-intent loop, table-contract loop, target/zone loop, persistence-boundary loop, approval gate, and re-audit. Never trains models or promotes data."
-argument-hint: 'Focus area, e.g. "training schema" or "forecast outputs" or "analytics boundaries" or "all ML schemas"'
+argument-hint: 'Allowed focus: training | forecasts | analytics | target-zones | persistence-boundary | full-audit'
 ---
 
 # ML Database Audit

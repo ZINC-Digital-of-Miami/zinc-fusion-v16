@@ -1,7 +1,9 @@
 ---
 name: ml-database-audit
 description: "Audit or design the ZINC Fusion V16 ML database surface. Use when: reviewing `training`, `forecasts`, or `analytics` contracts, validating Target Zone storage, checking local-vs-cloud ML persistence boundaries, or tightening quant database design."
-argument-hint: 'Focus area, e.g. "training schema" or "forecast outputs" or "analytics boundaries" or "all"'
+model: deepseek/deepseek-v4-pro
+agent: plan
+argument-hint: 'Allowed focus: training | forecasts | analytics | target-zones | persistence-boundary | full-audit'
 ---
 
 # ML Database Audit

@@ -1,7 +1,9 @@
 ---
 name: supabase-builder
 description: "Primary entry command for Supabase Builder work in ZINC Fusion V16. Use when: building out schemas, wiring local/cloud sync, planning migrations while source contracts are still evolving, tightening RLS/Vault/pg_cron discipline, or shaping ML and AutoGluon database contracts."
-argument-hint: 'Focus area, e.g. "all schemas" or "local/cloud wiring" or "training/forecasts" or "pg_cron + Vault"'
+model: deepseek/deepseek-v4-pro
+agent: build
+argument-hint: 'Allowed focus: schema-buildout | local-cloud-wiring | training-forecasts | pg-cron-vault | rls-migrations'
 ---
 
 # Supabase Builder

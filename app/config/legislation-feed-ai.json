@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-10T07:01:51-04:00",
+  "generatedAt": "2026-05-17T07:17:18-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,200 +7,210 @@
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "The current relevant-policy stack shows 5 visible items across 4 sources. H.R.7567 remains the lead soybean-oil watch item because it carries the clearest long-horizon farm-program transmission path, while the Commerce review notice is the only item with a direct trade-enforcement angle.",
+      "body": "The current policy watchlist is still thin but usable: 5 explicit agriculture or trade-adjacent items are live, led by USDA's May 15 modified-organisms request for information and Commerce's May 14 BASF foreign-trade-zone filing. That is enough to keep policy on the dashboard, but not enough to override the current energy-led market posture.",
       "strategicSpecialInstructions": {
-        "cardTopic": "Policy Feed Procurement Impact Synthesis",
-        "strategicObjective": "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
-        "neuralConnectionThesis": "In this window, the value is not the raw item count; it is separating one potentially feedstock-relevant congressional item from a lower-direct-impact labor rule.",
+        "cardTopic": "Policy Feed Relevance and Procurement Transmission",
+        "strategicObjective": "Rank whether the current policy feed is actually capable of changing soybean-oil buyer behavior or is still just a monitoring surface.",
+        "neuralConnectionThesis": "Policy items only deserve posture-changing weight when they are both procurement-relevant and dense enough to imply persistence rather than administrative noise.",
         "quantResearchProtocol": [
-          "Rank each item by direct soy/biofuel relevance, implementation horizon, and likely pass-through speed.",
-          "Separate congressional, executive, and labor/regulatory items by procurement relevance.",
-          "Translate the top-ranked item into a buyer watchlist consequence.",
-          "Downgrade items that are operationally important but weakly connected to soybean oil price formation."
+          "Build a relevance-screened current item set, not a raw feed dump.",
+          "Count how many items are truly agriculture/trade adjacent.",
+          "Separate administrative notices from transmission-relevant items.",
+          "Compare the resulting policy pressure with the live market lead channel."
         ],
         "inferenceConstraints": [
-          "Do not treat all policy items as equally market relevant.",
-          "Do not call urgent procurement risk without a direct transmission path.",
-          "Do not hide the difference between ag-policy and labor-policy relevance."
+          "Do not treat raw item count as equal to procurement pressure.",
+          "Do not overstate thin-policy windows.",
+          "Do not hide when policy is secondary to market-driven cost pressure."
         ],
         "outputRequirements": [
-          "Name the top relevant item explicitly.",
-          "Explain why it matters more than the other items.",
-          "State the buyer watch consequence and horizon."
+          "State the count of relevant live items.",
+          "Identify the lead current item and why it matters.",
+          "Explain whether policy is lead-driver or secondary-driver status."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-10",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-15",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "https://www.congress.gov",
-          "https://www.federalregister.gov"
+          "https://www.federalregister.gov",
+          "https://www.congress.gov/bill/119th-congress/house-bill/7567"
         ],
         "sourceRecords": [
           {
-            "source": "Congress.gov",
-            "recordHint": "H.R.7567 introduced 2026-02-13 and referred to House Agriculture",
-            "observedAt": "2026-05-10T07:01:51-04:00",
-            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+            "source": "Federal Register",
+            "recordHint": "USDA modified-organisms RFI",
+            "observedAt": "2026-05-15T00:00:00Z",
+            "url": "https://www.federalregister.gov/documents/2026/05/15/2026-09833/request-for-information-on-modified-organisms-subject-to-the-plant-protection-act"
           },
           {
             "source": "Federal Register",
-            "recordHint": "Commerce administrative review notice published 2026-05-04",
-            "observedAt": "2026-05-04T00:00:00Z",
-            "url": "https://www.federalregister.gov/documents/2026/05/04/2026-08559/antidumping-or-countervailing-duty-order-finding-or-suspended-investigation-opportunity-to-request"
+            "recordHint": "BASF agricultural FTZ subzone filing",
+            "observedAt": "2026-05-14T00:00:00Z",
+            "url": "https://www.federalregister.gov/documents/2026/05/14/2026-09702/foreign-trade-zone-102-application-for-subzone-basf-agricultural-solutions-us-llc-fenton-and-palmyra"
+          },
+          {
+            "source": "Congress.gov",
+            "recordHint": "Farm, Food, and National Security Act of 2026",
+            "observedAt": "2026-05-07T17:39:50Z",
+            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           }
         ],
         "notes": [
-          "Ranking is based on soybean-oil transmission speed, not institutional prominence.",
-          "The current window is sparse enough that relevance still matters more than raw count."
+          "Only procurement-relevant agriculture and trade items were kept in the snapshot.",
+          "Policy remains secondary to energy in the current buyer posture."
         ]
       }
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Source breadth is still narrow but no longer binary: 5 relevant items are spread across 4 sources, with Agriculture Department carrying 2 of 5 entries and Congress.gov, Commerce, and Labor each carrying 1 of 5. That is a 40/20/20/20 distribution, so confidence should come from transmission relevance, not breadth alone.",
+      "body": "Source breadth is concentrated rather than broad: Agriculture Department contributes 3 of the 5 current items, or 60.0% of the visible feed, while Commerce and Congress each contribute one. That concentration keeps confidence moderate at best; relevance is there, but corroboration breadth is not.",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Concentration and Signal Reliability",
-        "strategicObjective": "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
-        "neuralConnectionThesis": "A two-source feed can still be useful when relevance is high, but it should never be treated like a broad corroborated policy wave.",
+        "strategicObjective": "Measure whether current source concentration supports a confident policy read or demands caution.",
+        "neuralConnectionThesis": "A thin policy tape can still be useful, but high source concentration lowers confidence unless multiple institutions confirm the same transmission path.",
         "quantResearchProtocol": [
-          "Count sources and item share per source in the current window.",
-          "Classify the source structure as sparse, concentrated, or broad.",
-          "Tie confidence to source breadth and item relevance at the same time.",
-          "Use sparse-source classification to control how aggressively the buyer reacts."
+          "Count current visible items by source.",
+          "Compute source-share concentration for the lead source.",
+          "Classify the window as concentrated or broad.",
+          "Use that classification to adjust policy confidence."
         ],
         "inferenceConstraints": [
-          "Do not overstate confidence from a two-source sample.",
-          "Do not confuse narrow breadth with zero importance.",
-          "Do not ignore relevance just because the item count is low."
+          "Do not overstate confidence from a concentrated source mix.",
+          "Do not confuse concentration with irrelevance.",
+          "Do not ignore corroboration breadth."
         ],
         "outputRequirements": [
-          "Report the source count and item split.",
+          "Report source count and lead-source share.",
           "State the resulting confidence posture.",
-          "Explain the buyer consequence of sparse-source conditions."
+          "Explain the buyer consequence of concentrated sourcing."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-10",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-15",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "https://www.congress.gov",
-          "https://www.federalregister.gov"
+          "https://www.federalregister.gov",
+          "https://www.congress.gov/bill/119th-congress/house-bill/7567"
         ],
         "sourceRecords": [
           {
-            "source": "Congress.gov",
-            "recordHint": "1 current relevant congressional item in snapshot window",
-            "observedAt": "2026-05-10T07:01:51-04:00",
-            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+            "source": "Federal Register",
+            "recordHint": "three USDA-led current items in visible policy set",
+            "observedAt": "2026-05-15T00:00:00Z",
+            "url": "https://www.federalregister.gov"
           },
           {
-            "source": "Federal Register",
-            "recordHint": "4 department-sourced rule or notice items surfaced through Federal Register feeds",
-            "observedAt": "2026-05-10",
-            "url": "https://www.federalregister.gov"
+            "source": "Congress.gov",
+            "recordHint": "one congressional anchor item in visible policy set",
+            "observedAt": "2026-05-07T17:39:50Z",
+            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           }
         ],
         "notes": [
-          "Source concentration math is explicit: 5 items across 4 visible source labels.",
-          "Breadth is adequate for monitoring but still too thin for aggressive posture changes."
+          "Source concentration math is explicit inside the card.",
+          "Confidence is tied to breadth, not just raw item relevance."
         ]
       }
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "Only 2 of the 5 visible items carry explicit policy or tariff tags, while the remaining 3 resolve into macro, crush-adjacent trade administration, and fed/admin operations. That gives the tape enough structure to rank watch priorities, but not enough density to call a broad legislative wave.",
+      "body": "The current theme map is led by policy tags on all 5 items, with trade-adjacent coding on 2 of 5 and agriculture context on 2 of 5. That says the feed is more administrative than shock-driven; buyers should watch trade mechanics and USDA process, not expect an immediate legislative cost wave.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
-        "strategicObjective": "Identify which policy themes carry the highest procurement risk contribution in the current window.",
-        "neuralConnectionThesis": "When the tag layer stays generic, analysts must lean more on item-level content than tag frequency because the taxonomy is not yet carrying the transmission detail.",
+        "strategicObjective": "Identify which policy themes deserve the most buyer attention in the current window.",
+        "neuralConnectionThesis": "When the live policy taxonomy is dominated by process and trade tags rather than explicit soybean-oil mandates, buyers should prioritize monitoring over posture changes.",
         "quantResearchProtocol": [
-          "Inspect whether tags resolve into specific channels such as tariff, biofuel, or export.",
-          "If tags remain generic, fallback to item-level textual relevance ranking.",
-          "Classify the theme map as specific or unresolved.",
-          "Tie unresolved taxonomy to a lower-confidence policy signal."
+          "Count tag frequency across the current relevance-screened item set.",
+          "Separate process-policy, trade-policy, and agriculture-context tags.",
+          "Classify the current taxonomy as shock-oriented or administrative.",
+          "Translate the outcome into a buyer watch priority list."
         ],
         "inferenceConstraints": [
-          "Do not pretend the tag taxonomy is richer than it is.",
-          "Do not infer a tariff or biofuel pulse without explicit theme evidence.",
-          "Do not use generic tag output without explaining the limitation."
+          "Do not pretend the tag set is richer than it is.",
+          "Do not infer a soybean-oil policy shock without explicit theme support.",
+          "Do not use generic policy wording without naming the active tags."
         ],
         "outputRequirements": [
-          "State that the current tag map is generic or specific.",
-          "Explain the consequence for policy-signal confidence.",
-          "Provide the buyer watch priority despite the taxonomy limit."
+          "State the leading tags and counts.",
+          "Explain whether the taxonomy is administrative or shock-oriented.",
+          "Provide the buyer watch priority that follows."
         ]
       },
       "provenance": {
-        "asOf": "2026-05-10",
-        "generatedAt": "2026-05-10T07:01:51-04:00",
+        "asOf": "2026-05-15",
+        "generatedAt": "2026-05-17T07:17:18-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "https://www.congress.gov",
-          "https://www.federalregister.gov"
+          "https://www.federalregister.gov",
+          "https://www.congress.gov/bill/119th-congress/house-bill/7567"
         ],
         "sourceRecords": [
           {
-            "source": "Congress.gov",
-            "recordHint": "farm-bill item carries macro ag-program relevance",
-            "observedAt": "2026-05-10T07:01:51-04:00",
-            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+            "source": "Federal Register",
+            "recordHint": "USDA and Commerce items used for trade/policy tag counts",
+            "observedAt": "2026-05-15T00:00:00Z",
+            "url": "https://www.federalregister.gov"
           },
           {
-            "source": "Federal Register",
-            "recordHint": "department notices contribute crush, fed, policy, and tariff-adjacent tags",
-            "observedAt": "2026-05-10",
-            "url": "https://www.federalregister.gov"
+            "source": "Congress.gov",
+            "recordHint": "farm bill anchor item used for macro/policy tag count",
+            "observedAt": "2026-05-07T17:39:50Z",
+            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           }
         ],
         "notes": [
-          "Theme pressure is ranked from the live five-item mix, not a generic policy bucket.",
-          "Current taxonomy is usable for prioritization but still sparse for regime-calling."
+          "Theme ranking is based on the actual visible current item set.",
+          "The current taxonomy is informative but not dense enough for regime-calling."
         ]
       }
     }
   },
   "items": [
     {
-      "source": "Congress.gov",
-      "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
-      "publishedAt": "2026-05-07T17:39:50.310158+00:00",
+      "source": "Agriculture Department",
+      "title": "Request for Information on Modified Organisms Subject to the Plant Protection Act",
+      "publishedAt": "2026-05-15T00:00:00+00:00",
       "tags": [
-        "macro"
+        "policy",
+        "agriculture"
       ]
     },
     {
       "source": "Commerce Department",
-      "title": "Antidumping or Countervailing Duty Order, Finding, or Suspended Investigation; Opportunity To Request Administrative Review and Join Annual Inquiry Service List; Note Regarding Format of Review Requests",
-      "publishedAt": "2026-05-04T00:00:00+00:00",
-      "tags": [
-        "crush"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
-      "title": "2026/2027 Rates Charged for AMS Services",
-      "publishedAt": "2026-04-30T00:00:00+00:00",
-      "tags": [
-        "fed"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
-      "title": "Submission for OMB Review; Comment Request",
-      "publishedAt": "2026-04-27T00:00:00+00:00",
+      "title": "Foreign-Trade Zone 102; Application for Subzone; BASF Agricultural Solutions US LLC; Fenton and Palmyra, Missouri",
+      "publishedAt": "2026-05-14T00:00:00+00:00",
       "tags": [
         "policy",
-        "tariff"
+        "trade"
       ]
     },
     {
-      "source": "Labor Department",
-      "title": "Joint Employer Status Under the Fair Labor Standards Act, Family and Medical Leave Act, and Migrant and Seasonal Agricultural Worker Protection Act",
-      "publishedAt": "2026-04-23T00:00:00+00:00",
+      "source": "Agriculture Department",
+      "title": "Notice of Request for Revision To and Extension of Approval of an Information Collection; Restrictions on Importation of Live Poultry, Poultry Meat, and Other Poultry Products From Specified Regions",
+      "publishedAt": "2026-05-14T00:00:00+00:00",
       "tags": [
+        "policy",
+        "trade"
+      ]
+    },
+    {
+      "source": "Agriculture Department",
+      "title": "Codex Alimentarius Commission: Meeting of the Codex Alimentarius Commission",
+      "publishedAt": "2026-05-13T00:00:00+00:00",
+      "tags": [
+        "policy",
+        "agriculture"
+      ]
+    },
+    {
+      "source": "Congress.gov",
+      "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
+      "publishedAt": "2026-05-07T17:39:50+00:00",
+      "tags": [
+        "macro",
         "policy"
       ]
     }

@@ -1,7 +1,9 @@
 ---
 name: autogluon-database-audit
 description: "Audit the database-facing contract of the AutoGluon pipeline in ZINC Fusion V16. Use when: checking registry/OOF/forecast persistence, validating promotion gates, or tightening AutoGluon-to-Supabase database boundaries."
-argument-hint: 'Focus area, e.g. "registry" or "promotion gate" or "OOF outputs" or "all"'
+model: deepseek/deepseek-v4-pro
+agent: plan
+argument-hint: 'Allowed focus: registry | oof-outputs | forecast-persistence | promotion-gate | artifact-boundary | full-audit'
 ---
 
 # AutoGluon Database Audit

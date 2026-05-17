@@ -1,7 +1,9 @@
 ---
 name: local-cloud-sync-audit
-description: "Audit or repair ZINC Fusion V16 local/cloud Supabase wiring. Use when: reviewing env contracts, pooler vs direct connections, cloud-canonical sync boundaries, migration drift, linked-project assumptions, or Vault/pg_cron wiring. Never starts local Supabase in this repo."
-argument-hint: 'Focus area, e.g. "env contract" or "migration drift" or "Vault/cron" or "all"'
+description: "Audit ZINC Fusion V16 local/cloud Supabase wiring and produce a bounded repair plan when needed. Use when reviewing env contracts, pooler vs direct connections, cloud-canonical sync boundaries, migration drift, linked-project assumptions, or Vault/pg_cron wiring. Never starts local Supabase in this repo."
+model: deepseek/deepseek-v4-pro
+agent: plan
+argument-hint: 'Allowed focus: env-contract | connection-paths | migration-drift | vault-cron | full-audit'
 ---
 
 # Local-Cloud Sync Audit
