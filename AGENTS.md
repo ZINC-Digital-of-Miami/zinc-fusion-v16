@@ -12,6 +12,10 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 
 **The migration plan is your bible:** [`docs/plans/2026-03-17-v16-migration-plan.md`](docs/plans/2026-03-17-v16-migration-plan.md) — 1,235 lines, 14 sections, every table/route/job/phase defined.
 
+**Active dashboard work plan:** [`docs/plans/2026-05-17-dashboard-revised-work-plan.md`](docs/plans/2026-05-17-dashboard-revised-work-plan.md) — 8 waves, gotchas inventory, OpenRouter AI migration, ProFarmer, Glide.
+
+**Repository gotchas:** [`/memories/repo/dashboard-plan-and-gotchas.md`](/memories/repo/dashboard-plan-and-gotchas.md) — 10 critical gotchas including duplicate dashboard pages, service role abuse, envelope divergence, training gate. Read before touching code.
+
 ---
 
 ## Tech Stack

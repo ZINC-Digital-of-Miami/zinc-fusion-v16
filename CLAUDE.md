@@ -1,8 +1,9 @@
 # CLAUDE.md — ZINC-FUSION-V16
 
 **All project rules, hard rules, tech stack, phases, and architecture decisions live in
-[`AGENTS.md`](AGENTS.md).** Read it before doing anything. This file contains only
-Claude Code-specific setup instructions.
+[`AGENTS.md`](AGENTS.md).** Read it before doing anything.
+
+**Active work plan & gotchas:** [`docs/plans/2026-05-17-dashboard-revised-work-plan.md`](docs/plans/2026-05-17-dashboard-revised-work-plan.md) and [`/memories/repo/dashboard-plan-and-gotchas.md`](/memories/repo/dashboard-plan-and-gotchas.md). ALWAYS read these after AGENTS.md.
 
 ---
 
