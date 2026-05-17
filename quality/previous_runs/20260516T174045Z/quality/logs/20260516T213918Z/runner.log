@@ -1,0 +1,17 @@
+========================================================================
+QPB v1.5.7 run starting
+========================================================================
+Target:            /Users/zincdigital/mnt/SatechiHub/ZINC-FUSION-V16
+Log file:          /Users/zincdigital/mnt/SatechiHub/ZINC-FUSION-V16/quality/logs/20260516T213918Z/runner.log
+Watch log:         tail -f /Users/zincdigital/mnt/SatechiHub/ZINC-FUSION-V16/quality/logs/20260516T213918Z/runner.log
+Watch transcript:  tail -f /Users/zincdigital/mnt/SatechiHub/ZINC-FUSION-V16/quality/logs/20260516T213918Z/phase1.output.txt
+Watch progress:    while true; do clear; grep -E '^##?' /Users/zincdigital/mnt/SatechiHub/ZINC-FUSION-V16/quality/PROGRESS.md; sleep 2; done
+
+Plan:
+  Phase group 1      (phase 1)
+  Phase group 2      (phase 2)
+  Phase group 3      (phase 3)
+  Phase group 4      (phase 4)
+  Phase group 5      (phase 5)
+  Phase group 6      (phase 6)
+========================================================================

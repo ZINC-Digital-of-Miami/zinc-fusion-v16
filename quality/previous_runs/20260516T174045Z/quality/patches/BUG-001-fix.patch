@@ -1,0 +1,78 @@
+--- a/supabase/migrations/20260414001_ingest_zl_intraday.sql
++++ b/supabase/migrations/20260414001_ingest_zl_intraday.sql
+@@ -41,6 +41,7 @@ DECLARE
+   records_in  INT := 0;
+   started     TIMESTAMPTZ := now();
++  v_run_id    UUID := gen_random_uuid();
+ BEGIN
++  INSERT INTO ops.ingest_run (run_id, job_name, source, status, started_at, records_upserted)
++  VALUES (v_run_id, 'ingest_zl_intraday', 'databento', 'running', started, 0);
+   -- 1. Get API key from Vault
+   SELECT decrypted_secret INTO api_key
+   FROM vault.decrypted_secrets
+@@ -49,8 +50,12 @@ BEGIN
+   WHERE name = 'databento_api_key_v2';
+ 
+   IF api_key IS NULL THEN
+-    INSERT INTO ops.ingest_run (job_name, source, started_at, finished_at, status, records_upserted, error_message)
+-    VALUES ('ingest_zl_intraday', 'databento', started, now(), 'failed', 0, 'Databento API key not found in Vault');
++    UPDATE ops.ingest_run
++    SET status = 'failed',
++        finished_at = now(),
++        records_upserted = 0,
++        error_message = 'Databento API key not found in Vault'
++    WHERE run_id = v_run_id;
+     RETURN jsonb_build_object('status', 'error', 'message', 'API key not in Vault');
+   END IF;
+@@ -89,9 +94,12 @@ BEGIN
+   )::http_request);
+ 
+   IF response.status != 200 THEN
+-    INSERT INTO ops.ingest_run (job_name, source, started_at, finished_at, status, records_upserted, error_message)
+-    VALUES ('ingest_zl_intraday', 'databento', started, now(), 'failed', 0,
+-            'Databento HTTP ' || response.status || ': ' || left(response.content, 200));
++    UPDATE ops.ingest_run
++    SET status = 'failed',
++        finished_at = now(),
++        records_upserted = 0,
++        error_message = 'Databento HTTP ' || response.status || ': ' || left(response.content, 200)
++    WHERE run_id = v_run_id;
+     RETURN jsonb_build_object('status', 'error', 'http_status', response.status);
+   END IF;
+@@ -137,8 +145,12 @@ BEGIN
+   END LOOP;
+ 
+   -- 5. Log success
+-  INSERT INTO ops.ingest_run (job_name, source, started_at, finished_at, status, records_upserted, error_message)
+-  VALUES ('ingest_zl_intraday', 'databento', started, now(), 'ok', records_in, NULL);
++  UPDATE ops.ingest_run
++  SET status = 'success',
++      finished_at = now(),
++      records_upserted = records_in,
++      error_message = NULL
++  WHERE run_id = v_run_id;
+@@ -167,6 +179,7 @@ DECLARE
+   records_out INT := 0;
+   started     TIMESTAMPTZ := now();
+   latest_close NUMERIC;
++  v_run_id    UUID := gen_random_uuid();
+   latest_ts    TIMESTAMPTZ;
+ BEGIN
++  INSERT INTO ops.ingest_run (run_id, job_name, source, status, started_at, records_upserted)
++  VALUES (v_run_id, 'rollup_zl_daily', 'rollup', 'running', started, 0);
+   -- 1. Aggregate 1h bars into daily bars
+@@ -217,8 +230,12 @@ BEGIN
+   END IF;
+ 
+   -- 3. Log success
+-  INSERT INTO ops.ingest_run (job_name, source, started_at, finished_at, status, records_upserted, error_message)
+-  VALUES ('rollup_zl_daily', 'rollup', started, now(), 'ok', records_out, NULL);
++  UPDATE ops.ingest_run
++  SET status = 'success',
++      finished_at = now(),
++      records_upserted = records_out,
++      error_message = NULL
++  WHERE run_id = v_run_id;
+ 
+   RETURN jsonb_build_object('status', 'ok', 'daily_bars_upserted', records_out, 'latest_price', latest_close);
+ END;

@@ -1,0 +1,19 @@
+--- a/quality/test_regression.py
++++ b/quality/test_regression.py
+@@ -69,6 +69,16 @@
+ 
+ @pytest.mark.xfail(
+     strict=True,
++    reason="BUG-004: gate3 must validate pg_cron architecture without /api/cron route dependency; unskip after applying quality/patches/BUG-004-fix.patch",
++)
++def test_bug_004_gate3_does_not_require_api_cron_handler_files() -> None:
++    gate3 = read_text("scripts/verify/gate3.sh")
++    assert "app/api/cron" not in gate3
++    assert "runCronHandler" not in gate3
++
++
++@pytest.mark.xfail(
++    strict=True,
+     reason="BUG-005: intraday route must either implement 1m fallback or remove fallback claim; unskip after applying quality/patches/BUG-005-fix.patch",
+ )
+ def test_bug_005_intraday_fallback_claim_matches_implemented_query_path() -> None:

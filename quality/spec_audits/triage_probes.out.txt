@@ -1,0 +1,3 @@
+PROBE-REQ002-OVERLAY: EXPECTED_FAIL confirmed -> chart keeps SHOW_FORECAST_TARGET_OVERLAY disabled; target-zone primitive cannot render
+PROBE-REQ002-SURFACE-CONTRACT: EXPECTED_FAIL confirmed -> probability surface is not bound to canonical /api/zl/target-zones path
+PROBE-REQ005-AI-META: PASS (routes publish ai metadata; degraded-state claim downgraded)

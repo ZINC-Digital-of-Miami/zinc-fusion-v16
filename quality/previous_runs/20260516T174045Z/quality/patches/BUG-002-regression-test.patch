@@ -1,0 +1,39 @@
+--- a/quality/test_regression.py
++++ b/quality/test_regression.py
+@@ -29,6 +29,36 @@
+ 
+ @pytest.mark.xfail(
+     strict=True,
++    reason="BUG-002: normalize ingest_run status vocabulary across SQL and TypeScript writers; unskip after applying quality/patches/BUG-002-fix.patch",
++)
++def test_bug_002_ingest_status_vocabulary_is_canonical_across_writers() -> None:
++    ts = read_text("lib/server/ingest-run.ts")
++    sql_intraday = read_text("supabase/migrations/20260414001_ingest_zl_intraday.sql")
++    sql_trusted = read_text("supabase/migrations/202605080003_supabase_trusted_site_fill_hourly.sql")
++
++    expected = {"running", "success", "failed"}
++
++    ts_statuses = {
++        status.lower()
++        for status in re.findall(r'status:\s*"([A-Z_]+)"', ts)
++    }
++    sql_statuses = {
++        status.lower()
++        for status in re.findall(r"status\s*=\s*'([a-z_]+)'", sql_trusted)
++    }
++    sql_statuses.update(
++        status.lower()
++        for status in re.findall(r"VALUES \([^\)]*'([a-z_]+)'", sql_intraday)
++        if status in {"ok", "failed"}
++    )
++
++    assert ts_statuses <= expected
++    assert sql_statuses <= expected
++    assert ts_statuses == sql_statuses
++
++
++@pytest.mark.xfail(
++    strict=True,
+     reason="BUG-003: remove /api/cron auth bypass from proxy middleware; unskip after applying quality/patches/BUG-003-fix.patch",
+ )
+ def test_bug_003_proxy_has_no_api_cron_bypass_path() -> None:

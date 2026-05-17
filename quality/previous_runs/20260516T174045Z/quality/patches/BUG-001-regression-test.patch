@@ -1,0 +1,18 @@
+--- a/quality/test_regression.py
++++ b/quality/test_regression.py
+@@ -20,6 +20,15 @@
+ 
+ @pytest.mark.xfail(
+     strict=True,
++    reason="BUG-001: normalize ingest_run lifecycle to a single run_id across writers; unskip after applying quality/patches/BUG-001-fix.patch",
++)
++def test_bug_001_intraday_writer_uses_run_id_lifecycle_contract() -> None:
++    sql = read_text("supabase/migrations/20260414001_ingest_zl_intraday.sql")
++    assert "INSERT INTO ops.ingest_run (run_id, job_name, source, status, started_at" in sql
++
++
++@pytest.mark.xfail(
++    strict=True,
+     reason="BUG-002: normalize ingest_run status vocabulary across SQL and TypeScript writers; unskip after applying quality/patches/BUG-002-fix.patch",
+ )
+ def test_bug_002_ingest_status_vocabulary_is_canonical_across_writers() -> None:

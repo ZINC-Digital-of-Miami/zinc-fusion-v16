@@ -1,0 +1,19 @@
+--- a/quality/test_regression.py
++++ b/quality/test_regression.py
+@@ -59,6 +59,16 @@
+ 
+ @pytest.mark.xfail(
+     strict=True,
++    reason="BUG-003: remove /api/cron auth bypass from proxy middleware; unskip after applying quality/patches/BUG-003-fix.patch",
++)
++def test_bug_003_proxy_has_no_api_cron_bypass_path() -> None:
++    proxy = read_text("lib/supabase/proxy.ts")
++    assert "isCronPath" not in proxy
++    assert "/api/cron/" not in proxy
++
++
++@pytest.mark.xfail(
++    strict=True,
+     reason="BUG-004: gate3 must validate pg_cron architecture without /api/cron route dependency; unskip after applying quality/patches/BUG-004-fix.patch",
+ )
+ def test_bug_004_gate3_does_not_require_api_cron_handler_files() -> None:

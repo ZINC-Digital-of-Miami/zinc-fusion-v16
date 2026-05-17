@@ -1,0 +1,12 @@
+12:if ! command -v jq >/dev/null 2>&1; then
+13:  echo "[Gate6] jq is required for parity verification" >&2
+55:  jq -e "${required_filter}" "${baseline_file}" >/dev/null
+56:  jq -e "${required_filter}" "${target_file}" >/dev/null
+58:  baseline_signature="$(jq -c "${shape_signature}" "${baseline_file}")"
+59:  target_signature="$(jq -c "${shape_signature}" "${target_file}")"
+79:   and has("warning") and (.warning | type == "string")
+99:   and has("warning") and (.warning | type == "string")
+120:   and has("warning") and (.warning | type == "string")
+138:   and has("warning") and (.warning | type == "string")
+154:   and has("warning") and (.warning | type == "string")
+170:   and has("warning") and (.warning | type == "string")

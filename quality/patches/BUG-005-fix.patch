@@ -1,0 +1,11 @@
+--- a/components/chart/ZlCandlestickChart.tsx
++++ b/components/chart/ZlCandlestickChart.tsx
+@@ -37,7 +37,7 @@ const RIGHT_PADDING_BARS = 16;
+ const BAR_SPACING = 10;
+ const MIN_BAR_SPACING = 8;
+ const REFRESH_MS = 60 * 60 * 1000;
+-const SHOW_FORECAST_TARGET_OVERLAY = false;
++const SHOW_FORECAST_TARGET_OVERLAY = true;
+ const SMA_PERIOD = 200;
+ const SMA_COLOR = "#FFFFFF";
+ const SMA_WIDTH = 2;

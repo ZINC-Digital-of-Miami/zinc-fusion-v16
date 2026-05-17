@@ -1,0 +1,19 @@
+--- a/scripts/fill_site_with_trusted_data.py
++++ b/scripts/fill_site_with_trusted_data.py
+@@ -1845,14 +1845,9 @@ def main() -> None:
+                 SET status = 'error',
+                     finished_at = %s,
+                     error_message = %s
+-                WHERE run_id = (
+-                  SELECT run_id FROM ops.ingest_run
+-                  WHERE job_name = 'trusted_site_fill'
+-                  ORDER BY started_at DESC
+-                  LIMIT 1
+-                )
++                WHERE run_id = %s
+                 """,
+-                (datetime.now(timezone.utc), str(err)[:1000]),
++                (datetime.now(timezone.utc), str(err)[:1000], str(run_id)),
+             )
+             conn.commit()
+         except Exception:  # noqa: BLE001

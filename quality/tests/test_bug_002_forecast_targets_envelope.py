@@ -1,0 +1,20 @@
+import re
+from pathlib import Path
+
+import pytest
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.xfail(strict=True, reason="BUG-002: remove marker after applying quality/patches/BUG-002-fix.patch")
+def test_bug_002_forecast_targets_uses_api_envelope_keys() -> None:
+    source = (ROOT / "app/api/zl/forecast-targets/route.ts").read_text(encoding="utf-8")
+
+    ok_key = re.search(r"return\\s+NextResponse\\.json\\(\\{[^}]*\\bok\\s*:", source, flags=re.S)
+    data_key = re.search(r"return\\s+NextResponse\\.json\\(\\{[^}]*\\bdata\\s*:", source, flags=re.S)
+    asof_key = re.search(r"return\\s+NextResponse\\.json\\(\\{[^}]*\\basOf\\s*:", source, flags=re.S)
+
+    assert ok_key is not None
+    assert data_key is not None
+    assert asof_key is not None

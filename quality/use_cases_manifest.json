@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.5.7",
+  "generated_at": "2026-05-17T03:08:01Z",
+  "records": [
+    {
+      "id": "UC-1",
+      "name": "Serve intraday bars with executable fallback",
+      "actors": ["dashboard chart consumer", "/api/zl/intraday route"],
+      "preconditions": ["mkt.price_15m may be sparse while mkt.price_1m has data"],
+      "steps": ["Query mkt.price_15m", "Fallback to mkt.price_1m when primary is unusable", "Return normalized envelope with accurate source"],
+      "postconditions": ["Intraday response behavior matches declared fallback contract"],
+      "requirements": ["REQ-001"]
+    },
+    {
+      "id": "UC-2.a",
+      "name": "Canonical envelope for target-zones endpoint",
+      "actors": ["dashboard bootstrap loader"],
+      "preconditions": ["target zone rows exist for latest forecast date"],
+      "steps": ["Fetch /api/zl/target-zones", "Parse canonical envelope contract"],
+      "postconditions": ["Consumer uses shared adapter path"],
+      "requirements": ["REQ-002"]
+    },
+    {
+      "id": "UC-2.b",
+      "name": "Canonical envelope for forecast-targets endpoint",
+      "actors": ["probability surface loader"],
+      "preconditions": ["target zone rows exist for latest forecast date"],
+      "steps": ["Fetch /api/zl/forecast-targets", "Parse canonical envelope contract or explicit typed adapter equivalent"],
+      "postconditions": ["Consumer parser divergence is removed"],
+      "requirements": ["REQ-002"]
+    },
+    {
+      "id": "UC-3",
+      "name": "Normalize ingest lifecycle status across producers",
+      "actors": ["SQL ingest jobs", "TS ingest helper", "ops analytics readers"],
+      "preconditions": ["Ingest run starts and reaches terminal outcome"],
+      "steps": ["Insert start run row", "Update terminal row with canonical status vocabulary"],
+      "postconditions": ["Ops queries and alerts consume one status contract"],
+      "requirements": ["REQ-003"]
+    },
+    {
+      "id": "UC-4",
+      "name": "Approval-gated training and promotion execution",
+      "actors": ["pipeline operator", "train phase", "promote phase"],
+      "preconditions": ["Non-dry execution requested"],
+      "steps": ["Dispatch phase via pipeline.run_phase", "Enforce approved flag requirement"],
+      "postconditions": ["Unauthorized non-dry train/promote execution is blocked"],
+      "requirements": ["REQ-004"]
+    },
+    {
+      "id": "UC-5",
+      "name": "Route degraded-mode transparency under trusted-pull failure",
+      "actors": ["AI-first route consumers"],
+      "preconditions": ["Runtime trusted-market pull fails or degrades"],
+      "steps": ["Attempt pull", "Emit fallback payload with provenance metadata"],
+      "postconditions": ["Consumers can distinguish degraded mode from fully fresh output"],
+      "requirements": ["REQ-005"]
+    },
+    {
+      "id": "UC-6",
+      "name": "Operator startup docs stay aligned with authority rules",
+      "actors": ["maintainers", "new operators"],
+      "preconditions": ["Startup/onboarding documentation is consulted"],
+      "steps": ["Read root docs", "Cross-check with V16 authority docs"],
+      "postconditions": ["No conflicting hardcoded-port startup assumptions remain"],
+      "requirements": ["REQ-006"]
+    },
+    {
+      "id": "UC-7",
+      "name": "Write bug writeups to canonical path",
+      "actors": ["reconciliation executor"],
+      "preconditions": ["BUG record confirmed"],
+      "steps": ["Emit BUG-<id>.md under quality/writeups"],
+      "postconditions": ["Writeup path contract satisfied"],
+      "requirements": ["REQ-007"]
+    },
+    {
+      "id": "UC-8",
+      "name": "Write fix patches to canonical path",
+      "actors": ["reconciliation executor"],
+      "preconditions": ["Fix patch created"],
+      "steps": ["Emit BUG-<id>-fix.patch under quality/patches"],
+      "postconditions": ["Fix patch path contract satisfied"],
+      "requirements": ["REQ-008"]
+    },
+    {
+      "id": "UC-9",
+      "name": "Write regression-test patches to canonical path",
+      "actors": ["reconciliation executor"],
+      "preconditions": ["Regression-test patch created"],
+      "steps": ["Emit BUG-<id>-regression-test.patch under quality/patches"],
+      "postconditions": ["Regression-test patch path contract satisfied"],
+      "requirements": ["REQ-009"]
+    },
+    {
+      "id": "UC-10",
+      "name": "Store code review outputs in canonical directory",
+      "actors": ["Phase 3 executor"],
+      "preconditions": ["Code review pass outputs generated"],
+      "steps": ["Save review artifacts to quality/code_reviews"],
+      "postconditions": ["Code review artifacts are discoverable at canonical path"],
+      "requirements": ["REQ-010"]
+    },
+    {
+      "id": "UC-11",
+      "name": "Store spec audit outputs in canonical directory",
+      "actors": ["Phase 4 executor"],
+      "preconditions": ["Auditor and triage outputs generated"],
+      "steps": ["Save audit artifacts to quality/spec_audits"],
+      "postconditions": ["Spec audit artifacts are discoverable at canonical path"],
+      "requirements": ["REQ-011"]
+    },
+    {
+      "id": "UC-12",
+      "name": "Store sidecar JSON results in canonical directory",
+      "actors": ["Phase 4/5/6 executors"],
+      "preconditions": ["Sidecar JSON result files generated"],
+      "steps": ["Save result JSON files to quality/results"],
+      "postconditions": ["Sidecar JSON location contract satisfied"],
+      "requirements": ["REQ-012"]
+    },
+    {
+      "id": "UC-13",
+      "name": "Store and execute mechanical verification artifacts",
+      "actors": ["Phase 2 executor"],
+      "preconditions": ["Enumeration/dispatch contracts detected"],
+      "steps": ["Emit verify.sh and case files under quality/mechanical", "Execute verify.sh and record receipt"],
+      "postconditions": ["Mechanical artifact contract satisfied"],
+      "requirements": ["REQ-013"]
+    },
+    {
+      "id": "UC-14",
+      "name": "Preserve canonical top-level quality layout",
+      "actors": ["all phase executors"],
+      "preconditions": ["Artifact generation in progress"],
+      "steps": ["Write artifacts to top-level quality subdirectories", "Do not create quality/workspace"],
+      "postconditions": ["Workspace-forbidden gate condition satisfied"],
+      "requirements": ["REQ-014"]
+    }
+  ]
+}

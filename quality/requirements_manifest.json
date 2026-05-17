@@ -1,0 +1,248 @@
+{
+  "schema_version": "1.5.7",
+  "generated_at": "2026-05-17T03:07:25Z",
+  "records": [
+    {
+      "id": "REQ-001",
+      "title": "Intraday fallback execution parity",
+      "functional_section": "Intraday Data Contract Fidelity",
+      "tier": 3,
+      "source_type": "code-derived",
+      "pattern": "parity",
+      "statement": "app/api/zl/intraday must execute the declared 15m->1m fallback behavior when primary query returns no usable bars.",
+      "references": [
+        "app/api/zl/intraday/route.ts:16-23",
+        "supabase/migrations/202603180002_mkt.sql:18-19"
+      ],
+      "linked_use_cases": ["UC-1"],
+      "acceptance_criteria": [
+        "Route contains an executable fallback query to mkt.price_1m when mkt.price_15m is unusable.",
+        "Response source metadata reflects the table actually used.",
+        "Fallback behavior is mechanically testable by source-level contract assertions."
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "title": "Forecast-target envelope parity",
+      "functional_section": "Forecast API Contract Consistency",
+      "tier": 3,
+      "source_type": "code-derived",
+      "pattern": "parity",
+      "statement": "Forecast target endpoints must expose one stable envelope contract for equivalent semantic payloads.",
+      "references": [
+        "app/api/zl/target-zones/route.ts:80-87",
+        "app/api/zl/forecast-targets/route.ts:103-106",
+        "components/dashboard/ProbabilitySurface.tsx:62-83"
+      ],
+      "linked_use_cases": ["UC-2.a", "UC-2.b"],
+      "acceptance_criteria": [
+        "Forecast-target routes emit a canonical envelope or publish explicit typed adapters used by all consumers.",
+        "Success and error payload semantics are shared across equivalent domain endpoints.",
+        "Horizon normalization behavior remains equivalent across forecast-facing routes."
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "title": "Canonical ops.ingest_run status vocabulary",
+      "functional_section": "Ingestion Observability Contracts",
+      "tier": 3,
+      "source_type": "code-derived",
+      "pattern": "compensation",
+      "statement": "All writers to ops.ingest_run.status must share one canonical status vocabulary.",
+      "references": [
+        "supabase/migrations/202603180009_ops_vegas.sql:3-8",
+        "supabase/migrations/20260414001_ingest_zl_intraday.sql:138-141",
+        "supabase/migrations/202605080003_supabase_trusted_site_fill_hourly.sql:55-57",
+        "lib/server/ingest-run.ts:3-4"
+      ],
+      "linked_use_cases": ["UC-3"],
+      "acceptance_criteria": [
+        "SQL and TS writers use one status enum/value set.",
+        "Lifecycle rows are comparable without producer-specific translation.",
+        "Terminal success/failure statuses are normalized across writer paths."
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "title": "Explicit approval gate for training and promotion",
+      "functional_section": "Model Execution Safety Gates",
+      "tier": 3,
+      "source_type": "code-derived",
+      "pattern": "whitelist",
+      "statement": "Training and cloud promotion execution requires explicit approval in non-dry runs.",
+      "references": [
+        "python/fusion/pipeline.py:46-58",
+        "python/fusion/train_models.py:770-773",
+        "python/fusion/promote_to_cloud.py:172-173"
+      ],
+      "linked_use_cases": ["UC-4"],
+      "acceptance_criteria": [
+        "Non-dry train path blocks execution when approved flag is false.",
+        "Non-dry promote path blocks execution when approved flag is false.",
+        "Approval flags propagate unchanged through pipeline dispatch."
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "title": "Runtime external pull resilience on AI-first routes",
+      "functional_section": "AI Snapshot and Runtime Source Resilience",
+      "tier": 3,
+      "source_type": "code-derived",
+      "statement": "User-facing AI-first routes that perform runtime trusted-market pulls must preserve explicit degraded-mode behavior and fallback metadata.",
+      "references": [
+        "app/api/strategy/posture/route.ts:142-169",
+        "app/api/sentiment/overview/route.ts:188-193",
+        "app/api/legislation/feed/route.ts:261-266",
+        "app/api/vegas/intel/route.ts:169-174"
+      ],
+      "linked_use_cases": ["UC-5"],
+      "acceptance_criteria": [
+        "Routes preserve explicit fallback behavior when runtime pulls fail.",
+        "Responses expose provenance metadata sufficient to identify degraded mode.",
+        "Pull failures do not return opaque payloads that appear fully fresh."
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "title": "Operator documentation parity with authority rules",
+      "functional_section": "Operational Documentation Integrity",
+      "tier": 3,
+      "source_type": "code-derived",
+      "statement": "Operator-facing docs must not contain startup guidance that conflicts with V16 authority rules, including hardcoded port assumptions.",
+      "references": [
+        "README.md:1-4",
+        "README.md:95",
+        "AGENTS.md:53",
+        "docs/INDEX.md:3-10"
+      ],
+      "linked_use_cases": ["UC-6"],
+      "acceptance_criteria": [
+        "Root docs avoid hardcoded localhost:3000 startup assumptions.",
+        "Onboarding docs remain consistent with authority startup constraints."
+      ]
+    },
+    {
+      "id": "REQ-007",
+      "title": "Per-bug writeup artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Per-bug writeups are placed at quality/writeups/BUG-<id>.md.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-7"],
+      "acceptance_criteria": [
+        "Each confirmed bug has one writeup file under quality/writeups with BUG-<id>.md naming."
+      ]
+    },
+    {
+      "id": "REQ-008",
+      "title": "Fix patch artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Fix patches are placed at quality/patches/BUG-<id>-fix.patch.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-8"],
+      "acceptance_criteria": [
+        "Each fix patch artifact resides in quality/patches using BUG-<id>-fix.patch naming."
+      ]
+    },
+    {
+      "id": "REQ-009",
+      "title": "Regression-test patch artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Regression-test patches are placed at quality/patches/BUG-<id>-regression-test.patch.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-9"],
+      "acceptance_criteria": [
+        "Each regression-test patch artifact resides in quality/patches using BUG-<id>-regression-test.patch naming."
+      ]
+    },
+    {
+      "id": "REQ-010",
+      "title": "Code review output artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Code review output is placed at quality/code_reviews/.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-10"],
+      "acceptance_criteria": [
+        "Code review reports are saved under quality/code_reviews/."
+      ]
+    },
+    {
+      "id": "REQ-011",
+      "title": "Spec audit output artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Spec audit outputs (auditor reports + triage) are placed at quality/spec_audits/.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-11"],
+      "acceptance_criteria": [
+        "Auditor reports and triage outputs are saved under quality/spec_audits/."
+      ]
+    },
+    {
+      "id": "REQ-012",
+      "title": "Sidecar JSON artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Sidecar JSON results (tdd-results.json, integration-results.json, recheck-results.json) are placed at quality/results/.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-12"],
+      "acceptance_criteria": [
+        "Sidecar JSON result files are saved under quality/results/."
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "title": "Mechanical-verification artifact location",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "Mechanical-verification artifacts (verify.sh + *_cases.txt) are placed at quality/mechanical/.",
+      "references": [
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:659"
+      ],
+      "linked_use_cases": ["UC-13"],
+      "acceptance_criteria": [
+        "quality/mechanical/verify.sh exists and executes successfully.",
+        "All case extraction artifacts are colocated in quality/mechanical/."
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "title": "Forbidden workspace subtree",
+      "functional_section": "Canonical Quality Artifact Layout",
+      "tier": 3,
+      "source_type": "reference-file",
+      "statement": "quality/workspace/<name>/ is forbidden — top-level quality/<name>/ is the only canonical layout. Phase 6 gate check_no_workspace_dir fails any run with a quality/workspace/ tree present (populated OR empty — empty workspace/ trains future-iteration agents on the wrong layout and is rejected too).",
+      "references": [
+        ".claude/skills/quality-playbook/SKILL.md:149",
+        ".claude/skills/quality-playbook/references/phase2_generation_guide.md:649-659"
+      ],
+      "linked_use_cases": ["UC-14"],
+      "acceptance_criteria": [
+        "No quality/workspace directory exists.",
+        "All generated artifacts are stored directly under top-level quality subdirectories."
+      ]
+    }
+  ]
+}

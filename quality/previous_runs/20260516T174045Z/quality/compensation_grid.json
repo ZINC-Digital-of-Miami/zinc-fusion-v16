@@ -1,0 +1,203 @@
+{
+  "schema_version": "1.5.2",
+  "reqs": {
+    "REQ-001": {
+      "pattern": "parity",
+      "items": [
+        "RUN_ID_LIFECYCLE",
+        "STATUS_VOCAB_CANONICAL"
+      ],
+      "sites": [
+        "GLOBAL"
+      ],
+      "cells": [
+        {
+          "cell_id": "REQ-001/cell-RUN_ID_LIFECYCLE-GLOBAL",
+          "item": "RUN_ID_LIFECYCLE",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "supabase/migrations/20260414001_ingest_zl_intraday.sql:50-52,90-92,138-140,218-220"
+        },
+        {
+          "cell_id": "REQ-001/cell-STATUS_VOCAB_CANONICAL-GLOBAL",
+          "item": "STATUS_VOCAB_CANONICAL",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "lib/server/ingest-run.ts:3,17,38,58; supabase/migrations/20260414001_ingest_zl_intraday.sql:51,91,139,219; supabase/migrations/202605080003_supabase_trusted_site_fill_hourly.sql:56,365,382"
+        }
+      ]
+    },
+    "REQ-002": {
+      "pattern": "whitelist",
+      "items": [
+        "NO_CRON_ROUTE_BYPASS",
+        "NO_CRON_ROUTE_ENFORCEMENT"
+      ],
+      "sites": [
+        "GLOBAL"
+      ],
+      "cells": [
+        {
+          "cell_id": "REQ-002/cell-NO_CRON_ROUTE_BYPASS-GLOBAL",
+          "item": "NO_CRON_ROUTE_BYPASS",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "lib/supabase/proxy.ts:15-17,39-42"
+        },
+        {
+          "cell_id": "REQ-002/cell-NO_CRON_ROUTE_ENFORCEMENT-GLOBAL",
+          "item": "NO_CRON_ROUTE_ENFORCEMENT",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "scripts/verify/gate3.sh:5"
+        }
+      ]
+    },
+    "REQ-004": {
+      "pattern": "parity",
+      "items": [
+        "WARNING_OPTIONAL_SEMANTICS",
+        "ENVELOPE_FAMILY_CONSISTENCY",
+        "EXCEPTION_DOCUMENTED_AND_PARITY_TESTED"
+      ],
+      "sites": [
+        "GLOBAL"
+      ],
+      "cells": [
+        {
+          "cell_id": "REQ-004/cell-WARNING_OPTIONAL_SEMANTICS-GLOBAL",
+          "item": "WARNING_OPTIONAL_SEMANTICS",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "lib/contracts/api.ts:8; scripts/verify/gate6.sh:79,99,120,138,154,170"
+        },
+        {
+          "cell_id": "REQ-004/cell-ENVELOPE_FAMILY_CONSISTENCY-GLOBAL",
+          "item": "ENVELOPE_FAMILY_CONSISTENCY",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "app/api/zl/forecast-targets/route.ts:54-57,61-64,97-100"
+        },
+        {
+          "cell_id": "REQ-004/cell-EXCEPTION_DOCUMENTED_AND_PARITY_TESTED-GLOBAL",
+          "item": "EXCEPTION_DOCUMENTED_AND_PARITY_TESTED",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "app/api/zl/forecast-targets/route.ts:54-57,97-100; scripts/verify/gate6.sh:69-181"
+        }
+      ]
+    },
+    "REQ-005": {
+      "pattern": "compensation",
+      "items": [
+        "EMIT_MIN_MAX_AND_MIXED_VINTAGE",
+        "UI_MIXED_VINTAGE_LABELING",
+        "NO_OLDEST_AS_CANONICAL_FRESHNESS"
+      ],
+      "sites": [
+        "GLOBAL"
+      ],
+      "cells": [
+        {
+          "cell_id": "REQ-005/cell-EMIT_MIN_MAX_AND_MIXED_VINTAGE-GLOBAL",
+          "item": "EMIT_MIN_MAX_AND_MIXED_VINTAGE",
+          "site": "GLOBAL",
+          "present": true,
+          "evidence": "app/api/dashboard/risk-factors/route.ts:815-819"
+        },
+        {
+          "cell_id": "REQ-005/cell-UI_MIXED_VINTAGE_LABELING-GLOBAL",
+          "item": "UI_MIXED_VINTAGE_LABELING",
+          "site": "GLOBAL",
+          "present": true,
+          "evidence": "components/dashboard/MarketRiskFactors.tsx:64-77"
+        },
+        {
+          "cell_id": "REQ-005/cell-NO_OLDEST_AS_CANONICAL_FRESHNESS-GLOBAL",
+          "item": "NO_OLDEST_AS_CANONICAL_FRESHNESS",
+          "site": "GLOBAL",
+          "present": false,
+          "evidence": "app/api/dashboard/risk-factors/route.ts:715-718"
+        }
+      ]
+    },
+    "REQ-006": {
+      "pattern": "parity",
+      "items": [
+        "AG_HORIZON_SET_30_90_180",
+        "LEGACY_MAP_7_14_30",
+        "UNKNOWN_HORIZON_LOGGING"
+      ],
+      "sites": [
+        "FORECAST",
+        "TARGET_ZONES",
+        "FORECAST_TARGETS"
+      ],
+      "cells": [
+        {
+          "cell_id": "REQ-006/cell-AG_HORIZON_SET_30_90_180-FORECAST",
+          "item": "AG_HORIZON_SET_30_90_180",
+          "site": "FORECAST",
+          "present": true,
+          "evidence": "app/api/zl/forecast/route.ts:6"
+        },
+        {
+          "cell_id": "REQ-006/cell-AG_HORIZON_SET_30_90_180-TARGET_ZONES",
+          "item": "AG_HORIZON_SET_30_90_180",
+          "site": "TARGET_ZONES",
+          "present": true,
+          "evidence": "app/api/zl/target-zones/route.ts:6"
+        },
+        {
+          "cell_id": "REQ-006/cell-AG_HORIZON_SET_30_90_180-FORECAST_TARGETS",
+          "item": "AG_HORIZON_SET_30_90_180",
+          "site": "FORECAST_TARGETS",
+          "present": true,
+          "evidence": "app/api/zl/forecast-targets/route.ts:15"
+        },
+        {
+          "cell_id": "REQ-006/cell-LEGACY_MAP_7_14_30-FORECAST",
+          "item": "LEGACY_MAP_7_14_30",
+          "site": "FORECAST",
+          "present": true,
+          "evidence": "app/api/zl/forecast/route.ts:7-11"
+        },
+        {
+          "cell_id": "REQ-006/cell-LEGACY_MAP_7_14_30-TARGET_ZONES",
+          "item": "LEGACY_MAP_7_14_30",
+          "site": "TARGET_ZONES",
+          "present": true,
+          "evidence": "app/api/zl/target-zones/route.ts:7-11"
+        },
+        {
+          "cell_id": "REQ-006/cell-LEGACY_MAP_7_14_30-FORECAST_TARGETS",
+          "item": "LEGACY_MAP_7_14_30",
+          "site": "FORECAST_TARGETS",
+          "present": true,
+          "evidence": "app/api/zl/forecast-targets/route.ts:16-20"
+        },
+        {
+          "cell_id": "REQ-006/cell-UNKNOWN_HORIZON_LOGGING-FORECAST",
+          "item": "UNKNOWN_HORIZON_LOGGING",
+          "site": "FORECAST",
+          "present": false,
+          "evidence": "app/api/zl/forecast/route.ts:61-63"
+        },
+        {
+          "cell_id": "REQ-006/cell-UNKNOWN_HORIZON_LOGGING-TARGET_ZONES",
+          "item": "UNKNOWN_HORIZON_LOGGING",
+          "site": "TARGET_ZONES",
+          "present": false,
+          "evidence": "app/api/zl/target-zones/route.ts:61-63"
+        },
+        {
+          "cell_id": "REQ-006/cell-UNKNOWN_HORIZON_LOGGING-FORECAST_TARGETS",
+          "item": "UNKNOWN_HORIZON_LOGGING",
+          "site": "FORECAST_TARGETS",
+          "present": false,
+          "evidence": "app/api/zl/forecast-targets/route.ts:71-73"
+        }
+      ]
+    }
+  }
+}

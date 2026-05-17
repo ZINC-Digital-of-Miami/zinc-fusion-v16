@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.1",
+  "skill_version": "1.5.7",
+  "date": "2026-05-16",
+  "project": "ZINC-FUSION-V16",
+  "recommendation": "FIX BEFORE MERGE",
+  "groups": [
+    {
+      "group": 1,
+      "name": "Phase 5 reconciliation evidence",
+      "use_cases": ["UC-1", "UC-2", "UC-3", "UC-6"],
+      "result": "fail",
+      "tests_passed": 3,
+      "tests_failed": 3,
+      "notes": "TDD green phase failed for BUG-002, BUG-003, and BUG-006."
+    }
+  ],
+  "summary": {
+    "total_groups": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0
+  },
+  "uc_coverage": {
+    "UC-1": "covered_fail",
+    "UC-2": "covered_fail",
+    "UC-3": "covered_fail",
+    "UC-6": "covered_fail"
+  }
+}

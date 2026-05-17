@@ -1,0 +1,20 @@
+--- a/quality/test_regression.py
++++ b/quality/test_regression.py
+@@ -79,6 +79,17 @@
+ 
+ @pytest.mark.xfail(
+     strict=True,
++    reason="BUG-005: intraday route must either implement 1m fallback or remove fallback claim; unskip after applying quality/patches/BUG-005-fix.patch",
++)
++def test_bug_005_intraday_fallback_claim_matches_implemented_query_path() -> None:
++    route = read_text("app/api/zl/intraday/route.ts")
++    has_fallback_claim = "fall back to 1-minute" in route.lower()
++    has_1m_query = '.from("price_1m")' in route or ".from('price_1m')" in route
++    assert (not has_fallback_claim) or has_1m_query
++
++
++@pytest.mark.xfail(
++    strict=True,
+     reason="BUG-006: warning field optionality must align between contract and parity gate; unskip after applying quality/patches/BUG-006-fix.patch",
+ )
+ def test_bug_006_warning_optional_semantics_are_consistent_between_contract_and_gate() -> None:

@@ -1,0 +1,19 @@
+RED
+command: python3 -m pytest -p no:cacheprovider --runxfail -q quality/tests/test_bug_005_chart_overlay_gate.py::test_bug_005_chart_overlay_gate_is_enabled_when_target_zones_exist
+exit_code: 1
+---
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______ test_bug_005_chart_overlay_gate_is_enabled_when_target_zones_exist ______
+
+    @pytest.mark.xfail(strict=True, reason="BUG-005: remove marker after applying quality/patches/BUG-005-fix.patch")
+    def test_bug_005_chart_overlay_gate_is_enabled_when_target_zones_exist() -> None:
+        source = (ROOT / "components/chart/ZlCandlestickChart.tsx").read_text(encoding="utf-8")
+    
+>       assert "SHOW_FORECAST_TARGET_OVERLAY = true" in source
+E       assert 'SHOW_FORECAST_TARGET_OVERLAY = true' in '"use client";\n\nimport { useEffect, useRef, useState } from "react";\nimport Image from "next/image";\nimport {\n  c... <span className="text-[9px] text-white/40 uppercase">Bear</span>\n        </div>\n      </div>\n    </div>\n  );\n}\n'
+
+quality/tests/test_bug_005_chart_overlay_gate.py:13: AssertionError
+=========================== short test summary info ============================
+FAILED quality/tests/test_bug_005_chart_overlay_gate.py::test_bug_005_chart_overlay_gate_is_enabled_when_target_zones_exist
+1 failed in 0.03s

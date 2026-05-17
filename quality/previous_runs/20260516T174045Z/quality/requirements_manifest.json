@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.5.6",
+  "generated_at": "2026-05-16T16:30:00Z",
+  "records": [
+    {
+      "id": "REQ-001",
+      "title": "ops.ingest_run normalized run contract",
+      "functional_section": "Ingestion Observability and Lifecycle Contracts",
+      "tier": 3,
+      "pattern": "parity",
+      "statement": "All ingest writers must use one run-id lifecycle contract with canonical statuses.",
+      "references": [
+        "supabase/migrations/202603180009_ops_vegas.sql:3-14",
+        "supabase/migrations/20260414001_ingest_zl_intraday.sql:50-52",
+        "supabase/migrations/202605080003_supabase_trusted_site_fill_hourly.sql:55-57",
+        "lib/server/ingest-run.ts:3-4"
+      ],
+      "linked_use_cases": ["UC-01"],
+      "acceptance_criteria": [
+        "Every writer uses run_id for insert/update lifecycle rows.",
+        "Status vocabulary is canonical across SQL and TS writers.",
+        "Error paths produce terminal telemetry rows."
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "title": "No /api/cron requirement in auth/gates",
+      "functional_section": "Architecture Policy and Verification Alignment",
+      "tier": 3,
+      "pattern": "whitelist",
+      "statement": "Middleware and gates must align to pg_cron-only architecture without /api/cron assumptions.",
+      "references": [
+        "AGENTS.md:44-45",
+        "AGENTS.md:149-160",
+        "lib/supabase/proxy.ts:15-42",
+        "scripts/verify/gate3.sh:5"
+      ],
+      "linked_use_cases": ["UC-02"],
+      "acceptance_criteria": [
+        "No route-level auth exception depends on /api/cron path.",
+        "Verification gate validates architecture policy without route-presence checks."
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "title": "Intraday fallback contract fidelity",
+      "functional_section": "Intraday Data Contract Fidelity",
+      "tier": 3,
+      "statement": "Intraday route comments and implementation must agree on fallback semantics.",
+      "references": [
+        "app/api/zl/intraday/route.ts:10-16",
+        "supabase/migrations/202603180002_mkt.sql:17-20"
+      ],
+      "linked_use_cases": ["UC-03"],
+      "acceptance_criteria": [
+        "Fallback is implemented when claimed, or claim is removed.",
+        "Response metadata makes active source path explicit."
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "title": "Envelope semantics parity across contract/routes/gate",
+      "functional_section": "API Envelope and Parity Contract Consistency",
+      "tier": 3,
+      "pattern": "parity",
+      "statement": "API contract types, route payloads, and parity checks must agree on required and optional envelope fields.",
+      "references": [
+        "lib/contracts/api.ts:3-9",
+        "scripts/verify/gate6.sh:74-80",
+        "app/api/zl/live/route.ts:28-33",
+        "app/api/zl/target-zones/route.ts:74-79",
+        "app/api/zl/forecast-targets/route.ts:97-100"
+      ],
+      "linked_use_cases": ["UC-04"],
+      "acceptance_criteria": [
+        "Optional warning field remains optional everywhere.",
+        "Shared envelope shape is enforced consistently by route and gate surfaces."
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "title": "Mixed-vintage freshness transparency",
+      "functional_section": "Freshness Transparency for Procurement Decisions",
+      "tier": 3,
+      "pattern": "compensation",
+      "statement": "Risk-factor freshness must expose mixed-vintage state without misleading canonical freshness labels.",
+      "references": [
+        "app/api/dashboard/risk-factors/route.ts:715-719",
+        "app/api/dashboard/risk-factors/route.ts:815-819",
+        "components/dashboard/MarketRiskFactors.tsx:64-77",
+        "components/dashboard/MarketRiskFactors.tsx:357-358"
+      ],
+      "linked_use_cases": ["UC-05"],
+      "acceptance_criteria": [
+        "Payload includes as_of_date_min, as_of_date_max, and mixed_vintage.",
+        "UI freshness messaging reflects degraded mixed-vintage mode explicitly."
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "title": "Forecast horizon normalization parity",
+      "functional_section": "Forecast Horizon Normalization Consistency",
+      "tier": 3,
+      "pattern": "parity",
+      "statement": "All forecast-facing endpoints must apply identical horizon normalization logic.",
+      "references": [
+        "app/api/zl/forecast/route.ts:13-24",
+        "app/api/zl/target-zones/route.ts:13-24",
+        "app/api/zl/forecast-targets/route.ts:22-33"
+      ],
+      "linked_use_cases": ["UC-06.a", "UC-06.b", "UC-06.c"],
+      "acceptance_criteria": [
+        "Endpoints share AG_HORIZON_DAYS allowlist and LEGACY_HORIZON_MAP values.",
+        "Legacy remap and unknown-horizon filtering behavior are equivalent."
+      ]
+    }
+  ]
+}

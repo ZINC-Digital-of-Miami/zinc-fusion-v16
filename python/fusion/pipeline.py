@@ -1,32 +1,31 @@
 from __future__ import annotations
 
 import argparse
+from importlib import import_module
 from typing import Callable
-
-from . import build_matrix
-from . import generate_forward_forecasts
-from . import generate_specialist_features
-from . import generate_specialist_signals
-from . import generate_target_zones
-from . import promote_to_cloud
-from . import run_garch
-from . import run_monte_carlo
-from . import training_readiness_gate
-from . import train_models
 
 PhaseFn = Callable[..., dict[str, object]]
 
+
+def lazy_phase(module_name: str) -> PhaseFn:
+    def run(**kwargs: object) -> dict[str, object]:
+        module = import_module(f".{module_name}", __package__)
+        return module.run(**kwargs)
+
+    return run
+
+
 PHASE_MAP: dict[str, PhaseFn] = {
-    "matrix": build_matrix.run,
-    "specialists": generate_specialist_features.run,
-    "signals": generate_specialist_signals.run,
-    "train-readiness": training_readiness_gate.run,
-    "train": train_models.run,
-    "forecast": generate_forward_forecasts.run,
-    "monte-carlo": run_monte_carlo.run,
-    "garch": run_garch.run,
-    "target-zones": generate_target_zones.run,
-    "promote": promote_to_cloud.run,
+    "matrix": lazy_phase("build_matrix"),
+    "specialists": lazy_phase("generate_specialist_features"),
+    "signals": lazy_phase("generate_specialist_signals"),
+    "train-readiness": lazy_phase("training_readiness_gate"),
+    "train": lazy_phase("train_models"),
+    "forecast": lazy_phase("generate_forward_forecasts"),
+    "monte-carlo": lazy_phase("run_monte_carlo"),
+    "garch": lazy_phase("run_garch"),
+    "target-zones": lazy_phase("generate_target_zones"),
+    "promote": lazy_phase("promote_to_cloud"),
 }
 
 PIPELINE_ORDER = [

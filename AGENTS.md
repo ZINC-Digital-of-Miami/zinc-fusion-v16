@@ -49,7 +49,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 10. **Landing page is sacred.** REWRITE from scratch using legacy baseline as visual reference — preserve the design identity. NEVER copy legacy baseline code.
 11. **ZERO mock data.** No placeholders, no temps, no demo/synthetic/random data anywhere, ever. Empty state until real data flows. This is the HARDEST rule.
 12. **ZERO code copying.** Every line of V16 is written fresh. legacy baseline is a visual reference only. Clone-and-clean failed catastrophically — never again.
-13. **No local Supabase / No Docker.** Cloud Supabase is canonical. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Local PostgreSQL is permitted only as the AG training-source staging database, never as canonical warehouse or local Supabase replacement.
+13. **Cloud Supabase only.** Cloud Supabase is canonical. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Local PostgreSQL is permitted only as the AG training-source staging database, never as canonical warehouse or local Supabase replacement.
 14. **No hardcoded port 3000.** Dev server port must be checked for availability first.
 15. **Design holdoff exception (locked 2026-05-07).** For page parity work, do not redesign. Reproduce locked source visuals exactly.
 16. **Locked page authority map (2026-05-07):** Strategy=V16, Vegas Intel=V16, Dashboard=V15, Legislation=V15, Sentiment=V15.
@@ -73,6 +73,9 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 7. **Brainstorm before building.** Use the superpowers brainstorming skill for any non-trivial feature.
 8. **Verify before claiming done.** Use the superpowers verification skill.
 9. **Checkpoint before implementation.** For non-trivial planning work, audit repo reality first, structure the plan as numbered decision checkpoints, run one Ralph Loop per checkpoint, and update docs after each locked decision.
+10. **Fail-closed completion.** Read `docs/INDEX.md`, `docs/MASTER_PLAN.md`, and `docs/agent-safety-gates.md` at startup. If any required check is `FAIL`, `NOT RUN`, warning-only, or aborted, report `STATUS: INCOMPLETE`.
+11. **Source and generated artifacts are separate lanes.** Source/config/tooling changes require generated `quality/` artifacts to be regenerated and verified before quality can be claimed current.
+12. **Docs/contracts update in the same change.** Any behavior, config, schema, gate, or operational-truth change must update the relevant docs/contracts in the same change.
 
 ### Security Rules
 
@@ -144,7 +147,7 @@ supabase db push
 supabase db diff --linked
 ```
 
-Never do manual DDL on cloud. Migrations are the single source of truth. No `supabase status`, no `supabase start`, and no local Supabase or Docker workflow.
+Never do manual DDL on cloud. Migrations are the single source of truth. No `supabase status`, no `supabase start`, and no local Supabase workflow.
 
 ### Data Ingestion Pattern (pg_cron + http extension)
 

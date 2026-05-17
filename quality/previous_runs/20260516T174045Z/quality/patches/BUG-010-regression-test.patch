@@ -1,0 +1,17 @@
+--- a/quality/test_regression.py
++++ b/quality/test_regression.py
+@@ -145,3 +145,14 @@ def test_bug_009_unknown_horizons_are_not_silently_dropped() -> None:
+     for relpath in files:
+         text = read_text(relpath)
+         assert silent_drop.search(text) is None, relpath
++
++
++@pytest.mark.xfail(
++    strict=True,
++    reason="BUG-010: trusted-site-fill failure path must close the same run_id opened for that invocation; unskip after applying quality/patches/BUG-010-fix.patch",
++)
++def test_bug_010_trusted_site_fill_failure_updates_same_run_id() -> None:
++    script = read_text("scripts/fill_site_with_trusted_data.py")
++
++    # Contract: success and failure paths both key terminal updates to the active run_id.
++    assert "WHERE run_id = (" not in script

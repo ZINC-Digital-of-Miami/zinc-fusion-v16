@@ -25,10 +25,34 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "proxy.ts",
+    "next.config.ts",
+    "tailwind.config.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".claude",
+    ".github",
+    ".kilo",
+    ".next-stuck",
+    "Data",
+    "docs",
+    "logs",
+    "models",
+    "python",
+    "quality",
+    "reference_docs",
+    "scripts",
+    "supabase"
+  ]
 }

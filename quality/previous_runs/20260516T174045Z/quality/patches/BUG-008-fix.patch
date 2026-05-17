@@ -1,0 +1,11 @@
+--- a/app/api/dashboard/risk-factors/route.ts
++++ b/app/api/dashboard/risk-factors/route.ts
+@@ -714,7 +714,7 @@ export async function GET() {
+       .sort();
+     const asOfDateMin = allDates[0] ?? null;
+     const asOfDateMax = allDates[allDates.length - 1] ?? null;
+-    const asOfDate = asOfDateMin;
++    const asOfDate = asOfDateMax ?? asOfDateMin;
+     const mixedVintage = Boolean(asOfDateMin && asOfDateMax && asOfDateMin !== asOfDateMax);
+ 
+     const mergeDriver = (

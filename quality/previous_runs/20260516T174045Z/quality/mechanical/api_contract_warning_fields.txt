@@ -1,0 +1,2 @@
+3:export interface ApiEnvelope<T> {
+8:  warning?: string;

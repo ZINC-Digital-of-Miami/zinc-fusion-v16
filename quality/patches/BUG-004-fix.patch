@@ -1,0 +1,11 @@
+--- a/README.md
++++ b/README.md
+@@ -92,7 +92,7 @@
+    npm run dev
+    ```
+ 
+-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
++   The development server starts on the first available local port. Use the terminal output URL instead of assuming port 3000.
+ 
+ 6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+ 
