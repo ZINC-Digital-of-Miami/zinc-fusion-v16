@@ -2,7 +2,7 @@
   "$schema": "https://app.kilo.ai/config.json",
   "logLevel": "INFO",
   "model": "openai/gpt-5.5",
-  "small_model": "openai/gpt-5.5",
+  "small_model": "openai/gpt-5.4-mini",
   "enabled_providers": ["openai"],
   "provider": {
     "openai": {
