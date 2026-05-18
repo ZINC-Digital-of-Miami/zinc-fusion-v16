@@ -153,6 +153,17 @@ class FusionGuardContractTest(unittest.TestCase):
         self.assertIn("components", lint)
         self.assertIn("lib", lint)
 
+    def test_next_request_hook_uses_proxy_convention_for_local_build_trace(self):
+        package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+        tsconfig = json.loads((ROOT / "tsconfig.json").read_text(encoding="utf-8"))
+
+        self.assertTrue((ROOT / "proxy.ts").is_file())
+        self.assertFalse((ROOT / "middleware.ts").exists())
+        self.assertIn("proxy.ts", package["scripts"]["lint"])
+        self.assertNotIn("middleware.ts", package["scripts"]["lint"])
+        self.assertIn("proxy.ts", tsconfig["include"])
+        self.assertNotIn("middleware.ts", tsconfig["include"])
+
     def test_next_scripts_use_local_wrapper_to_avoid_native_macos_swc_prompt(self):
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         wrapper = (ROOT / "scripts/next-local.js").read_text(encoding="utf-8")
@@ -163,6 +174,7 @@ class FusionGuardContractTest(unittest.TestCase):
         self.assertIn("node scripts/next-local.js dev --webpack", package["scripts"]["dev"])
         self.assertIn("NEXT_TEST_WASM", wrapper)
         self.assertIn("NEXT_NATIVE_SWC_ALLOWED", wrapper)
+        self.assertIn('The "middleware" file convention is deprecated', wrapper)
         self.assertNotIn("next/font", layout)
 
     def test_eslint_ignores_generated_and_tooling_trees(self):

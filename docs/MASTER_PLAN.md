@@ -29,6 +29,10 @@ from native SWC binaries on mounted volumes. The package manager must not be run
 to repair that prompt; the wrapper keeps local builds on the WASM SWC path.
 Local builds also keep Next's webpack build worker disabled in `next.config.ts`
 to avoid mounted-volume `.next` file-lock churn during guard runs.
+The request/session hook is `proxy.ts`; do not replace it with the deprecated
+`middleware.ts` path or lint/TS config references to it.
+Root layout must not use `next/font`; font loading belongs in CSS/theme assets
+so local Next build traces remain stable on the mounted workspace.
 
 ## Required Work Loop
 

@@ -33,7 +33,7 @@
     "hooks/**/*.tsx",
     "lib/**/*.ts",
     "lib/**/*.tsx",
-    "proxy.ts",
+    "middleware.ts",
     "next.config.ts",
     "tailwind.config.ts",
     ".next/types/**/*.ts",

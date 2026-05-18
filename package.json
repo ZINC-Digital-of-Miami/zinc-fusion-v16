@@ -4,7 +4,7 @@
     "dev": "node scripts/next-local.js dev --webpack",
     "build": "node scripts/next-local.js build --webpack",
     "start": "next start",
-    "lint": "eslint app components hooks lib proxy.ts next.config.ts tailwind.config.ts eslint.config.mjs --max-warnings=0",
+    "lint": "eslint app components hooks lib middleware.ts next.config.ts tailwind.config.ts eslint.config.mjs --max-warnings=0",
     "guard:pre-commit": "python3 scripts/fusion_guard.py pre-commit",
     "guard:pre-push": "python3 scripts/fusion_guard.py pre-push",
     "guard:completion": "python3 scripts/fusion_guard.py completion"

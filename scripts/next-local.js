@@ -21,6 +21,16 @@ const child = spawn(process.execPath, [nextBin, ...args], {
   stdio: ["inherit", "pipe", "pipe"],
 });
 
+const filteredWarnings = [
+  "experimental.useWasmBinary is not an option",
+  'The "middleware" file convention is deprecated',
+  "https://nextjs.org/docs/messages/middleware-to-proxy",
+];
+
+function shouldFilter(line) {
+  return filteredWarnings.some((warning) => line.includes(warning));
+}
+
 function forwardFiltered(stream, target) {
   let buffer = "";
   stream.on("data", (chunk) => {
@@ -28,14 +38,14 @@ function forwardFiltered(stream, target) {
     const lines = buffer.split(/\r?\n/);
     buffer = lines.pop() || "";
     for (const line of lines) {
-      if (line.includes("experimental.useWasmBinary is not an option")) {
+      if (shouldFilter(line)) {
         continue;
       }
       target.write(`${line}\n`);
     }
   });
   stream.on("end", () => {
-    if (buffer && !buffer.includes("experimental.useWasmBinary is not an option")) {
+    if (buffer && !shouldFilter(buffer)) {
       target.write(buffer);
     }
   });

@@ -1,16 +1,10 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
-import { Inter } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import Header from '@/components/Header';
 import { TooltipProvider } from '@/components/ui/tooltip';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 function resolveMetadataBase(): URL {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -32,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en">
       <body>
         <ThemeProvider
           attribute="class"
