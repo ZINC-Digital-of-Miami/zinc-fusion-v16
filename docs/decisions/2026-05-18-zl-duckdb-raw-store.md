@@ -26,8 +26,8 @@ The project volume may not support DuckDB file locks. The refresh pipeline must 
 
 ## Boundaries
 
-- No Supabase migration is required for this repair.
-- No `supabase db push` is required for chart-data freshness repair.
+- Follow-up hardening may use Supabase migration(s) that keep chart serving on Supabase while preserving DuckDB as raw recovery/training storage.
+- No `supabase db push` is required unless explicitly approved.
 - No Vercel cron route is introduced.
 - No local Supabase is introduced.
 - No model training is authorized by this decision.

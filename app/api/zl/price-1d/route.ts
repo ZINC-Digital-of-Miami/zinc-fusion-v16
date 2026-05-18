@@ -17,7 +17,10 @@ function dayKey(tsIso: string): string {
   return tsIso.slice(0, 10);
 }
 
-function buildLatestDatabentoDailyFromHourly(rows: PriceRow[]): ZlPriceBar | null {
+function buildLatestDatabentoDailyFromIntraday(
+  rows: PriceRow[],
+  { symbol }: { symbol: string },
+): ZlPriceBar | null {
   if (rows.length === 0) return null;
 
   const latestDay = dayKey(rows[0].bucket_ts);
@@ -59,7 +62,7 @@ function buildLatestDatabentoDailyFromHourly(rows: PriceRow[]): ZlPriceBar | nul
   }
 
   return {
-    symbol: "ZL",
+    symbol,
     tradeDate: `${latestDay}T00:00:00+00:00`,
     open,
     high,
@@ -92,29 +95,49 @@ export async function GET() {
 
     const bars: ZlPriceBar[] = (rows ?? [])
       .map((row) => ({
-      symbol: row.symbol,
-      tradeDate: row.bucket_ts,
-      open: Number(row.open),
-      high: Number(row.high),
-      low: Number(row.low),
-      close: Number(row.close),
-      volume: Number(row.volume),
+        symbol: row.symbol,
+        tradeDate: row.bucket_ts,
+        open: Number(row.open),
+        high: Number(row.high),
+        low: Number(row.low),
+        close: Number(row.close),
+        volume: Number(row.volume),
       }))
       .sort(
         (a, b) => new Date(a.tradeDate).getTime() - new Date(b.tradeDate).getTime(),
       );
 
-    const { data: hourlyRows } = await supabase
-      .schema("mkt")
-      .from("price_1h")
-      .select("symbol, bucket_ts, open, high, low, close, volume")
-      .eq("symbol", "ZL")
-      .order("bucket_ts", { ascending: false })
-      .limit(96);
+    const intradayTables: Array<{ table: "price_15m" | "price_1m" | "price_1h"; limit: number }> = [
+      { table: "price_15m", limit: 384 },
+      { table: "price_1m", limit: 1440 },
+      { table: "price_1h", limit: 96 },
+    ];
 
-    const databentoLatest = buildLatestDatabentoDailyFromHourly(
-      (hourlyRows ?? []) as PriceRow[],
-    );
+    let intradaySource: string | null = null;
+    let databentoLatest: ZlPriceBar | null = null;
+
+    for (const candidate of intradayTables) {
+      const { data: intradayRows, error: intradayError } = await supabase
+        .schema("mkt")
+        .from(candidate.table)
+        .select("symbol, bucket_ts, open, high, low, close, volume")
+        .eq("symbol", "ZL")
+        .order("bucket_ts", { ascending: false })
+        .limit(candidate.limit);
+
+      if (intradayError || !intradayRows || intradayRows.length === 0) {
+        continue;
+      }
+
+      databentoLatest = buildLatestDatabentoDailyFromIntraday(
+        intradayRows as PriceRow[],
+        { symbol: "ZL" },
+      );
+      if (databentoLatest) {
+        intradaySource = `mkt.${candidate.table}`;
+        break;
+      }
+    }
 
     if (databentoLatest) {
       const lastBar = bars[bars.length - 1] ?? null;
@@ -132,8 +155,8 @@ export async function GET() {
       ok: true,
       data: bars,
       asOf: new Date().toISOString(),
-      source: databentoLatest
-        ? "mkt.price_1d + Databento (mkt.price_1h latest daily bar)"
+      source: intradaySource
+        ? `mkt.price_1d + Databento (${intradaySource} latest daily bar)`
         : "mkt.price_1d",
     };
 

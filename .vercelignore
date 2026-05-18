@@ -1,7 +1,8 @@
 /Data/
 /docs/
 /python/
-/scripts/
+/scripts/*
+!/scripts/next-local.js
 /supabase/
 .git/
 .next/

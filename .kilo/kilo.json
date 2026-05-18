@@ -1,12 +1,11 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "logLevel": "INFO",
-  "model": "deepseek/deepseek-v4-pro",
-  "small_model": "deepseek/deepseek-v4-pro",
-  "enabled_providers": ["openrouter"],
+  "model": "openai/gpt-5.5",
+  "small_model": "openai/gpt-5.5",
+  "enabled_providers": ["openai"],
   "provider": {
-    "openrouter": {
-      "whitelist": ["deepseek/deepseek-v4-pro"],
+    "openai": {
       "options": {
         "timeout": 600000,
         "chunkTimeout": 120000
@@ -94,21 +93,21 @@
   "agent": {
     "build": {
       "description": "Default implementation agent for scoped ZINC Fusion V16 changes after repository reality and phase gates are checked.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "steps": 20
     },
     "general": {
       "description": "General-purpose agent for mixed research, implementation, and verification tasks that do not require a narrower audit skill.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.15,
       "top_p": 0.9,
       "steps": 16
     },
     "plan": {
       "description": "Planning-only agent for phase, schema, architecture, and implementation sequencing decisions. It may inspect files and run read-only commands, but must not edit files.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "steps": 10,
@@ -120,7 +119,7 @@
     },
     "explore": {
       "description": "Read-only codebase exploration agent for locating files, mapping dependencies, and summarizing repo reality before edits.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.05,
       "top_p": 0.8,
       "steps": 12,
@@ -132,7 +131,7 @@
     },
     "scout": {
       "description": "Fast read-only search agent for finding exact code, docs, migrations, and config surfaces without modifying the workspace.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.05,
       "top_p": 0.8,
       "steps": 8,
@@ -144,7 +143,7 @@
     },
     "ask": {
       "description": "Read-first answer agent for direct questions. It should cite files when discussing repo behavior and avoid making changes unless the user explicitly switches to implementation.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.15,
       "top_p": 0.9,
       "steps": 6,
@@ -155,35 +154,35 @@
     },
     "debug": {
       "description": "Diagnosis agent for reproducing failures, isolating root causes, and applying minimal fixes after evidence points to a specific changed surface.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "steps": 16
     },
     "orchestrator": {
       "description": "Coordinator agent for multi-step work that needs todo tracking, focused subagents, implementation, and verification in one session.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "steps": 24
     },
     "title": {
       "description": "Session title generation only. Must not call tools or change files.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.2,
       "steps": 2,
       "permission": "deny"
     },
     "summary": {
       "description": "Session summary generation only. Must preserve decisions, blockers, changed files, and verification status without inventing facts.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "steps": 4,
       "permission": "deny"
     },
     "compaction": {
       "description": "Context compaction only. Must preserve project hard rules, active phase, user approvals, changed files, and verification state.",
-      "model": "deepseek/deepseek-v4-pro",
+      "model": "openai/gpt-5.5",
       "temperature": 0.05,
       "steps": 4,
       "permission": "deny"
