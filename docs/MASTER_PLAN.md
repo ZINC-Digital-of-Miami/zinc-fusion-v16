@@ -27,10 +27,15 @@ regression, fusion-guard unit tests, and Python contract tests.
 Local macOS Next builds use `scripts/next-local.js` to avoid Gatekeeper prompts
 from native SWC binaries on mounted volumes. The package manager must not be run
 to repair that prompt; the wrapper keeps local builds on the WASM SWC path.
-Local builds also keep Next's webpack build worker disabled in `next.config.ts`
-to avoid mounted-volume `.next` file-lock churn during guard runs.
-The request/session hook is `proxy.ts`; do not replace it with the deprecated
-`middleware.ts` path or lint/TS config references to it.
+Local builds use the `middleware.ts` request/session hook because the Next 16
+`proxy.ts` convention currently emits a missing `.next/server/proxy.js.nft.json`
+trace artifact in the mounted `--webpack` WASM build path. The local wrapper
+filters that known deprecation warning until the upstream proxy trace path is
+stable in this workspace.
+The wrapper also sends each local build to a unique ignored `.next-local/build-*`
+directory so stale locked trace artifacts on the mounted volume do not block
+verification. Next's local TypeScript config rewrites are redirected to ignored
+`.next-local/tsconfig.next-local.json`, leaving source `tsconfig.json` stable.
 Root layout must not use `next/font`; font loading belongs in CSS/theme assets
 so local Next build traces remain stable on the mounted workspace.
 

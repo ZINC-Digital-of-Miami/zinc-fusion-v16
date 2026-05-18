@@ -153,28 +153,43 @@ class FusionGuardContractTest(unittest.TestCase):
         self.assertIn("components", lint)
         self.assertIn("lib", lint)
 
-    def test_next_request_hook_uses_proxy_convention_for_local_build_trace(self):
+    def test_next_request_hook_uses_middleware_convention_for_local_build_trace(self):
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         tsconfig = json.loads((ROOT / "tsconfig.json").read_text(encoding="utf-8"))
 
-        self.assertTrue((ROOT / "proxy.ts").is_file())
-        self.assertFalse((ROOT / "middleware.ts").exists())
-        self.assertIn("proxy.ts", package["scripts"]["lint"])
-        self.assertNotIn("middleware.ts", package["scripts"]["lint"])
-        self.assertIn("proxy.ts", tsconfig["include"])
-        self.assertNotIn("middleware.ts", tsconfig["include"])
+        self.assertTrue((ROOT / "middleware.ts").is_file())
+        self.assertFalse((ROOT / "proxy.ts").exists())
+        self.assertIn("middleware.ts", package["scripts"]["lint"])
+        self.assertNotIn("proxy.ts", package["scripts"]["lint"])
+        self.assertIn("middleware.ts", tsconfig["include"])
+        self.assertNotIn("proxy.ts", tsconfig["include"])
 
     def test_next_scripts_use_local_wrapper_to_avoid_native_macos_swc_prompt(self):
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         wrapper = (ROOT / "scripts/next-local.js").read_text(encoding="utf-8")
         layout = (ROOT / "app/layout.tsx").read_text(encoding="utf-8")
+        next_config = (ROOT / "next.config.ts").read_text(encoding="utf-8")
+        gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        tsconfig = json.loads((ROOT / "tsconfig.json").read_text(encoding="utf-8"))
 
         self.assertEqual(package["dependencies"]["next"], "16.2.6")
         self.assertIn("node scripts/next-local.js build --webpack", package["scripts"]["build"])
         self.assertIn("node scripts/next-local.js dev --webpack", package["scripts"]["dev"])
         self.assertIn("NEXT_TEST_WASM", wrapper)
         self.assertIn("NEXT_NATIVE_SWC_ALLOWED", wrapper)
+        self.assertIn("NEXT_LOCAL_DIST_DIR", wrapper)
+        self.assertIn("NEXT_LOCAL_TSCONFIG", wrapper)
+        self.assertIn("tsconfig.next-local.json", wrapper)
+        self.assertIn('"@/*": ["../*"]', wrapper)
+        self.assertIn(".next-local/build-", wrapper)
+        self.assertIn("distDir: process.env.NEXT_LOCAL_DIST_DIR", next_config)
+        self.assertIn("tsconfigPath: process.env.NEXT_LOCAL_TSCONFIG", next_config)
+        self.assertIn("/.next-local/", gitignore)
+        self.assertFalse(
+            any(include.startswith(".next-local/") for include in tsconfig["include"]),
+        )
         self.assertIn('The "middleware" file convention is deprecated', wrapper)
+        self.assertIn("Serializing big strings", wrapper)
         self.assertNotIn("next/font", layout)
 
     def test_eslint_ignores_generated_and_tooling_trees(self):

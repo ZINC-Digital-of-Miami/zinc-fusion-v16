@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 const { spawn } = require("node:child_process");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
@@ -9,6 +11,28 @@ if (args.length === 0) {
 }
 
 const env = { ...process.env };
+if (!env.NEXT_LOCAL_DIST_DIR) {
+  env.NEXT_LOCAL_DIST_DIR = args[0] === "build"
+    ? `.next-local/build-${process.pid}-${Date.now()}`
+    : ".next-local/dev";
+}
+if (!env.NEXT_LOCAL_TSCONFIG) {
+  const localTsconfig = path.join(".next-local", "tsconfig.next-local.json");
+  const localTsconfigContents = {
+    extends: "../tsconfig.json",
+    compilerOptions: {
+      paths: {
+        "@/*": ["../*"],
+      },
+    },
+  };
+  fs.mkdirSync(path.dirname(localTsconfig), { recursive: true });
+  fs.writeFileSync(
+    localTsconfig,
+    `${JSON.stringify(localTsconfigContents, null, 2)}\n`,
+  );
+  env.NEXT_LOCAL_TSCONFIG = localTsconfig;
+}
 
 if (process.platform === "darwin" && env.NEXT_NATIVE_SWC_ALLOWED !== "1") {
   env.NEXT_TEST_WASM = "1";
@@ -25,6 +49,7 @@ const filteredWarnings = [
   "experimental.useWasmBinary is not an option",
   'The "middleware" file convention is deprecated',
   "https://nextjs.org/docs/messages/middleware-to-proxy",
+  "Serializing big strings",
 ];
 
 function shouldFilter(line) {

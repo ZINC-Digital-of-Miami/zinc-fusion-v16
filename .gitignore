@@ -19,6 +19,7 @@
 
 # next.js
 /.next/
+/.next-local/
 /.next-stale-bak/
 /out/
 
