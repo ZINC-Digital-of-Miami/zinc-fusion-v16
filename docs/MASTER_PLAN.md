@@ -27,6 +27,8 @@ regression, fusion-guard unit tests, and Python contract tests.
 Local macOS Next builds use `scripts/next-local.js` to avoid Gatekeeper prompts
 from native SWC binaries on mounted volumes. The package manager must not be run
 to repair that prompt; the wrapper keeps local builds on the WASM SWC path.
+Local builds also keep Next's webpack build worker disabled in `next.config.ts`
+to avoid mounted-volume `.next` file-lock churn during guard runs.
 
 ## Required Work Loop
 

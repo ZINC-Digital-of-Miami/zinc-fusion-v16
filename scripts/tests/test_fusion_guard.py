@@ -156,12 +156,14 @@ class FusionGuardContractTest(unittest.TestCase):
     def test_next_scripts_use_local_wrapper_to_avoid_native_macos_swc_prompt(self):
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         wrapper = (ROOT / "scripts/next-local.js").read_text(encoding="utf-8")
+        layout = (ROOT / "app/layout.tsx").read_text(encoding="utf-8")
 
         self.assertEqual(package["dependencies"]["next"], "16.2.6")
         self.assertIn("node scripts/next-local.js build --webpack", package["scripts"]["build"])
         self.assertIn("node scripts/next-local.js dev --webpack", package["scripts"]["dev"])
         self.assertIn("NEXT_TEST_WASM", wrapper)
         self.assertIn("NEXT_NATIVE_SWC_ALLOWED", wrapper)
+        self.assertNotIn("next/font", layout)
 
     def test_eslint_ignores_generated_and_tooling_trees(self):
         config = (ROOT / "eslint.config.mjs").read_text(encoding="utf-8")
