@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
 import type { ApiEnvelope, DriverAttribution } from "@/lib/contracts/api";
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createClient();
 
     // Get the latest driver attribution (most recent trade_date, top 4 by rank)
     const { data: rows, error } = await supabase

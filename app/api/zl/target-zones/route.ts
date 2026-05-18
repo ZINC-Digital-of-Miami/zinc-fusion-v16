@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
 import type { ApiEnvelope, TargetZone } from "@/lib/contracts/api";
 
 const AG_HORIZON_DAYS = [30, 90, 180] as const;
@@ -25,7 +25,7 @@ function normalizeHorizon(row: {
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createClient();
 
     // Get the latest target zones (most recent forecast_date, all horizons)
     const { data: rows, error } = await supabase

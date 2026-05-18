@@ -11,8 +11,8 @@
 - DuckDB relation `raw.databento_zl_ohlcv_1h` is the raw recovery table for Databento `ohlcv-1h` records.
 - On filesystems that do not support DuckDB file locks, the refresh writes through a temporary lock-capable working copy and copies the closed DuckDB file back to `data/duckdb/zinc_fusion_raw.duckdb`.
 - Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price` are the chart-serving tables read by frontend API routes.
-- Supabase `ingest_zl_intraday()` must accept Databento HTTP `200` and `206` NDJSON payloads so pg_cron ingestion does not fail on partial-content responses.
-- `python -m fusion.zl_duckdb_pipeline refresh --promote` remains the raw-store recovery and replay path into Supabase serving tables.
+- Supabase-native `ingest_zl_intraday()` and `rollup_zl_daily()` are obsolete for ZL chart freshness and must remain unscheduled/revoked; they are not active serving writers.
+- `python -m fusion.zl_duckdb_pipeline refresh --promote` is the raw-store recovery and replay path into Supabase serving tables, including Databento HTTP `200` and `206` NDJSON payload handling.
 
 ## Weekly Batch Contracts (Reduced Source Surface)
 - Non-price market, macro, supply, and alternative source ingestion runs in weekly batch windows.

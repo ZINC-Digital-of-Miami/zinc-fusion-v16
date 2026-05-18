@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import type { ApiEnvelope, LegislationItem } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
-import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
 import {
   fetchTrustedMarketSnapshot,
   TRUSTED_MARKET_SOURCE_FEEDS,
@@ -251,7 +251,7 @@ function buildProvenance(
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createClient();
     const aiSnapshot = await readAiSnapshot<LegislationAiSnapshot>(
       "app/config/legislation-feed-ai.json",
     );

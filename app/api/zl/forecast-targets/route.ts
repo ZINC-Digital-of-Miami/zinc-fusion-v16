@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
 import type { ApiEnvelope } from "@/lib/contracts/api";
 
 type ForecastTarget = {
@@ -42,7 +42,7 @@ function horizonLabel(days: number): string {
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createClient();
 
     const { data: rows, error } = await supabase
       .schema("forecasts")

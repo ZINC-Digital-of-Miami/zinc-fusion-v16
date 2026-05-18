@@ -12,10 +12,6 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
-function isCronPath(pathname: string): boolean {
-  return pathname.startsWith("/api/cron/");
-}
-
 function buildLoginRedirect(request: NextRequest): NextResponse {
   const url = request.nextUrl.clone();
   const next = `${request.nextUrl.pathname}${request.nextUrl.search}`;
@@ -33,11 +29,6 @@ export async function updateSession(request: NextRequest) {
 
   // Public splash and auth flows remain reachable without a session.
   if (isPublicPath(pathname)) {
-    return supabaseResponse;
-  }
-
-  // Cron routes are machine-to-machine; they enforce CRON_SECRET per route.
-  if (isCronPath(pathname)) {
     return supabaseResponse;
   }
 

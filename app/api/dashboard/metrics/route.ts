@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
 import type { ApiEnvelope } from "@/lib/contracts/api";
 
 type DashboardMetric = {
@@ -11,7 +11,7 @@ type DashboardMetric = {
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createClient();
 
     // Get the latest dashboard metrics
     const { data: rows, error } = await supabase

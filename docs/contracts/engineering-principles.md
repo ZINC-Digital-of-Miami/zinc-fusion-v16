@@ -17,5 +17,5 @@
 
 ## Security Baselines
 - `SUPABASE_SERVICE_ROLE_KEY` is server-only.
-- Every `/api/cron/*` route must enforce `CRON_SECRET`.
+- No Vercel cron/API cron route class is part of V16.
 - RLS is mandatory for all schemas from initial migration.

@@ -20,6 +20,72 @@ def load_fusion_guard_module():
 
 
 class FusionGuardContractTest(unittest.TestCase):
+    def test_zl_daily_route_uses_canonical_hourly_before_legacy_intraday_tables(self):
+        source = (ROOT / "app/api/zl/price-1d/route.ts").read_text(encoding="utf-8")
+
+        hourly = source.index('{ table: "price_1h"')
+        fifteen_minute = source.index('{ table: "price_15m"')
+        one_minute = source.index('{ table: "price_1m"')
+
+        self.assertLess(hourly, fifteen_minute)
+        self.assertLess(hourly, one_minute)
+
+    def test_zl_intraday_route_falls_back_to_hourly_latest_window(self):
+        source = (ROOT / "app/api/zl/intraday/route.ts").read_text(encoding="utf-8")
+
+        self.assertIn('"price_15m" | "price_1m" | "price_1h"', source)
+        self.assertIn('await fetchBars("price_1h")', source)
+        self.assertIn('.order("bucket_ts", { ascending: false })', source)
+        self.assertIn('.limit(', source)
+
+    def test_zl_price_1h_route_reads_latest_limited_window(self):
+        source = (ROOT / "app/api/zl/price-1h/route.ts").read_text(encoding="utf-8")
+
+        self.assertIn('.order("bucket_ts", { ascending: false })', source)
+        self.assertIn('.limit(', source)
+
+    def test_read_only_api_routes_do_not_use_service_role_admin_client(self):
+        routes = sorted(
+            path
+            for path in (ROOT / "app/api").rglob("route.ts")
+            if path.relative_to(ROOT).as_posix() != "app/api/health/route.ts"
+        )
+        offenders = [
+            str(path.relative_to(ROOT))
+            for path in routes
+            if "createSupabaseAdminClient" in path.read_text(encoding="utf-8")
+        ]
+
+        self.assertEqual(offenders, [])
+
+    def test_proxy_and_contracts_do_not_preserve_vercel_cron_secret_path(self):
+        files = [
+            ROOT / "lib/supabase/proxy.ts",
+            ROOT / "docs/contracts/security-model.md",
+            ROOT / "docs/contracts/engineering-principles.md",
+        ]
+        offenders = []
+        for path in files:
+            source = path.read_text(encoding="utf-8")
+            if "/api/cron" in source or "CRON_SECRET" in source:
+                offenders.append(str(path.relative_to(ROOT)))
+
+        self.assertEqual(offenders, [])
+
+    def test_zl_databento_pg_cron_writer_disabled_by_followup_migration(self):
+        migrations = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((ROOT / "supabase/migrations").glob("*.sql"))
+            if path.name > "202605180002_accept_databento_206_intraday.sql"
+        )
+
+        self.assertIn("ALTER TABLE ops.ingest_run", migrations)
+        self.assertIn("ALTER COLUMN run_id SET DEFAULT gen_random_uuid()", migrations)
+        self.assertIn("cron.unschedule", migrations)
+        self.assertIn("ingest_zl_intraday", migrations)
+        self.assertIn("REVOKE EXECUTE ON FUNCTION", migrations)
+        self.assertNotIn("INSERT INTO mkt.price_1h", migrations)
+
     def test_runtime_scan_allows_docs_to_state_runtime_policy(self):
         fusion_guard = load_fusion_guard_module()
 

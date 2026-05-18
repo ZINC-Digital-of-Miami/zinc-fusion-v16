@@ -5,9 +5,9 @@
 - System jobs: service role for controlled writes.
 
 ## Route Boundaries
-- `/api/cron/*` uses `CRON_SECRET` verification.
+- No Vercel cron/API cron route class exists in V16; ingestion runs through Supabase pg_cron by default and the ZL chart exception runs through local DuckDB plus Python promotion.
 - `/api/auth/check` validates active claims.
-- Page middleware excludes `/api/*` and applies navigation auth controls.
+- Protected page and API routes require Supabase Auth claims.
 
 ## Secret Handling
 - `NEXT_PUBLIC_*`: URL + publishable key only.

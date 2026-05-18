@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { createClient } from "@/lib/supabase/server";
 import type { ApiEnvelope, ZlLivePrice } from "@/lib/contracts/api";
 
 export async function GET() {
   try {
-    const supabase = createSupabaseAdminClient();
+    const supabase = await createClient();
 
     const { data: row, error } = await supabase
       .schema("mkt")

@@ -172,13 +172,13 @@
 
 1. **Duplicate dashboard page:** `app/dashboard/page.tsx` and `app/(protected)/dashboard/page.tsx` are identical. `(protected)` wins route resolution. Do NOT delete naked `app/dashboard/` without explicit approval — it may have been a deliberate fallback or transition artifact.
 
-2. **All API routes use `createSupabaseAdminClient()`:** Service role everywhere, bypassing RLS. Must migrate to anon key + JWT pattern per Migration Plan §7.
+2. **API route RLS bypass:** Repaired in source 2026-05-18 for dashboard-facing/authenticated read routes. These routes now use the request-bound Supabase server client (`createClient()`), while `/api/health` remains the public uptime probe.
 
 3. **`/api/zl/forecast-targets` envelope divergence:** Repaired 2026-05-18. The route now returns the canonical `{ ok, data, asOf, source }` envelope, and `ProbabilitySurface` consumes `/api/zl/target-zones`.
 
 4. **`ops.ingest_run.status` vocabulary split:** Repaired in source 2026-05-18. A corrective migration normalizes persisted values to `RUNNING`, `SUCCESS`, `FAILED`, and `TIMEOUT`; cloud deployment still requires explicit `db push` approval.
 
-5. **ZL chart freshness pinned by Databento `206`:** Repaired in source 2026-05-18 with a dual path: local DuckDB keeps raw ZL Databento hourly history for AG/training recovery, and Supabase cron ingest now explicitly accepts Databento HTTP `200` and `206` payloads for live chart-serving tables. Frontend chart routes continue reading Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
+5. **ZL chart freshness pinned by Databento `206`:** Repaired in source 2026-05-18 by locking the active ZL chart path to local DuckDB raw storage plus Python promotion. A follow-up migration disables the obsolete Supabase-native ZL chart cron writers, and frontend chart routes continue reading Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
 
 6. **ProFarmer login pause:** The legacy scraper required a specific wait after login before navigation. Must be preserved in the new Playwright implementation.
 
