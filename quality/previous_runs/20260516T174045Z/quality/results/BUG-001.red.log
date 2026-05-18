@@ -1,2 +1,0 @@
-NOT_RUN
-pytest unavailable in current environment (python3 -m pytest --version failed).

@@ -86,7 +86,7 @@
 | ZL OHLCV daily            | Chart rendering                       | Daily by market close |
 | ZL OHLCV 1h               | Intraday chart                        | Hourly during session |
 | ZL live/latest price      | Live ticker, status bar               | Real-time or near-RT  |
-| Forecast Target Zones     | P30/P50/P70 horizontal zones on chart | After each model run  |
+| Forecast Target Zones     | P30/P50/P70 horizontal price levels in `ProbabilitySurface` | After each model run  |
 | Specialist signals        | Driver attribution, regime            | Daily after pipeline  |
 | Monte Carlo / probability | Probability statements                | After each MC run     |
 | Regime state              | Dashboard regime chip                 | Daily                 |
@@ -186,7 +186,7 @@
 | ----------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------ |
 | Raw ingest tables (mkt, econ, alt, supply)                        | **Cloud Supabase**          | pg_cron + http writes directly to cloud                      |
 | Serving tables (analytics, forecasts.target_zones)                | **Cloud Supabase**          | Dashboard reads from cloud                                   |
-| Published forecasts / Target Zones                                | **Cloud Supabase**          | Pre-computed, served to chart                                |
+| Published forecasts / Target Zones                                | **Cloud Supabase**          | Pre-computed, served to dashboard                            |
 | Training metadata (model_registry, training_runs)                 | **Cloud Supabase**          | Registry of what was trained and when                        |
 | Ops observability (ingest_run, pipeline_alerts)                   | **Cloud Supabase**          | All logging in cloud                                         |
 | Wide intermediate artifacts (feature matrix, specialist parquets) | **Local compute workspace** | Parquet files during processing only — not canonical storage |
@@ -200,7 +200,7 @@ All data ingestion runs inside Supabase Postgres via pg_cron + http extension. N
 
 1. **Functions exist** — plpgsql ingestion functions are deployed via migration
 2. **Cron jobs are registered** — `SELECT count(*) FROM cron.job` returns expected schedule count
-3. **First successful run** — each function has at least one `status = 'ok'` row in `ops.ingest_run`
+3. **First successful run** — each function has at least one `status = 'SUCCESS'` row in `ops.ingest_run`
 4. **Vault keys are stored** — `current_setting('app.<key>')` returns non-null for all configured sources
 
 **Current state (as of planning):** `cron.job` has 0 entries. Extensions pg_cron, http, pg_net are enabled. No ingestion functions exist. This is an explicit blocker for Gate 4.
@@ -311,7 +311,7 @@ All data ingestion runs inside Supabase Postgres via pg_cron + http extension. N
 | `garch_forecasts`           | Conditional volatility forecasts                 | Python: run_garch                  | Volatility context, MC input          | Per run          |
 | `monte_carlo_runs`          | 10,000 MC simulation results                     | Python: run_monte_carlo            | Probability distributions             | Per run          |
 | `probability_distributions` | Probability distribution data                    | Python: run_monte_carlo            | Analytics                             | Per horizon      |
-| `target_zones`              | **NEW** — Pre-computed P30/P50/P70 serving table | Python: generate_target_zones      | Dashboard chart overlay (direct read) | Per forecast run |
+| `target_zones`              | **NEW** — Pre-computed P30/P50/P70 serving table | Python: generate_target_zones      | `ProbabilitySurface` card (direct read) | Per forecast run |
 | `forecast_summary_1d`       | Human-readable forecast summary                  | Python: post-processing            | Strategy page, brief                  | Per run          |
 
 **Key V16 change:** `target_zones` is a dedicated serving table. legacy baseline derived Target Zones on-the-fly from scattered forecast tables. V16 pre-computes and serves them clean.
@@ -467,7 +467,7 @@ API keys for external data sources (Databento, FRED, etc.) are stored in **Supab
 | `/api/zl/price-1h`        | ZL hourly bars                                           | mkt.price_1h                                                  |
 | `/api/zl/intraday`        | ZL 15m/1m bars                                           | mkt.price_15m, mkt.price_1m                                   |
 | `/api/zl/live`            | Latest price + timestamp                                 | mkt.latest_price                                              |
-| `/api/zl/target-zones`    | P30/P50/P70 zone data for chart overlay                  | forecasts.target_zones                                        |
+| `/api/zl/target-zones`    | P30/P50/P70 zone data for `ProbabilitySurface`            | forecasts.target_zones                                        |
 | `/api/zl/forecast`        | Forecast summary (horizon, predicted price, probability) | forecasts.production_1d, forecasts.forecast_summary_1d        |
 | `/api/dashboard/metrics`  | Pre-computed dashboard stats                             | analytics.dashboard_metrics                                   |
 | `/api/dashboard/drivers`  | Top 4 price drivers                                      | analytics.driver_attribution_1d                               |
@@ -748,7 +748,7 @@ shadcn/ui provides the component primitives. V16 builds the dashboard shell from
 
 | Zone           | Content                                                                                                                                                                                                                            | Notes                                                 |
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| **Chart area** | LightweightZlCandlestickChart — rewritten from scratch using legacy baseline as visual reference (ZERO code copied). ForecastTargetsPrimitive for Target Zones. PivotLinesPrimitive for pivots. Watermark. All settings preserved. | **Do not modify chart settings. They were hard-won.** |
+| **Chart area** | LightweightZlCandlestickChart — rewritten from scratch using legacy baseline as visual reference (ZERO code copied). PivotLinesPrimitive for pivots. Watermark. All settings preserved. Target Zones stay out of the chart and render in `ProbabilitySurface`. | **Do not modify chart settings. They were hard-won.** |
 | **Status bar** | Live price, last update, regime chip, data freshness                                                                                                                                                                               | mkt.latest_price, analytics.regime_state_1d           |
 | **Cards row**  | Dashboard stat cards — keep exactly as-is                                                                                                                                                                                          | analytics.dashboard_metrics                           |
 | **Drivers**    | Top 4 drivers card (ChrisTop4Drivers)                                                                                                                                                                                              | analytics.driver_attribution_1d                       |
@@ -881,7 +881,7 @@ V16 tokens for shadcn/ui customization:
 | No duplicate job names                           | `SELECT jobname, count(*) FROM cron.job GROUP BY jobname HAVING count(*) > 1` = 0 rows                              | No duplicates                    |
 | No duplicate function names                      | `SELECT proname, count(*) FROM pg_proc WHERE proname LIKE 'ingest_%' GROUP BY proname HAVING count(*) > 1` = 0 rows | No duplicates                    |
 | Vault keys stored                                | `SELECT current_setting('app.databento_api_key') IS NOT NULL` (repeat per source)                                   | Keys accessible                  |
-| At least one successful run per Phase 4 function | `SELECT DISTINCT job_name FROM ops.ingest_run WHERE status = 'ok'` ⊇ Phase 4 functions                              | First-success evidence           |
+| At least one successful run per Phase 4 function | `SELECT DISTINCT job_name FROM ops.ingest_run WHERE status = 'SUCCESS'` includes Phase 4 functions                  | First-success evidence           |
 
 **Preflight SQL block (run before claiming Gate 4):**
 
@@ -913,7 +913,7 @@ SELECT current_setting('app.databento_api_key', true) IS NOT NULL AS databento_k
 
 -- 7. First-success evidence
 SELECT job_name, min(started_at) AS first_success
-FROM ops.ingest_run WHERE status = 'ok' GROUP BY job_name;
+FROM ops.ingest_run WHERE status = 'SUCCESS' GROUP BY job_name;
 
 -- 8. Duplicate ingested row check (example for price_1d)
 SELECT symbol, bucket_ts, count(*) FROM mkt.price_1d
@@ -929,7 +929,7 @@ GROUP BY symbol, bucket_ts HAVING count(*) > 1;
 | Each pg_cron ingestion function writes expected rows | Manual trigger -> DB row count increases                                       |
 | Each API read route returns expected shape           | Sample response matches contract                                               |
 | Chart renders with real data from Supabase           | Visual inspection on preview deploy                                            |
-| Target Zones render on chart                         | ForecastTargetsPrimitive draws P30/P50/P70 lines                               |
+| Target Zones render in `ProbabilitySurface`          | Card reads `/api/zl/target-zones` and displays P30/P50/P70 levels              |
 | Live price updates                                   | latest_price timestamp is recent                                               |
 | Freshness monitor fires and reports correctly        | After 24h, check ops.pipeline_alerts                                           |
 | Gate 4A preflight passes                             | All cron readiness checks from Gate 4A pass                                    |
@@ -947,7 +947,7 @@ GROUP BY symbol, bucket_ts HAVING count(*) > 1;
 | Forward inference writes to forecasts.production_1d              | Predicted prices exist per horizon             |
 | Monte Carlo writes 10,000 runs                                   | monte_carlo_runs count check                   |
 | `generate_target_zones.py` produces P30/P50/P70                  | target_zones has rows                          |
-| Dashboard reads Target Zones correctly                           | Chart overlay matches Python output            |
+| Dashboard reads Target Zones correctly                           | `ProbabilitySurface` matches Python output     |
 
 ### Gate 6: Parity Verification (legacy baseline vs V16)
 
@@ -955,7 +955,7 @@ GROUP BY symbol, bucket_ts HAVING count(*) > 1;
 | -------------------------------------- | ------------------------------------- |
 | `/api/zl/price-1d` — same OHLCV data   | Diff legacy baseline vs V16 responses |
 | `/api/zl/live` — same latest price     | Compare timestamps and values         |
-| Target Zones — same P30/P50/P70 levels | Side-by-side chart comparison         |
+| Target Zones — same P30/P50/P70 levels | Side-by-side dashboard card comparison |
 | Dashboard cards — same metrics         | Screenshot comparison                 |
 | Sentiment page — same news feed        | Visual comparison                     |
 | Vegas Intel — same events/restaurants  | Data comparison                       |
@@ -1042,7 +1042,7 @@ All 6 pages are rewritten from scratch using legacy baseline as **VISUAL referen
 | 2.1  | Seed `mkt.price_1d` with legacy baseline historical data (manual export/import)                           | 2+ years of ZL daily bars in Supabase              |
 | 2.2  | Build `/api/zl/price-1d` read route                                                                       | Returns OHLCV JSON matching legacy baseline format |
 | 2.3  | Rewrite LightweightZlCandlestickChart from scratch (legacy baseline visual reference, ZERO code copied)   | Chart renders with real data from Supabase         |
-| 2.4  | Rewrite ForecastTargetsPrimitive from scratch                                                             | Target Zone lines render (placeholder data OK)     |
+| 2.4  | Keep chart free of Target Zone overlay wiring                                                             | No Target Zone primitive or chart prop remains      |
 | 2.5  | Rewrite PivotLinesPrimitive from scratch                                                                  | Pivot lines render                                 |
 | 2.6  | Rewrite chart watermark from scratch                                                                      | Watermark visible                                  |
 | 2.7  | Build `/api/zl/live` read route                                                                           | Returns latest price                               |
@@ -1105,7 +1105,7 @@ All data ingestion is implemented as plpgsql functions using pg_cron + http exte
 | 4.9  | Build `ingest_cftc_weekly()` plpgsql function                                                                                        | mkt.cftc_1w updating                                       |
 | 4.10 | Register all pg_cron schedules for steps 4.2-4.9                                                                                     | `SELECT count(*) FROM cron.job` ≥ expected Phase 4 count   |
 | 4.11 | Build `check_freshness()` plpgsql function                                                                                           | ops.pipeline_alerts populating                             |
-| 4.12 | Verify at least one successful controlled run of each Phase 4 function                                                               | `ops.ingest_run` has `status = 'ok'` row for each function |
+| 4.12 | Verify at least one successful controlled run of each Phase 4 function                                                               | `ops.ingest_run` has `status = 'SUCCESS'` row for each function |
 | 4.13 | Run Gate 4A preflight again (post-registration)                                                                                      | All cron readiness checks pass with registered jobs        |
 
 **Exit criteria:** Chart shows today's data. Core market tables updating on schedule via pg_cron. `ingest_fred_core()` feeding chart-critical FRED series. Freshness monitoring active. Gate 4A re-verified with registered jobs. No Vercel cron routes. `cron.job` count matches expected Phase 4 schedule density.
@@ -1132,7 +1132,7 @@ Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only vali
 | 5.12 | Run promotion gate — validate local outputs, promote to cloud                                                     | Cloud tables populated with validated data                                              |
 | 5.13 | Run Gate 5 (Python Pipeline Verification)                                                                         | All checks pass                                                                         |
 
-**Exit criteria:** Full pipeline runs end-to-end. Intermediates stored locally as parquet. Promotion gate validates before cloud write. Target Zones appear on dashboard chart after promotion.
+**Exit criteria:** Full pipeline runs end-to-end. Intermediates stored locally as parquet. Promotion gate validates before cloud write. Target Zones appear in the `ProbabilitySurface` dashboard card after promotion.
 
 ### Phase 6: Remaining Data Ingestion + FRED Catalog Expansion
 
@@ -1165,7 +1165,7 @@ Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only vali
 | Step | Action                                         | Exit Evidence                                        |
 | ---- | ---------------------------------------------- | ---------------------------------------------------- |
 | 7.1  | Build `/api/zl/target-zones` route             | Returns P30/P50/P70 from forecasts.target_zones      |
-| 7.2  | Wire Target Zones into chart                   | Horizontal zone lines render with real forecast data |
+| 7.2  | Wire Target Zones into `ProbabilitySurface`    | P30/P50/P70 levels render with real forecast data    |
 | 7.3  | Build `/api/dashboard/drivers` route           | Returns top 4 drivers                                |
 | 7.4  | Wire ChrisTop4Drivers card                     | Drivers display with real data                       |
 | 7.5  | Build `/api/dashboard/regime` route            | Returns regime state                                 |
@@ -1184,7 +1184,7 @@ Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only vali
 - UCO/tallow price card
 - Palm oil supply card
 
-**Exit criteria:** Dashboard fully functional with real data. Target Zones rendering. Cards live. Parity with legacy baseline confirmed.
+**Exit criteria:** Dashboard fully functional with real data. Target Zones rendering in `ProbabilitySurface`. Cards live. Parity with legacy baseline confirmed.
 
 ### Phase 8: Secondary Pages
 
@@ -1307,7 +1307,6 @@ These legacy baseline files serve as reference for what V16 must deliver. They a
 ### Chart (visual reference — most critical, rewrite from scratch)
 
 - [`frontend/src/components/LightweightZlCandlestickChart.tsx`](frontend/src/components/LightweightZlCandlestickChart.tsx)
-- [`frontend/src/lib/charts/ForecastTargetsPrimitive.ts`](frontend/src/lib/charts/ForecastTargetsPrimitive.ts)
 - [`frontend/src/lib/charts/PivotLinesPrimitive.ts`](frontend/src/lib/charts/PivotLinesPrimitive.ts)
 - [`frontend/src/lib/charts/pivots.ts`](frontend/src/lib/charts/pivots.ts)
 - [`frontend/src/hooks/useZlLivePrice.ts`](frontend/src/hooks/useZlLivePrice.ts)

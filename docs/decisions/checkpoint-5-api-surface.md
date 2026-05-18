@@ -35,7 +35,7 @@ Databento API → ingest_databento_daily() → mkt.price_1d → /api/zl/price-1d
 ### Flow 2: Target Zones (Chris's decision tool)
 
 ```
-Python pipeline → local parquet → promote_to_cloud.py → forecasts.target_zones → /api/zl/target-zones → Dashboard → ForecastTargetsPrimitive
+Python pipeline → local parquet → promote_to_cloud.py → forecasts.target_zones → /api/zl/target-zones → Dashboard → ProbabilitySurface
 ```
 
 | Link | Status | Gap? |
@@ -44,7 +44,7 @@ Python pipeline → local parquet → promote_to_cloud.py → forecasts.target_z
 | promote_to_cloud.py | **NOT CREATED** | Phase 5 |
 | forecasts.target_zones | **EMPTY** | Populated after promotion |
 | /api/zl/target-zones | **SCAFFOLD** | Phase 7 |
-| ForecastTargetsPrimitive | **NOT REWRITTEN** | Phase 2 |
+| ProbabilitySurface | **CARD-ONLY RENDERER** | Phase 7 |
 
 **6 broken links.** Longest chain in the system. Table schema is correct: (forecast_date, horizon_days, p30, p50, p70, model_version, generated_at). Maps cleanly to API type TargetZone (horizonDays, p30, p50, p70, generatedAt).
 

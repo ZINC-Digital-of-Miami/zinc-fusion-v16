@@ -1,6 +1,0 @@
-PASS: quality/mechanical/forecast_normalize_horizon_cases.txt
-PASS: quality/mechanical/target_zones_normalize_horizon_cases.txt
-PASS: quality/mechanical/forecast_targets_normalize_horizon_cases.txt
-PASS: quality/mechanical/trusted_snapshot_sources_cases.txt
-PASS: quality/mechanical/ingest_status_cases.txt
-MECHANICAL VERIFY: PASS

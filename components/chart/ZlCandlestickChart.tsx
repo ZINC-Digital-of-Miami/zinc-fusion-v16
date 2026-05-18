@@ -13,10 +13,9 @@ import {
   type CandlestickData,
   type Time,
 } from "lightweight-charts";
-import type { ZlPriceBar, TargetZone } from "@/lib/contracts/api";
+import type { ZlPriceBar } from "@/lib/contracts/api";
 import { calculateFibonacciMultiPeriod, type CandleData, type FibResult } from "@/lib/chart/autofib";
 import { PivotLinesPrimitive } from "@/lib/chart/PivotLinesPrimitive";
-import { ForecastTargetsPrimitive } from "@/lib/chart/ForecastTargetsPrimitive";
 
 const CANDLE_THEME = {
   upColor: "#26C6DA",
@@ -37,7 +36,6 @@ const RIGHT_PADDING_BARS = 16;
 const BAR_SPACING = 10;
 const MIN_BAR_SPACING = 8;
 const REFRESH_MS = 60 * 60 * 1000;
-const SHOW_FORECAST_TARGET_OVERLAY = false;
 const SMA_PERIOD = 200;
 const SMA_COLOR = "#FFFFFF";
 const SMA_WIDTH = 2;
@@ -83,10 +81,8 @@ function computeSmaData(candles: CandlestickData<Time>[], period: number): { tim
 
 export function ZlCandlestickChart({
   height = "70vh",
-  targetZones = [],
 }: {
   height?: string | number;
-  targetZones?: TargetZone[];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -255,18 +251,7 @@ export function ZlCandlestickChart({
     }
 
     const pivotPrimitive = new PivotLinesPrimitive();
-    const forecastTargetsPrimitive = new ForecastTargetsPrimitive();
     series.attachPrimitive(pivotPrimitive);
-    if (SHOW_FORECAST_TARGET_OVERLAY) {
-      series.attachPrimitive(forecastTargetsPrimitive);
-    }
-
-    // Forecast target zones should be projected near the most recent bars, not full-width.
-    if (SHOW_FORECAST_TARGET_OVERLAY) {
-      const targetStartIndex = Math.max(0, candleData.length - 16);
-      const targetStartTime = candleData[targetStartIndex]?.time;
-      forecastTargetsPrimitive.setTargetZones(targetZones, targetStartTime);
-    }
 
     // Fib rendering: anchored start, pivot zone fill, and structural-break lock.
     const fibCandles: CandleData[] = bars.map((b, idx) => ({
@@ -329,16 +314,13 @@ export function ZlCandlestickChart({
       disposed = true;
       observer.disconnect();
       try {
-        if (SHOW_FORECAST_TARGET_OVERLAY) {
-          series.detachPrimitive(forecastTargetsPrimitive);
-        }
         series.detachPrimitive(pivotPrimitive);
         chart.remove();
       } catch {
         /* disposed */
       }
     };
-  }, [bars, targetZones]);
+  }, [bars]);
 
   const changeColor = priceChange >= 0 ? "#26C6DA" : "#EC0000";
 

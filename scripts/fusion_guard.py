@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -53,8 +52,6 @@ DOC_PREFIXES = (
     ".github/",
     ".kilo/",
 )
-
-QUALITY_PREFIX = "quality/"
 
 RUNTIME_SCAN_ROOTS = (
     "package.json",
@@ -179,7 +176,6 @@ def check_changed_file_contract(files: list[str]) -> list[Check]:
 
     product = [path for path in files if has_prefix(path, PRODUCT_PREFIXES)]
     docs = [path for path in files if has_prefix(path, DOC_PREFIXES)]
-    quality = [path for path in files if path.startswith(QUALITY_PREFIX)]
 
     checks.append(Check("changed-file scope", PASS, f"{len(files)} file(s) inspected"))
 
@@ -193,31 +189,6 @@ def check_changed_file_contract(files: list[str]) -> list[Check]:
         )
     else:
         checks.append(Check("contract-sync rule", PASS, f"product={len(product)}, docs={len(docs)}"))
-
-    if product and not quality:
-        checks.append(
-            Check(
-                "quality-artifact sync",
-                FAIL,
-                "product/config/tooling changes require regenerated quality artifacts or explicit incomplete status",
-            )
-        )
-    else:
-        checks.append(Check("quality-artifact sync", PASS, f"product={len(product)}, quality={len(quality)}"))
-
-    if product and quality:
-        product_mtime = max((ROOT / path).stat().st_mtime for path in product if (ROOT / path).exists())
-        quality_mtime = max((ROOT / path).stat().st_mtime for path in quality if (ROOT / path).exists())
-        if product_mtime > quality_mtime:
-            checks.append(
-                Check(
-                    "quality-artifact freshness",
-                    FAIL,
-                    "source/config/tooling edits are newer than generated quality artifacts",
-                )
-            )
-        else:
-            checks.append(Check("quality-artifact freshness", PASS, "generated artifacts are not older than source edits"))
 
     return checks
 
@@ -259,40 +230,11 @@ def check_forbidden_runtime_terms() -> Check:
     return Check("runtime-vocabulary scan", PASS, "no forbidden runtime-stack terms found")
 
 
-def check_quality_finalizer() -> Check:
-    progress = ROOT / "quality" / "PROGRESS.md"
-    if not progress.is_file():
-        return Check("quality finalizer status", NOT_RUN, "quality/PROGRESS.md missing")
-    text = progress.read_text(encoding="utf-8")
-    for phase in range(1, 7):
-        marker = f"- [x] Phase {phase}"
-        if marker not in text:
-            return Check("quality finalizer status", FAIL, f"missing {marker}")
-    if "Gate status: ABORTED" in text:
-        return Check("quality finalizer status", FAIL, "latest workbook finalizer is ABORTED")
-    if "NOT_RUN" in text or "NOT RUN" in text:
-        return Check("quality finalizer status", FAIL, "workbook contains NOT RUN evidence")
-    return Check("quality finalizer status", PASS, "all phases marked and no aborted/not-run markers")
-
-
-def clean_quality_gate_status(output: str) -> tuple[bool, str]:
-    match = re.search(r"Total:\s*(\d+)\s+FAIL,\s*(\d+)\s+WARN", output)
-    if not match:
-        return False, "quality gate summary missing"
-
-    fail_count = int(match.group(1))
-    warn_count = int(match.group(2))
-    if fail_count or warn_count:
-        return False, f"quality gate reported {fail_count} FAIL, {warn_count} WARN"
-    return True, "quality gate reported 0 FAIL, 0 WARN"
-
-
 def command_check(
     name: str,
     argv: list[str],
     timeout: int,
     *,
-    clean_gate: bool = False,
     extra_env: dict[str, str] | None = None,
 ) -> Check:
     code, output = run_cmd(argv, timeout=timeout, extra_env=extra_env)
@@ -303,14 +245,10 @@ def command_check(
     if code != 0:
         tail = "\n".join(output.splitlines()[-8:])
         return Check(name, FAIL, f"exit {code}; {tail}")
-    if clean_gate:
-        clean, detail = clean_quality_gate_status(output)
-        if not clean:
-            return Check(name, FAIL, detail)
     return Check(name, PASS, f"exit {code}")
 
 
-def pytest_check(timeout: int) -> list[Check]:
+def python_check(timeout: int) -> list[Check]:
     checks: list[Check] = []
     version = command_check("pytest availability", ["python3", "-m", "pytest", "--version"], timeout)
     checks.append(version)
@@ -318,10 +256,30 @@ def pytest_check(timeout: int) -> list[Check]:
         return checks
     checks.append(
         command_check(
-            "pytest quality tests",
-            ["python3", "-m", "pytest", "quality/test_functional.py", "quality/test_regression.py"],
+            "pytest python contract tests",
+            [
+                "python3",
+                "-m",
+                "pytest",
+                "python/tests/test_train_models_contract.py",
+                "python/tests/test_training_readiness_gate_contract.py",
+            ],
             timeout,
             extra_env={"PYTHONPATH": "python"},
+        )
+    )
+    checks.append(
+        command_check(
+            "chart overlay regression",
+            ["python3", "scripts/tests/test_chart_forecast_overlay_removed.py"],
+            timeout,
+        )
+    )
+    checks.append(
+        command_check(
+            "fusion guard unit tests",
+            ["python3", "-m", "unittest", "scripts.tests.test_fusion_guard"],
+            timeout,
         )
     )
     return checks
@@ -331,27 +289,8 @@ def full_gate_checks(args: argparse.Namespace) -> list[Check]:
     checks = [
         command_check("npm lint", ["npm", "run", "lint"], args.command_timeout),
         command_check("npm build", ["npm", "run", "build"], args.build_timeout),
-        command_check("qplaybook doctor", ["python3", "scripts/qplaybook.py", "doctor"], args.command_timeout),
-        command_check(
-            "qplaybook smoke no-llm",
-            ["python3", "scripts/qplaybook.py", "smoke", "--profile", "code", "--no-llm"],
-            args.command_timeout,
-        ),
     ]
-
-    mechanical = ROOT / "quality" / "mechanical" / "verify.sh"
-    if mechanical.is_file():
-        checks.append(command_check("quality mechanical verify", ["bash", str(mechanical)], args.command_timeout))
-    else:
-        checks.append(Check("quality mechanical verify", NOT_RUN, "quality/mechanical/verify.sh missing"))
-
-    gate = ROOT / ".claude" / "skills" / "quality-playbook" / "quality_gate.py"
-    if gate.is_file():
-        checks.append(command_check("quality gate clean", ["python3", str(gate), "."], args.command_timeout, clean_gate=True))
-    else:
-        checks.append(Check("quality gate clean", NOT_RUN, "installed quality_gate.py missing"))
-
-    checks.extend(pytest_check(args.command_timeout))
+    checks.extend(python_check(args.command_timeout))
     return checks
 
 
@@ -402,7 +341,6 @@ def main(argv: list[str]) -> int:
     checks.append(check_forbidden_runtime_terms())
 
     if args.mode in {"pre-push", "completion"}:
-        checks.append(check_quality_finalizer())
         checks.extend(full_gate_checks(args))
 
     audit = write_audit(args.mode, checks, files)

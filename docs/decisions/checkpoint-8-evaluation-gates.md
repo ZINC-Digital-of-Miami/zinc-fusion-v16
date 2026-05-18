@@ -85,7 +85,7 @@
 | pg_cron functions write rows | Functions not written | Phase 4 |
 | API routes return expected shape | Routes are scaffolds | Phase 2 (chart), Phase 7-8 (rest) |
 | Chart renders real data | Chart not rewritten, no data | Phase 2 |
-| Target Zones render on chart | ForecastTargetsPrimitive not built | Phase 2 |
+| Target Zones render in ProbabilitySurface | Card consumes `/api/zl/target-zones` | Phase 7 |
 | Live price updates | No ingest function, no rollup | Phase 4 |
 | Freshness monitor fires | Not wired | Phase 4 |
 

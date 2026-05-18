@@ -1,7 +1,0 @@
-PASS  trusted_snapshot_sources.txt
-PASS  forecast_normalize_horizon.txt
-PASS  target_zones_normalize_horizon.txt
-PASS  forecast_targets_normalize_horizon.txt
-PASS  api_contract_warning_fields.txt
-PASS  gate6_warning_checks.txt
-Mechanical verification complete

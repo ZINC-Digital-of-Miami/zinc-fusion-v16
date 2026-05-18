@@ -1,4 +1,0 @@
-trusted-live-pull
-trusted-authority-pull
-ai-daily-refresh
-chatgpt-pro-subscription-refresh

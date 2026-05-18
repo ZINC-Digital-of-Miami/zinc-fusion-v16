@@ -1809,7 +1809,7 @@ def main() -> None:
         cur.execute(
             """
             UPDATE ops.ingest_run
-            SET status = 'ok',
+            SET status = 'SUCCESS',
                 finished_at = %s,
                 records_upserted = %s,
                 ingested_at = NOW()
@@ -1822,7 +1822,7 @@ def main() -> None:
         print(
             json.dumps(
                 {
-                    "status": "ok",
+                    "status": "SUCCESS",
                     "tradeDate": str(trade_date),
                     "recordsUpserted": records_upserted,
                     "driverScores": driver_scores,
@@ -1842,7 +1842,7 @@ def main() -> None:
             cur.execute(
                 """
                 UPDATE ops.ingest_run
-                SET status = 'error',
+                SET status = 'FAILED',
                     finished_at = %s,
                     error_message = %s
                 WHERE run_id = (

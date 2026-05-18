@@ -23,7 +23,7 @@
 - **GPT (`gpt-5.5-fast`) being replaced** with OpenRouter free model (DeepSeek V4 Flash)
 - **ProFarmer Playwright scraper does NOT exist** — trusted-fill data only
 - **Glide API keys NOT in V16** — must be extracted from V15 project
-- **6 Quality Playbook bugs** with patches waiting to be applied
+- **Previous quality audit findings** have been folded into source fixes; the Quality Playbook install is retired
 - **`app/dashboard/page.tsx` is a DUPLICATE** — identical to `app/(protected)/dashboard/page.tsx`, unreachable via URL routing because `(protected)` layout group takes precedence. NOT safe to delete without verifying no import-time side effects. Flagged for approval.
 
 ---
@@ -31,9 +31,9 @@
 ## Architecture Decisions (LOCKED)
 
 ### D1: Target Zones Stay Off Chart
-- `SHOW_FORECAST_TARGET_OVERLAY = false` is permanent
+- No chart prop, chart primitive, or feature flag exists for Target Zones
 - Target Zones live only in `ProbabilitySurface` dashboard card
-- Comment gate in `ZlCandlestickChart.tsx:40` explains the decision
+- Regression coverage locks `ZlCandlestickChart` and the protected dashboard page to this decision
 
 ### D2: OpenRouter Replaces GPT for AI Cards
 - **Primary:** `deepseek/deepseek-v4-flash:free` (128K context, strong financial/analytical prose)
@@ -79,7 +79,7 @@
 | 1.4 | Resolve duplicate `app/dashboard/page.tsx` (approval-gated) | 30m |
 | 1.5 | Delete unused `components/dashboard/dashboard-shell.tsx` | 15m |
 | 1.6 | Audit `DashboardCards.tsx` for vestigial status | 30m |
-| 1.7 | Add comment gate for `SHOW_FORECAST_TARGET_OVERLAY = false` | 15m |
+| 1.7 | Add regression coverage for no Target Zone chart wiring | 15m |
 
 ### WAVE 2: AI Model Migration — GPT → OpenRouter (Week 1)
 
@@ -162,7 +162,7 @@
 | **M2: ProFarmer Scraping** | Playwright scraper running hourly, data landing in `alt.profarmer_news` | May 25 |
 | **M3: Core Data Fresh** | FRED core, Databento futures, CFTC, FX all running with SUCCESS status | May 28 |
 | **M4: Vegas Glide Live** | `vegas.*` tables populated from Glide JSON API, Vegas Intel page showing real data | Jun 3 |
-| **M5: Auth + Quality Clean** | API routes use anon key + JWT, quality gate passes, all 6 bugs fixed | Jun 8 |
+| **M5: Auth + Guard Clean** | API routes use anon key + JWT, active fusion guard passes, prior audit findings fixed | Jun 8 |
 | **M6: Full Feature Set** | 7 specialist cards, contract calculator, NeuralSphere, pipeline run complete | Jun 15 |
 | **M7: V16 Dashboard Complete** | All gates pass, all pages operational, zero mock data | Jun 20 |
 
@@ -174,9 +174,9 @@
 
 2. **All API routes use `createSupabaseAdminClient()`:** Service role everywhere, bypassing RLS. Must migrate to anon key + JWT pattern per Migration Plan §7.
 
-3. **`/api/zl/forecast-targets` envelope divergence:** Returns `{asOfDate, targets}` instead of `ApiEnvelope`. ProbabilitySurface reads this directly.
+3. **`/api/zl/forecast-targets` envelope divergence:** Repaired 2026-05-18. The route now returns the canonical `{ ok, data, asOf, source }` envelope, and `ProbabilitySurface` consumes `/api/zl/target-zones`.
 
-4. **`ops.ingest_run.status` vocabulary split:** SQL jobs write lowercase, TS writes UPPERCASE.
+4. **`ops.ingest_run.status` vocabulary split:** Repaired in source 2026-05-18. A corrective migration normalizes persisted values to `RUNNING`, `SUCCESS`, `FAILED`, and `TIMEOUT`; cloud deployment still requires explicit `db push` approval.
 
 5. **ProFarmer login pause:** The legacy scraper required a specific wait after login before navigation. Must be preserved in the new Playwright implementation.
 
