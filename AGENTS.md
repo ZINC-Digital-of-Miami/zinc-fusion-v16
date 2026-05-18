@@ -78,7 +78,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 8. **Verify before claiming done.** Run the smallest relevant check for the changed surface and apply `docs/agent-safety-gates.md`: any failed, unavailable, warning-only, or skipped required check means `STATUS: INCOMPLETE`.
 9. **Checkpoint before implementation.** For non-trivial planning work, audit repo reality first, structure the plan as numbered decision checkpoints, run one Ralph Loop per checkpoint, and update docs after each locked decision.
 10. **Fail-closed completion.** Read `docs/INDEX.md`, `docs/MASTER_PLAN.md`, and `docs/agent-safety-gates.md` at startup. If any required check is `FAIL`, `NOT RUN`, warning-only, or aborted, report `STATUS: INCOMPLETE`.
-11. **Source and generated artifacts are separate lanes.** Source/config/tooling changes require generated `quality/` artifacts to be regenerated and verified before quality can be claimed current.
+11. **Source and local runtime artifacts are separate lanes.** Source/config/tooling changes require active guard verification before quality can be claimed current; ignored build/cache/log artifacts are never source-of-truth evidence.
 12. **Docs/contracts update in the same change.** Any behavior, config, schema, gate, or operational-truth change must update the relevant docs/contracts in the same change.
 
 ### Security Rules
@@ -206,7 +206,7 @@ These are hard-won lessons. Don't repeat them.
 ### Frontend Gotchas
 
 - The chart uses `lightweight-charts` (TradingView). Settings are precise — don't modify them.
-- `ForecastTargetsPrimitive` is a custom series primitive for drawing horizontal Target Zone lines.
+- Target Zones stay off the chart and render in the `ProbabilitySurface` dashboard card.
 - Pivot labels use format `D(P)`, `D(R1)`, `D(S1)`, `W(P)`, `M(P)`, `Y(P)`.
 - The NeuralSphere on the landing page uses Three.js + `head.glb`. Resource-heavy but intentional.
 
@@ -269,7 +269,7 @@ Every non-trivial task follows this sequence. For trivial one-command or informa
 V16 is complete when:
 
 - The chart renders correctly with real ZL data from Supabase
-- Target Zones render correctly (P30/P50/P70 horizontal lines)
+- Target Zones render correctly in the `ProbabilitySurface` card (P30/P50/P70 horizontal price levels)
 - The landing page matches legacy baseline's premium design identity (rewritten, not copied)
 - All 6 pages are operational with real data
 - Only validated routes and jobs exist (no legacy baggage)

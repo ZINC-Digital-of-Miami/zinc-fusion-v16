@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import type { ApiEnvelope } from "@/lib/contracts/api";
 
 type ForecastTarget = {
   id: string;
@@ -52,16 +53,25 @@ export async function GET() {
 
     if (error) {
       return NextResponse.json(
-        { error: error.message, asOfDate: null, targets: [] as ForecastTarget[] },
+        {
+          ok: false,
+          data: [] as ForecastTarget[],
+          asOf: new Date().toISOString(),
+          source: "forecasts.target_zones",
+          error: error.message,
+        },
         { status: 500 },
       );
     }
 
     if (!rows || rows.length === 0) {
-      return NextResponse.json({
-        asOfDate: null,
-        targets: [] as ForecastTarget[],
-      });
+      const envelope: ApiEnvelope<ForecastTarget[]> = {
+        ok: true,
+        data: [],
+        asOf: new Date().toISOString(),
+        source: "forecasts.target_zones",
+      };
+      return NextResponse.json(envelope);
     }
 
     const asOfDate = rows[0].forecast_date;
@@ -94,13 +104,23 @@ export async function GET() {
         coveragePct: r.coveragePct,
       }));
 
-    return NextResponse.json({
-      asOfDate,
-      targets,
-    });
+    const envelope: ApiEnvelope<ForecastTarget[]> = {
+      ok: true,
+      data: targets,
+      asOf: asOfDate,
+      source: "forecasts.target_zones",
+    };
+
+    return NextResponse.json(envelope);
   } catch (err) {
     return NextResponse.json(
-      { error: String(err), asOfDate: null, targets: [] as ForecastTarget[] },
+      {
+        ok: false,
+        data: [] as ForecastTarget[],
+        asOf: new Date().toISOString(),
+        source: "forecasts.target_zones",
+        error: String(err),
+      },
       { status: 500 },
     );
   }

@@ -1,6 +1,0 @@
-ERROR
-command: patch --batch -p1 < /Users/zincdigital/mnt/SatechiHub/ZINC-FUSION-V16/quality/patches/BUG-006-fix.patch
-exit_code: 2
----
-patching file 'components/dashboard/ProbabilitySurface.tsx'
-patch: **** malformed patch at line 17: @@ -59,13 +67,20 @@ export function ProbabilitySurface() {

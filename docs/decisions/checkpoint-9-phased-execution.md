@@ -101,7 +101,7 @@ These are not simple single-table reads. Phase 8 is the most complex wiring phas
 2. Import into mkt.price_1d (manual seed — not pg_cron, just a one-time data load)
 3. Wire /api/zl/price-1d to query mkt.price_1d with `bucket_ts AS "tradeDate"` alias (CP5 finding)
 4. Rewrite LightweightZlCandlestickChart FROM SCRATCH (most complex single component)
-5. Rewrite ForecastTargetsPrimitive (custom TradingView series primitive)
+5. Keep Target Zones out of the chart; render them only in ProbabilitySurface
 6. Wire /api/zl/live to query mkt.latest_price
 7. Rewrite useZlLivePrice hook
 

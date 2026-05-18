@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { BackendShell } from "@/components/backend-shell"
 import { ZlCandlestickChart } from "@/components/chart/ZlCandlestickChart"
 import { ProbabilitySurface } from "@/components/dashboard/ProbabilitySurface"
@@ -8,18 +7,8 @@ import { RegimeAnalysisChart } from "@/components/dashboard/RegimeAnalysisChart"
 import { MarketRiskFactors } from "@/components/dashboard/MarketRiskFactors"
 import { MarketIntelligenceRow } from "@/components/dashboard/MarketIntelligenceRow"
 import { MarketSymbolPressureBar } from "@/components/dashboard/MarketSymbolPressureBar"
-import type { TargetZone } from "@/lib/contracts/api"
 
 export default function DashboardPage() {
-  const [targetZones, setTargetZones] = useState<TargetZone[]>([])
-
-  useEffect(() => {
-    fetch("/api/zl/target-zones")
-      .then((r) => r.json())
-      .then((res) => { if (res.ok && res.data) setTargetZones(res.data) })
-      .catch(() => {})
-  }, [])
-
   return (
     <BackendShell>
       {/* SECTION 0: SYMBOL PRESSURE BAR */}
@@ -29,7 +18,7 @@ export default function DashboardPage() {
 
       {/* SECTION 1: HERO CHART */}
       <div>
-        <ZlCandlestickChart height="80vh" targetZones={targetZones} />
+        <ZlCandlestickChart height="80vh" />
       </div>
 
       {/* SECTION 2: L3 Probability Surface */}

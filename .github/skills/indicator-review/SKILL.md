@@ -38,7 +38,7 @@ PRE-FLIGHT CHECKLIST
 [ ] Read python/fusion/config.py — confirm SPECIALISTS (11) and HORIZONS [30,90,180]
 [ ] Read lib/chart/autofib.ts — chart-side fib logic
 [ ] Read components/chart/ZlCandlestickChart.tsx — chart-side volatility logic
-[ ] Read lib/chart/ForecastTargetsPrimitive.ts — target zone rendering spec
+[ ] Read components/dashboard/ProbabilitySurface.tsx — target zone rendering spec
 [ ] Read app/api/dashboard/risk-factors/route.ts — driver scoring logic
 [ ] Read run_garch.py and run_monte_carlo.py — specs (even if scaffold)
 [ ] git status — read-only session confirmed (no uncommitted edits expected from this skill)
@@ -122,14 +122,14 @@ where $ratio \in \{1.236, 1.618, 2.0\}$
 
 **Claimed spec:** Horizontal lines at quantile levels from `forecasts.target_zones`. P30=red-dashed, P50=orange-solid, P70=white-solid. Band opacity: 0.12 start, -0.03 per horizon.
 
-**Audit checks for `lib/chart/ForecastTargetsPrimitive.ts`:**
+**Audit checks for `components/dashboard/ProbabilitySurface.tsx`:**
 
 - [ ] Lines are drawn at exact price levels from the database column (no client-side adjustment)
 - [ ] P30 label and P70 label are not swapped (common inversion bug: lower quantile = lower price level for an uptrend, but NOT always — verify it's raw quantile from MC output, not inverted)
 - [ ] P50 is the median, not the mean — for skewed distributions these differ; confirm it's `quantile(0.5)`, not `mean()`
-- [ ] Per-horizon ordering: 30d zones are drawn on the chart near day 30 from today, 90d near day 90, 180d near day 180 — not all stacked at the same x-coordinate
-- [ ] Band fills are between P30 and P70 (the middle probability mass), not outside
-- [ ] Opacity calculation: verify it falls gracefully if additional horizons are added (guard against negative opacity)
+- [ ] Per-horizon ordering: 30d, 90d, 180d columns render in ascending horizon order
+- [ ] Cell intensity is highest near P50 and bounded inside P30/P70
+- [ ] Alpha calculation falls gracefully when data is missing
 - [ ] No hardcoded price levels — all from DB
 
 **Math note — quantile interpretation:**

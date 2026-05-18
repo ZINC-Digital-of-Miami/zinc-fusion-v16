@@ -1,3 +1,0 @@
-PROBE-REQ001-FAILPATH: EXPECTED_FAIL confirmed -> line 1848 currently is not `WHERE run_id = %s`; failure-path update is not keyed to local run_id
-PROBE-REQ004-AI-META: PASS (fallback observability markers are present in API envelope)
-PROBE-REQ004-STRATEGY-AI-META: PASS (strategy API emits ai metadata for client-side fallback handling)

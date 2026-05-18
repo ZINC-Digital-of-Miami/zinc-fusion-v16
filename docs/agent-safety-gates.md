@@ -12,7 +12,7 @@ Use only these closure states:
 | `INCOMPLETE` | Final task status when any required check is `FAIL` or `NOT RUN`. |
 
 Do not use "complete" for work with `FAIL`, `NOT RUN`, warning-only gates, or
-aborted generated-quality finalizers.
+unverified required checks.
 
 ## Required Completion Gate
 
@@ -20,35 +20,32 @@ aborted generated-quality finalizers.
 
 1. `npm run lint` passes.
 2. `npm run build` passes.
-3. Python test runner availability is proven and required tests run.
-4. Quality Playbook doctor and smoke checks pass.
-5. `quality/mechanical/verify.sh` passes when quality artifacts exist.
-6. Installed Quality Playbook `quality_gate.py` passes with zero warnings.
-7. Quality Playbook finalizer is not aborted.
-8. Source edits and generated `quality/` artifacts are in sync.
-9. Behavior, config, schema, gate, and operational-truth changes update docs or
+3. Python test runner availability is proven.
+4. Required Python contract tests run.
+5. Focused chart-overlay regression tests run when the chart surface changes.
+6. Fusion guard unit tests run when guard behavior changes.
+7. Behavior, config, schema, gate, and operational-truth changes update docs or
    contracts in the same change.
 
 If any item is missing, failed, timed out, unavailable, or warning-only, report:
 
 `STATUS: INCOMPLETE`
 
-## Source Lane vs Generated Lane
+## Source Lane vs Local Runtime Lane
 
 Treat these as separate lanes:
 
 - Source lane: `app/`, `components/`, `lib/`, `python/`, `scripts/`,
   `supabase/`, package/config files, and authority docs.
-- Generated lane: `quality/` artifacts and generated quality receipts.
+- Local runtime lane: `.next/`, `logs/`, caches, local data, and other ignored
+  machine-generated outputs.
 
 Rules:
 
-1. Source edits can invalidate generated quality artifacts.
-2. Generated artifacts do not prove source quality unless they were regenerated
-   after the source edits they describe.
-3. Do not manually clean generated artifacts to make string scans pass. Regenerate
-   artifacts or mark the quality lane stale.
-4. Guard audit logs are written under `logs/fusion-guard/` and are local runtime
+1. Source edits must be verified by the active guard checks for the changed
+   surface.
+2. Retired tooling artifacts do not prove current source quality.
+3. Guard audit logs are written under `logs/fusion-guard/` and are local runtime
    evidence, not source-of-truth docs.
 
 ## Guard Commands

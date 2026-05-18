@@ -26,7 +26,7 @@ git log --oneline -10
 Classify existing changes before editing:
 
 - user/source edits to preserve
-- generated `quality/` artifacts
+- local runtime artifacts
 - unrelated changes outside the requested scope
 
 ## 3. Identify Active Phase

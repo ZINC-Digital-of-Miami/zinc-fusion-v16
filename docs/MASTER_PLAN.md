@@ -14,33 +14,30 @@ Completion is fail-closed:
 
 - Any failed required check means `STATUS: INCOMPLETE`.
 - Any required check recorded as `NOT RUN` means `STATUS: INCOMPLETE`.
-- Any aborted generated-quality finalizer means `STATUS: INCOMPLETE`.
-- Any warning in a required quality gate means `STATUS: INCOMPLETE`.
 - A standalone passing sub-gate does not override an incomplete full gate.
 
-## Current Quality State
+## Current Guard State
 
-As of 2026-05-16, Quality Playbook artifacts exist and phases 1-6 were run.
-The run must still be treated as incomplete until the full completion guard
-passes with build, tests, quality gate, mechanical verification, source edit
-state, and generated artifact freshness all clean in the same run.
+As of 2026-05-18, the Quality Playbook installation and generated workbook
+artifacts are retired from this repository. `scripts/fusion_guard.py` owns the
+active fail-closed checks: authority docs, changed-file contracts, runtime
+vocabulary scan, lint, build, focused chart regression, fusion-guard unit tests,
+and Python contract tests.
 
 ## Required Work Loop
 
 1. Read authority docs from `docs/INDEX.md`.
 2. Inspect `git status --short`.
 3. Identify the active migration phase and gate from the canonical plan.
-4. Declare source lane and generated-artifact lane separately.
+4. Declare source, docs/contracts, schema, and local-runtime artifact lanes separately.
 5. Make the smallest scoped change.
 6. Update docs/contracts in the same change when behavior, config, schema, gate,
    or operational truth changes.
-7. Regenerate quality artifacts after source/config/tooling changes that affect
-   quality evidence.
-8. Run the relevant guard:
+7. Run the relevant guard:
    - `npm run guard:pre-commit`
    - `npm run guard:pre-push`
    - `npm run guard:completion`
-9. Report `PASS`, `FAIL`, or `NOT RUN` per check. If any check is not `PASS`,
+8. Report `PASS`, `FAIL`, or `NOT RUN` per check. If any check is not `PASS`,
    report `STATUS: INCOMPLETE`.
 
 ## Non-Negotiable Boundaries

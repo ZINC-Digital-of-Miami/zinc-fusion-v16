@@ -1146,7 +1146,7 @@ def _check_price_ingest_jobs(cur: Any, *, max_age_hours: int, now_utc: datetime)
     cur.execute(
         "SELECT job_name, MAX(finished_at) AS latest_ok "
         "FROM ops.ingest_run "
-        "WHERE status = 'ok' AND job_name = ANY(%s) "
+        "WHERE status = 'SUCCESS' AND job_name = ANY(%s) "
         "GROUP BY job_name",
         (list(required_jobs),),
     )

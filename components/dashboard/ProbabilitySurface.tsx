@@ -13,6 +13,14 @@ interface ForecastTarget {
   isMissing?: boolean
 }
 
+interface TargetZonePayload {
+  horizonDays: number
+  p30: number
+  p50: number
+  p70: number
+  generatedAt: string
+}
+
 const BIN_COUNT = 11
 const AG_HORIZON_DAYS = [30, 90, 180] as const
 
@@ -59,27 +67,33 @@ export function ProbabilitySurface() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch("/api/zl/forecast-targets", { cache: "no-store" })
+        const res = await fetch("/api/zl/target-zones", { cache: "no-store" })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const json = await res.json()
+        if (json.ok === false) throw new Error(json.error ?? "Failed to load target zones")
         if (cancelled) return
         setTargets(
-          (json.targets ?? [])
+          ((json.data ?? []) as TargetZonePayload[])
             .filter(
-              (t: ForecastTarget) =>
-                AG_HORIZON_DAYS.includes(t?.horizonDays as (typeof AG_HORIZON_DAYS)[number]) &&
+              (t: TargetZonePayload) =>
                 typeof t?.horizonDays === "number" &&
-                typeof t?.priceLow === "number" &&
-                typeof t?.priceHigh === "number" &&
-                typeof t?.oofPrice === "number",
+                AG_HORIZON_DAYS.includes(t.horizonDays as (typeof AG_HORIZON_DAYS)[number]) &&
+                typeof t?.p30 === "number" &&
+                typeof t?.p50 === "number" &&
+                typeof t?.p70 === "number",
             )
-            .map((t: ForecastTarget) => ({
-              ...t,
+            .map((t: TargetZonePayload) => ({
+              id: `${t.generatedAt}-${t.horizonDays}`,
+              horizonDays: t.horizonDays,
               horizonLabel: horizonLabel(t.horizonDays),
+              priceLow: t.p30,
+              priceHigh: t.p70,
+              oofPrice: t.p50,
+              coveragePct: null,
             }))
             .sort((a: ForecastTarget, b: ForecastTarget) => a.horizonDays - b.horizonDays),
         )
-        setAsOfDate(json.asOfDate ?? null)
+        setAsOfDate(json.asOf ?? null)
       } catch (e) {
         if (cancelled) return
         setError(e instanceof Error ? e.message : "Failed to load target zones")
