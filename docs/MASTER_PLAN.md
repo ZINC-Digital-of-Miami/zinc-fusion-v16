@@ -21,8 +21,12 @@ Completion is fail-closed:
 As of 2026-05-18, the Quality Playbook installation and generated workbook
 artifacts are retired from this repository. `scripts/fusion_guard.py` owns the
 active fail-closed checks: authority docs, changed-file contracts, runtime
-vocabulary scan, lint, build, focused chart regression, fusion-guard unit tests,
-and Python contract tests.
+vocabulary scan, lint, build, focused chart regressions, ZL DuckDB raw-store
+regression, fusion-guard unit tests, and Python contract tests.
+
+Local macOS Next builds use `scripts/next-local.js` to avoid Gatekeeper prompts
+from native SWC binaries on mounted volumes. The package manager must not be run
+to repair that prompt; the wrapper keeps local builds on the WASM SWC path.
 
 ## Required Work Loop
 

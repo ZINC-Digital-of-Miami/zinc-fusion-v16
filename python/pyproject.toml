@@ -5,9 +5,11 @@ description = "ZINC Fusion v16 Python pipeline scaffold"
 requires-python = ">=3.11"
 dependencies = [
     "autogluon.tabular>=1.5.0",
+    "duckdb>=1.1",
     "psycopg2-binary>=2.9",
     "pandas>=2.0",
     "pyarrow>=14.0",
+    "pytz>=2024.1",
 ]
 
 [build-system]

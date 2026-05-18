@@ -120,7 +120,7 @@
 | **Database**           | Prisma Postgres (cloud)         | Supabase Postgres                                                  |
 | **Schema mgmt**        | Prisma + 34 migrations          | Supabase migrations (SQL-first)                                    |
 | **Frontend**           | Next.js on Vercel               | Next.js on Vercel (new project) + shadcn/ui + Radix + Tailwind CSS |
-| **Scheduling**         | Inngest (104 functions, Docker) | pg_cron + http extension (all ingestion inside Postgres)           |
+| **Scheduling**         | Inngest (104 functions, Docker) | pg_cron + http extension by default; ZL chart raw refresh via local DuckDB + Python promote |
 | **DB client (TS)**     | pg.Pool + Prisma for validation | Supabase JS client + pg.Pool for bulk                              |
 | **DB client (Python)** | psycopg2 direct                 | psycopg2 direct to Supabase Postgres                               |
 | **ML**                 | AutoGluon (local, CPU)          | AutoGluon (local, CPU) — rebuilt clean                             |
@@ -136,7 +136,7 @@
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Frontend dev**              | Reads from cloud Supabase                                                                                                                                 | Single source of truth. No local/cloud drift. `vercel env pull` provides connection.                                                                  |
 | **Python training/inference** | Reads canonical raw data from cloud Supabase, can materialize the bounded AG training source into local PostgreSQL for training, and writes intermediates to **local parquet files** during compute. Promotes validated outputs back to cloud. | Cloud is canonical. Local PostgreSQL is a training-source staging database only, not Supabase and not serving truth. Intermediates stay local during iteration. Only validated artifacts are promoted back to cloud DB. |
-| **Data ingestion**            | Runs **INSIDE Postgres** via pg_cron + http extension                                                                                                     | No Vercel cron routes. No external orchestrator. Ingestion is a database-native operation.                                                            |
+| **Data ingestion**            | Runs **INSIDE Postgres** via pg_cron + http extension by default; ZL Databento chart raw data uses local DuckDB + Python promote                         | No Vercel cron routes. ZL chart raw history needs a durable local recovery store before serving rows are promoted.                                     |
 | **Supabase CLI**              | Used for migrations ONLY (`supabase db push`, `supabase db diff --linked`)                                                                                | No `supabase status`. No `supabase start`. No local Supabase or Docker containers. Local PostgreSQL, when used, is a separate AG training-source database. |
 
 **Guard rail:** Create a `training` Postgres role that can only write to `training.*` and `forecasts.*` schemas. The Python pipeline uses this role. Frontend service role is read-only on those schemas.
@@ -161,7 +161,7 @@
 |                      SUPABASE                              |
 |  Single cloud DB (9 schemas: mkt, econ, alt, supply,      |
 |    training, forecasts, analytics, ops, vegas)              |
-|  pg_cron + http extension (ALL data ingestion ~22 jobs)    |
+|  pg_cron + http extension (default ingestion jobs)          |
 |  Vault (API keys via current_setting())                    |
 |  Auth (user authentication)                                |
 |  RLS policies per schema                                   |
@@ -175,6 +175,11 @@
 |  - Writes intermediates to local parquet files              |
 |  - promote_to_cloud.py pushes validated outputs to cloud   |
 |                                                            |
+|  ZL Databento Raw Store                                    |
+|  - data/duckdb/zinc_fusion_raw.duckdb                      |
+|  - raw.databento_zl_ohlcv_1h stores raw hourly bars        |
+|  - fusion.zl_duckdb_pipeline promotes chart serving rows   |
+|                                                            |
 |  ProFarmer Scraper (Python Playwright, system cron)        |
 |  - Writes directly to cloud Supabase                       |
 +-----------------------------------------------------------+
@@ -184,7 +189,8 @@
 
 | Layer                                                             | Canonical Location          | Notes                                                        |
 | ----------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------ |
-| Raw ingest tables (mkt, econ, alt, supply)                        | **Cloud Supabase**          | pg_cron + http writes directly to cloud                      |
+| ZL Databento raw hourly chart history                             | **Local DuckDB**            | `data/duckdb/zinc_fusion_raw.duckdb`; promoted to Supabase serving tables |
+| Raw ingest tables (econ, alt, supply, non-chart mkt)               | **Cloud Supabase**          | pg_cron + http writes directly to cloud                      |
 | Serving tables (analytics, forecasts.target_zones)                | **Cloud Supabase**          | Dashboard reads from cloud                                   |
 | Published forecasts / Target Zones                                | **Cloud Supabase**          | Pre-computed, served to dashboard                            |
 | Training metadata (model_registry, training_runs)                 | **Cloud Supabase**          | Registry of what was trained and when                        |
@@ -196,7 +202,7 @@
 
 ### Cron-First Ingestion Contract
 
-All data ingestion runs inside Supabase Postgres via pg_cron + http extension. No ingestion readiness can be claimed until:
+Most ingestion runs inside Supabase Postgres via pg_cron + http extension. The locked 2026-05-18 ZL chart exception runs Databento hourly raw pulls into local DuckDB and promotes clean rows into Supabase serving tables. No ingestion readiness can be claimed until:
 
 1. **Functions exist** — plpgsql ingestion functions are deployed via migration
 2. **Cron jobs are registered** — `SELECT count(*) FROM cron.job` returns expected schedule count
@@ -221,11 +227,11 @@ All data ingestion runs inside Supabase Postgres via pg_cron + http extension. N
 
 | Table          | Purpose                                | Writer                               | Reader                           | Granularity |
 | -------------- | -------------------------------------- | ------------------------------------ | -------------------------------- | ----------- |
-| `price_1d`     | ZL daily OHLCV — powers the chart      | pg_cron: zl-daily                    | Dashboard chart, all pages       | Daily       |
-| `price_1h`     | ZL hourly bars                         | pg_cron: zl-intraday                 | Intraday chart view              | Hourly      |
+| `price_1d`     | ZL daily OHLCV — powers the chart      | Python promote from local DuckDB raw ZL store | Dashboard chart, all pages       | Daily       |
+| `price_1h`     | ZL hourly bars                         | Python promote from local DuckDB raw ZL store | Intraday chart view              | Hourly      |
 | `price_15m`    | ZL 15-min bars                         | pg_cron: zl-intraday                 | Intraday chart zoom              | 15min       |
 | `price_1m`     | ZL 1-min bars (90-day retention)       | pg_cron: zl-intraday                 | Fine-grain chart                 | 1min        |
-| `latest_price` | Most recent ZL price + timestamp       | pg_cron: zl-intraday, pg_cron rollup | Status bar, live ticker          | Real-time   |
+| `latest_price` | Most recent ZL price + timestamp       | Python promote from local DuckDB raw ZL store | Status bar, live ticker          | Real-time   |
 | `futures_1d`   | 84 commodity/index futures daily       | pg_cron: databento-futures           | Specialist features, cross-asset | Daily       |
 | `options_1d`   | ZL options chain                       | pg_cron: databento-options           | Vol surface                      | Daily       |
 | `fx_1d`        | FX rates                               | pg_cron: fx-daily                    | FX specialist                    | Daily       |
@@ -364,14 +370,14 @@ All data ingestion runs inside Supabase Postgres via pg_cron + http extension. N
 
 | Tier  | Home                                           | What Goes Here                                                                 | Why                                                                                                                                            |
 | ----- | ---------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A** | **pg_cron + http extension (inside Postgres)** | All ~22 data ingestion jobs                                                    | plpgsql functions call external APIs via `http_get`/`http_post`, parse JSON, upsert to tables. Triggered by pg_cron. No external orchestrator. |
+| **A** | **pg_cron + http extension (inside Postgres)** | Default non-chart ingestion jobs                                               | plpgsql functions call external APIs via `http_get`/`http_post`, parse JSON, upsert to tables. Triggered by pg_cron. No Vercel cron. |
 | **B** | **Supabase pg_cron**                           | DB-internal operations                                                         | Runs inside Postgres, zero network hops, SQL-native                                                                                            |
-| **C** | **Python workers (local/CI)**                  | Training pipeline, specialist signals, forecast generation, Monte Carlo, GARCH | Long-running compute, needs Python libs                                                                                                        |
+| **C** | **Python workers (local/CI)**                  | ZL DuckDB raw refresh, training pipeline, specialist signals, forecast generation, Monte Carlo, GARCH | Long-running compute, needs Python libs                                                                                                        |
 | **D** | **Dedicated service**                          | ProFarmer scraper                                                              | Needs browser runtime                                                                                                                          |
 
 ### Tier A: pg_cron + http Extension (~22 plpgsql Functions)
 
-legacy baseline had 104 fragmented Inngest functions. V16 consolidates to ~22 plpgsql functions triggered by pg_cron, running entirely inside Postgres via the `http` extension. No Vercel cron routes. No external orchestrator. FRED is split into `ingest_fred_core()` (chart-critical minimum, Phase 4) and `ingest_fred_catalog()` (full expansion, Phase 6). Databento functions stay separate — different symbol sets, different failure domains (see checkpoint-4-job-architecture.md).
+legacy baseline had 104 fragmented Inngest functions. V16 consolidates non-chart ingestion into plpgsql functions triggered by pg_cron, running entirely inside Postgres via the `http` extension. No Vercel cron routes. FRED is split into `ingest_fred_core()` (chart-critical minimum, Phase 4) and `ingest_fred_catalog()` (full expansion, Phase 6). Databento futures/options functions stay separate — different symbol sets, different failure domains (see checkpoint-4-job-architecture.md). ZL chart raw Databento history is the exception: it lives in local DuckDB and is promoted to Supabase serving tables by `fusion.zl_duckdb_pipeline`.
 
 **API keys** are stored in Supabase Vault and accessed via `current_setting()` inside plpgsql functions.
 
@@ -379,8 +385,7 @@ legacy baseline had 104 fragmented Inngest functions. V16 consolidates to ~22 pl
 
 | V16 pg_cron Function         | Replaces (legacy baseline Inngest)                                                                                                                                                   | Schedule                 | Target Schema |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ | ------------- |
-| `ingest_zl_daily()`          | `zl-daily`                                                                                                                                                                           | Daily 6:05 CT            | mkt           |
-| `ingest_zl_intraday()`       | `zl-1h`, `zl-15m`, `zl-1m-intraday-refresh`                                                                                                                                          | Every 15m during session | mkt           |
+| `duckdb_zl_databento_refresh` | `zl-daily`, `zl-1h`                                                                                                                                                                  | Manual/system schedule outside Vercel | local DuckDB -> mkt serving |
 | `ingest_databento_futures()` | 5 futures shards + 5 statistics shards + `databento-futures-1h` + `futures-legacy-symbols-nightly`                                                                                   | Daily 2 AM CT            | mkt           |
 | `ingest_databento_options()` | 5 options shards                                                                                                                                                                     | Daily                    | mkt           |
 | `ingest_fx_daily()`          | `databento-fx-daily`, `fx-spot-daily`, `fx-databento-spot-daily`                                                                                                                     | Daily                    | mkt           |
@@ -406,7 +411,7 @@ legacy baseline had 104 fragmented Inngest functions. V16 consolidates to ~22 pl
 | `check_freshness()`          | `freshnessMonitor`                                                                                                                                                                   | Daily                    | ops           |
 | `ingest_nyfed_daily()`       | `nyfedDaily`                                                                                                                                                                         | Daily                    | econ          |
 
-**No Vercel cron routes exist.** All ingestion is database-native.
+**No Vercel cron routes exist.** Default ingestion is database-native; ZL chart raw refresh is a Python worker with a local DuckDB raw store.
 
 ### Tier B: Supabase pg_cron (~5 DB-internal jobs)
 
@@ -424,6 +429,7 @@ Python writes intermediates to **LOCAL FILES** (parquet), not directly to cloud 
 
 | Script                            | What It Does                                             | Writes To (Local)                               | Promoted To (Cloud)                               | Trigger                |
 | --------------------------------- | -------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------- | ---------------------- |
+| `zl_duckdb_pipeline.py`           | Refresh ZL Databento hourly raw chart history            | `data/duckdb/zinc_fusion_raw.duckdb`            | `mkt.price_1h`, `mkt.price_1d`, `mkt.latest_price` | Manual / system cron   |
 | `build_matrix.py`                 | Assemble feature matrix                                  | `data/matrix_1d.parquet`                        | training.matrix_1d                                | Manual / system cron   |
 | `train_models.py`                 | AutoGluon training (3 horizons: 30d/90d/180d)            | `models/` artifacts + `data/training_*.parquet` | training.\*, model_registry                       | Manual (training gate) |
 | `generate_specialist_features.py` | 11 specialist feature generators                         | `data/specialist_features_*.parquet`            | training.specialist*features*\*                   | Manual / system cron   |
@@ -638,13 +644,14 @@ Env vars:
 
 ### Data Posture
 
-Cloud Supabase is canonical for all stored data. The Python pipeline is a compute client:
+Cloud Supabase is canonical for serving, auth, forecasts, analytics, ops, and schema-managed warehouse tables. The 2026-05-18 chart-data reliability exception makes local DuckDB canonical for raw ZL Databento hourly chart history before promotion. The Python pipeline is a compute client:
 
 - **Reads:** from cloud Supabase (canonical source) via psycopg2
+- **ZL chart raw reads/writes:** local DuckDB `data/duckdb/zinc_fusion_raw.duckdb`, relation `raw.databento_zl_ohlcv_1h`
 - **Training source:** local PostgreSQL staging database for AG only after explicit local load
 - **Computes:** locally — all feature engineering, training, forecasting, simulation runs on local machine
 - **Intermediates:** local parquet files — ephemeral compute artifacts, not canonical storage
-- **Promotes:** validated compact outputs back to cloud Supabase via `promote_to_cloud.py`
+- **Promotes:** validated compact outputs back to cloud Supabase via `promote_to_cloud.py`; ZL chart serving rows via `fusion.zl_duckdb_pipeline refresh --promote`
 
 Training data storage architecture keeps cloud Supabase canonical while allowing local PostgreSQL as the bounded AG training-source staging database. Current design: `promote_to_cloud.py` pushes validated outputs to cloud `training.*` tables. The local training source is not serving truth and is not a local Supabase replacement.
 
@@ -1051,6 +1058,15 @@ All 6 pages are rewritten from scratch using legacy baseline as **VISUAL referen
 | 2.10 | Build `/api/zl/price-1h` route                                                                            | Hourly data serves correctly                       |
 | 2.11 | Parity check: legacy baseline chart vs V16 chart side-by-side                                             | Visually identical                                 |
 
+**2026-05-18 chart freshness correction:** raw ZL Databento hourly chart data
+belongs in local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb`, relation
+`raw.databento_zl_ohlcv_1h`. `fusion.zl_duckdb_pipeline refresh --promote`
+accepts Databento HTTP `200` and `206` NDJSON payloads, stores raw hourly bars
+locally with a timestamp overlap cursor, rolls UTC daily bars, and promotes only
+clean serving rows into Supabase `mkt.price_1h`, `mkt.price_1d`, and
+`mkt.latest_price`. This repair does not require a Supabase migration or
+`db push`.
+
 **Exit criteria:** Chart renders identically to legacy baseline with real historical data. Live price route works. Cards render.
 
 ### Phase 3: Landing Page
@@ -1086,17 +1102,17 @@ This phase establishes cron readiness before any ingestion function is built. No
 
 **Exit criteria:** Vault keys stored, extensions operational, Gate 4A preflight passes. Phase 4 can begin.
 
-### Phase 4: Data Ingestion — Critical pg_cron Functions
+### Phase 4: Data Ingestion — Critical Source Functions
 
 **Entry:** Phase 4A complete (cron infrastructure verified). Chart needs fresh data, not just seed data.
 
-All data ingestion is implemented as plpgsql functions using pg_cron + http extension inside Supabase. No Vercel cron routes. No vercel.json cron config. API keys stored in Supabase Vault.
+Default ingestion is implemented as plpgsql functions using pg_cron + http extension inside Supabase. ZL chart raw Databento history is the locked exception: Python writes raw hourly bars to local DuckDB and promotes clean serving rows to Supabase. No Vercel cron routes. No vercel.json cron config. API keys remain in Supabase Vault unless a local `DATABENTO_API_KEY` is explicitly supplied for the Python refresh.
 
 | Step | Action                                                                                                                               | Exit Evidence                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
 | 4.1  | (Completed in Phase 4A — Vault keys already stored)                                                                                  | Verified in Phase 4A exit                                  |
-| 4.2  | Build `ingest_zl_daily()` plpgsql function (ZL daily OHLCV via http extension)                                                       | New rows in mkt.price_1d after pg_cron fires               |
-| 4.3  | Build `ingest_zl_intraday()` plpgsql function (1h + 15m via http extension)                                                          | Intraday bars populating                                   |
+| 4.2  | Build `fusion.zl_duckdb_pipeline` DuckDB raw refresh/promote path for ZL chart OHLCV                                                  | New rows in local DuckDB and Supabase serving tables        |
+| 4.3  | Verify `/api/zl/price-1h`, `/api/zl/price-1d`, and `/api/zl/live` read promoted serving rows                                          | Intraday, daily, and latest price paths fresh               |
 | 4.4  | Build `ingest_fred_core()` plpgsql function (chart-critical FRED subset: rates, vol indices, inflation, activity, crude, tallow PPI) | Core econ.\* tables updating with chart-critical series    |
 | 4.5  | Build `ingest_databento_futures()` plpgsql function (all futures + stats)                                                            | mkt.futures_1d updating                                    |
 | 4.6  | Build `ingest_databento_options()` plpgsql function                                                                                  | mkt.options_1d updating                                    |
@@ -1108,7 +1124,7 @@ All data ingestion is implemented as plpgsql functions using pg_cron + http exte
 | 4.12 | Verify at least one successful controlled run of each Phase 4 function                                                               | `ops.ingest_run` has `status = 'SUCCESS'` row for each function |
 | 4.13 | Run Gate 4A preflight again (post-registration)                                                                                      | All cron readiness checks pass with registered jobs        |
 
-**Exit criteria:** Chart shows today's data. Core market tables updating on schedule via pg_cron. `ingest_fred_core()` feeding chart-critical FRED series. Freshness monitoring active. Gate 4A re-verified with registered jobs. No Vercel cron routes. `cron.job` count matches expected Phase 4 schedule density.
+**Exit criteria:** Chart shows today's data. ZL raw hourly bars are durable in local DuckDB and promoted to Supabase serving tables. Core market tables outside the ZL chart path update on schedule via pg_cron. `ingest_fred_core()` feeds chart-critical FRED series. Freshness monitoring active. Gate 4A re-verified with registered jobs. No Vercel cron routes. `cron.job` count matches expected Phase 4 schedule density for database-native jobs.
 
 ### Phase 5: Python Pipeline Rebuild
 
