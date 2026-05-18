@@ -38,9 +38,17 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
-    "postcss": "^8",
+    "postcss": "^8.5.14",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "$postcss"
+    },
+    "minimatch@10.2.4": {
+      "brace-expansion": "^5.0.6"
+    }
   }
 }
