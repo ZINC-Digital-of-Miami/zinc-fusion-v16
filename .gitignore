@@ -55,6 +55,7 @@ supabase/.temp/
 
 # local dataset/cache drops (keep in project folder, never commit)
 Data/
+data/duckdb/
 data/fusion/
 models/fusion/
 

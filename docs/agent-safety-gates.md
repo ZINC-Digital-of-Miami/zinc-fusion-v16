@@ -22,9 +22,10 @@ unverified required checks.
 2. `npm run build` passes.
 3. Python test runner availability is proven.
 4. Required Python contract tests run.
-5. Focused chart-overlay regression tests run when the chart surface changes.
-6. Fusion guard unit tests run when guard behavior changes.
-7. Behavior, config, schema, gate, and operational-truth changes update docs or
+5. Focused chart regressions run when chart rendering or chart data freshness changes.
+6. The ZL DuckDB raw-store regression runs with the Python guard checks when chart data freshness changes.
+7. Fusion guard unit tests run when guard behavior changes.
+8. Behavior, config, schema, gate, and operational-truth changes update docs or
    contracts in the same change.
 
 If any item is missing, failed, timed out, unavailable, or warning-only, report:
@@ -64,3 +65,12 @@ npm run guard:completion
 
 The guard scripts are intentionally fail-closed. A nonzero guard exit means the
 status is incomplete until the blocker is resolved and the guard is rerun.
+
+## Local Next Runtime
+
+On macOS, `npm run dev` and `npm run build` route through `scripts/next-local.js`.
+The wrapper uses Webpack and WASM SWC by default so local builds on mounted
+volumes do not invoke the Gatekeeper-blocked native `next-swc.darwin-arm64.node`
+binary. Do not repair that prompt by running package installs. Set
+`NEXT_NATIVE_SWC_ALLOWED=1` only when intentionally testing the native local
+binary on a trusted local filesystem.

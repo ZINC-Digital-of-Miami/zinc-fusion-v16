@@ -178,14 +178,16 @@
 
 4. **`ops.ingest_run.status` vocabulary split:** Repaired in source 2026-05-18. A corrective migration normalizes persisted values to `RUNNING`, `SUCCESS`, `FAILED`, and `TIMEOUT`; cloud deployment still requires explicit `db push` approval.
 
-5. **ProFarmer login pause:** The legacy scraper required a specific wait after login before navigation. Must be preserved in the new Playwright implementation.
+5. **ZL chart freshness pinned by Databento `206`:** Repaired in source 2026-05-18 by moving raw ZL Databento chart history into local DuckDB. `fusion.zl_duckdb_pipeline refresh --promote` accepts Databento HTTP `200` and `206` NDJSON payloads, writes raw hourly bars to `data/duckdb/zinc_fusion_raw.duckdb` relation `raw.databento_zl_ohlcv_1h`, rolls UTC daily bars, and promotes only clean serving rows into Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`. This path intentionally does not require a Supabase migration or `db push`.
 
-6. **Satechi Hub may not auto-mount:** V15 project location unknown until manually mounted.
+6. **ProFarmer login pause:** The legacy scraper required a specific wait after login before navigation. Must be preserved in the new Playwright implementation.
 
-7. **AI card `strategicSpecialInstructions` packets:** Must be preserved exactly in format when migrating from GPT to OpenRouter. These are the "instruction packets" that teach the AI what each card needs.
+7. **Satechi Hub may not auto-mount:** V15 project location unknown until manually mounted.
 
-8. **`DashboardCards.tsx` and `dashboard-shell.tsx`:** Appear vestigial but must audit before deleting.
+8. **AI card `strategicSpecialInstructions` packets:** Must be preserved exactly in format when migrating from GPT to OpenRouter. These are the "instruction packets" that teach the AI what each card needs.
 
-9. **No `layout.tsx` in naked `app/dashboard/`:** Means it has no auth protection — another reason it was likely superseded by `(protected)`.
+9. **`DashboardCards.tsx` and `dashboard-shell.tsx`:** Appear vestigial but must audit before deleting.
 
-10. **Training gate:** NEVER start model training without explicit user approval. `train-readiness --dry-run` currently reports `blocked` (row floor not met).
+10. **No `layout.tsx` in naked `app/dashboard/`:** Means it has no auth protection — another reason it was likely superseded by `(protected)`.
+
+11. **Training gate:** NEVER start model training without explicit user approval. `train-readiness --dry-run` currently reports `blocked` (row floor not met).

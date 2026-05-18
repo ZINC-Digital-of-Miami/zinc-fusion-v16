@@ -60,6 +60,24 @@ class FusionGuardContractTest(unittest.TestCase):
         self.assertEqual(calls[1]["name"], "pytest python contract tests")
         self.assertEqual(calls[1]["extra_env"], {"PYTHONPATH": "python"})
 
+    def test_python_contract_tests_include_zl_duckdb_pipeline_regression(self):
+        fusion_guard = load_fusion_guard_module()
+        calls = []
+
+        def fake_command_check(name, argv, timeout, *, extra_env=None):
+            calls.append({"name": name, "argv": argv})
+            return fusion_guard.Check(name, fusion_guard.PASS, "stub")
+
+        old_command_check = fusion_guard.command_check
+        try:
+            fusion_guard.command_check = fake_command_check
+            fusion_guard.python_check(10)
+        finally:
+            fusion_guard.command_check = old_command_check
+
+        pytest_call = next(call for call in calls if call["name"] == "pytest python contract tests")
+        self.assertIn("python/tests/test_zl_duckdb_pipeline.py", pytest_call["argv"])
+
     def test_package_lint_scope_is_source_bounded(self):
         package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
         lint = package["scripts"]["lint"]
@@ -68,6 +86,16 @@ class FusionGuardContractTest(unittest.TestCase):
         self.assertIn("app", lint)
         self.assertIn("components", lint)
         self.assertIn("lib", lint)
+
+    def test_next_scripts_use_local_wrapper_to_avoid_native_macos_swc_prompt(self):
+        package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+        wrapper = (ROOT / "scripts/next-local.js").read_text(encoding="utf-8")
+
+        self.assertEqual(package["dependencies"]["next"], "16.2.6")
+        self.assertIn("node scripts/next-local.js build --webpack", package["scripts"]["build"])
+        self.assertIn("node scripts/next-local.js dev --webpack", package["scripts"]["dev"])
+        self.assertIn("NEXT_TEST_WASM", wrapper)
+        self.assertIn("NEXT_NATIVE_SWC_ALLOWED", wrapper)
 
     def test_eslint_ignores_generated_and_tooling_trees(self):
         config = (ROOT / "eslint.config.mjs").read_text(encoding="utf-8")

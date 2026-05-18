@@ -263,6 +263,7 @@ def python_check(timeout: int) -> list[Check]:
                 "pytest",
                 "python/tests/test_train_models_contract.py",
                 "python/tests/test_training_readiness_gate_contract.py",
+                "python/tests/test_zl_duckdb_pipeline.py",
             ],
             timeout,
             extra_env={"PYTHONPATH": "python"},

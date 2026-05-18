@@ -26,7 +26,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 | **Schema mgmt**        | Supabase CLI migrations (SQL-first, `db push` to cloud) |
 | **Frontend**           | Next.js 14+ on Vercel (frontend hosting ONLY)           |
 | **UI System**          | shadcn/ui + Radix primitives + Tailwind CSS             |
-| **Data ingestion**     | pg_cron + `http` extension (inside Postgres, $0 cost)   |
+| **Data ingestion**     | pg_cron + `http` extension by default; ZL Databento raw chart path uses local DuckDB + Python promote |
 | **DB client (TS)**     | Supabase JS client (reads only)                         |
 | **DB client (Python)** | psycopg2 to cloud Supabase Postgres; local PostgreSQL only for AG training source |
 | **ML**                 | AutoGluon (CPU-only), custom specialist models          |
@@ -45,7 +45,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 2. **Target = future PRICE LEVEL** (`close.shift(-horizon)`), columns named `target_price_{h}d`. Never returns.
 3. **Target Zones = horizontal lines** at price levels. NEVER say: cones, bands, funnels, confidence intervals.
 4. **Probability language:** "ZL has an X% chance of hitting XX.XX by [date]" — derived from Monte Carlo (10k runs) + pinball loss + MAE/accuracy %.
-5. **No Inngest. No Vercel Cron.** All scheduling via Supabase pg_cron + `http` extension. Vercel is frontend hosting ONLY.
+5. **No Inngest. No Vercel Cron.** Default scheduling is Supabase pg_cron + `http` extension. Vercel is frontend hosting ONLY. Locked 2026-05-18 exception: ZL Databento raw chart data is refreshed into local DuckDB in the project folder and promoted to Supabase serving tables by Python; this exception does not authorize Vercel cron or local Supabase.
 6. **9 schemas:** mkt, econ, alt, supply, training, forecasts, analytics, ops, vegas. No others.
 7. **ProFarmer is mandatory** ($500/month). Rebuilt as Python Playwright scraper, not Node.js Puppeteer.
 8. **Training gate:** NEVER start model training without explicit user approval.
@@ -53,7 +53,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 10. **Landing page is sacred.** REWRITE from scratch using legacy baseline as visual reference — preserve the design identity. NEVER copy legacy baseline code.
 11. **ZERO mock data.** No placeholders, no temps, no demo/synthetic/random data anywhere, ever. Empty state until real data flows. This is the HARDEST rule.
 12. **ZERO code copying.** Every line of V16 is written fresh. legacy baseline is a visual reference only. Clone-and-clean failed catastrophically — never again.
-13. **Cloud Supabase only.** Cloud Supabase is canonical. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Local PostgreSQL is permitted only as the AG training-source staging database, never as canonical warehouse or local Supabase replacement.
+13. **Cloud Supabase only for serving/auth/schema.** Cloud Supabase remains canonical for frontend serving tables, auth, forecasts, analytics, ops, and schema-managed tables. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Local PostgreSQL is permitted only as the AG training-source staging database. Locked 2026-05-18 exception: local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb` owns raw ZL Databento chart history before clean rows are promoted to `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
 14. **No hardcoded port 3000.** Dev server port must be checked for availability first.
 15. **Design holdoff exception (locked 2026-05-07).** For page parity work, do not redesign. Reproduce locked source visuals exactly.
 16. **Locked page authority map (2026-05-07):** Strategy=V16, Vegas Intel=V16, Dashboard=V15, Legislation=V15, Sentiment=V15.
@@ -115,7 +115,7 @@ Full details in the migration plan. Quick reference:
 | **1.5** | **All page rewrites**           | All 6 pages rewritten from scratch (legacy baseline visual ref only). Empty state until data wired. |
 | **2**   | Read path — chart & live price  | Chart renders with real data from Supabase                                                          |
 | **3**   | Landing page completion         | Faithful rewrite of legacy baseline landing design                                                  |
-| **4**   | Data ingestion (pg_cron+http)   | ZL daily, intraday, FRED, futures — all via Supabase pg_cron                                        |
+| **4**   | Data ingestion                  | ZL chart raw path via local DuckDB + Python promote; other canonical sources via Supabase pg_cron    |
 | **5**   | Python pipeline rebuild         | Full ML pipeline, local files for intermediates, promote to cloud                                   |
 | **6**   | Remaining ingestion + ProFarmer | All data sources feeding via pg_cron+http, ProFarmer Playwright                                     |
 | **7**   | Dashboard completion            | Target Zones, drivers, regime, cards — all live                                                     |
@@ -131,7 +131,7 @@ Full details in the migration plan. Quick reference:
 
 ```
 Frontend (reads):      Supabase JS client with anon key + JWT
-Data ingestion:        pg_cron + http extension (runs inside Postgres — no external connection)
+Data ingestion:        pg_cron + http extension by default; ZL Databento chart raw store uses local DuckDB + Python promote
 Python (reads):        psycopg2 pooled connection to cloud (port 6543)
 Python (training src): local PostgreSQL staging DB for AG training only
 Python (promotes):     psycopg2 direct connection to cloud (port 5432) — validated outputs only
@@ -155,7 +155,7 @@ Never do manual DDL on cloud. Migrations are the single source of truth. No `sup
 
 ### Data Ingestion Pattern (pg_cron + http extension)
 
-All data ingestion runs inside Postgres as plpgsql functions:
+Default data ingestion runs inside Postgres as plpgsql functions:
 
 1. pg_cron triggers the function on schedule
 2. `http_get()` fetches from external API (synchronous, in-transaction)
@@ -165,6 +165,13 @@ All data ingestion runs inside Postgres as plpgsql functions:
 6. API keys from Supabase Vault via `current_setting()`
 
 No Vercel cron routes. No CRON_SECRET. No serverless functions for ingestion.
+
+ZL Databento chart raw-store exception locked 2026-05-18:
+
+1. Python pulls Databento 1h bars into ignored local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb`.
+2. DuckDB table `raw.databento_zl_ohlcv_1h` is the raw chart-data recovery store.
+3. Only clean serving rows are promoted to Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
+4. This path does not require a Supabase migration or `db push` for data freshness repair.
 
 ### RLS Pattern
 
@@ -275,7 +282,7 @@ V16 is complete when:
 - Only validated routes and jobs exist (no legacy baggage)
 - Supabase owns the clean canonical database with RLS enforced — cloud only; local PostgreSQL is AG training-source staging only
 - Vercel is frontend hosting ONLY — zero crons, zero ingestion compute
-- ~22 pg_cron + http functions keep data fresh inside Supabase ($0 incremental)
+- pg_cron + http functions keep non-ZL-chart sources fresh inside Supabase, while local DuckDB owns raw ZL Databento chart refresh and promotes clean serving rows
 - Python pipeline runs end-to-end: reads cloud → local PostgreSQL training source/local files → promotes validated outputs to cloud
 - ProFarmer Playwright scraper is working ($500/mo source, 7 sections, 35 runs/week)
 - Auth protects dashboard routes
