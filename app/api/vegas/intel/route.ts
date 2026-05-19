@@ -75,6 +75,25 @@ type EventImpactRow = {
   event_id: number | null;
   restaurant_id: number | null;
   impact_score: number | null;
+  metadata: unknown;
+};
+
+type OptionalCountQuery = {
+  schema: "vegas" | "ops";
+  table: string;
+};
+
+type GlideOptionalCounts = {
+  exportList: number | null;
+  shifts: number | null;
+  scheduledReports: number | null;
+  shiftCasinos: number | null;
+  shiftRestaurants: number | null;
+};
+
+type CuisineAffinity = {
+  score: number;
+  reason: string;
 };
 
 const EVENT_COLOR_MAP: Record<string, string> = {
@@ -87,6 +106,67 @@ const EVENT_COLOR_MAP: Record<string, string> = {
   community: "#06b6d4",
   "school-holidays": "#ec4899",
   fallback: "#6b7280",
+};
+
+const GLIDE_OPTIONAL_COUNT_QUERIES: Record<keyof GlideOptionalCounts, OptionalCountQuery[]> = {
+  exportList: [
+    { schema: "vegas", table: "export_list" },
+    { schema: "ops", table: "glide_vegas_export_list" },
+    { schema: "ops", table: "vegas_export_list" },
+  ],
+  shifts: [
+    { schema: "vegas", table: "shifts" },
+    { schema: "ops", table: "glide_vegas_shifts" },
+    { schema: "ops", table: "vegas_shifts" },
+  ],
+  scheduledReports: [
+    { schema: "vegas", table: "scheduled_reports" },
+    { schema: "ops", table: "glide_vegas_scheduled_reports" },
+    { schema: "ops", table: "vegas_scheduled_reports" },
+  ],
+  shiftCasinos: [
+    { schema: "vegas", table: "shift_casinos" },
+    { schema: "ops", table: "glide_vegas_shift_casinos" },
+    { schema: "ops", table: "vegas_shift_casinos" },
+  ],
+  shiftRestaurants: [
+    { schema: "vegas", table: "shift_restaurants" },
+    { schema: "ops", table: "glide_vegas_shift_restaurants" },
+    { schema: "ops", table: "vegas_shift_restaurants" },
+  ],
+};
+
+const CUISINE_AFFINITY_MATRIX: Record<string, Record<string, CuisineAffinity>> = {
+  expos: {
+    steakhouse: { score: 88, reason: "Expo traffic favors hosted dinners and group dining." },
+    asian: { score: 74, reason: "Expo groups often need quick, shareable business meals." },
+    buffet: { score: 82, reason: "Expo windows increase demand for high-volume service formats." },
+  },
+  conferences: {
+    steakhouse: { score: 85, reason: "Conference spend clusters around client meals and networking." },
+    italian: { score: 77, reason: "Conference groups favor sit-down team meals near venues." },
+    seafood: { score: 79, reason: "Conference dining budgets support higher-ticket menus." },
+  },
+  concerts: {
+    burger: { score: 86, reason: "Concert windows reward fast pre-show and post-show turns." },
+    pizza: { score: 84, reason: "Concert crowds lean toward fast, shareable meals." },
+    pub: { score: 81, reason: "Concert demand drives drink-led and late-night volume." },
+  },
+  sports: {
+    pub: { score: 90, reason: "Sports windows drive game-day wings, beer, and group tables." },
+    burger: { score: 84, reason: "Sports events support repeat quick-service volume." },
+    bbq: { score: 74, reason: "Sports parties create shareable, high-throughput orders." },
+  },
+  festivals: {
+    mexican: { score: 82, reason: "Festival traffic skews to quick, flavorful, portable meals." },
+    chicken: { score: 76, reason: "Festival windows reward fast, high-repeat menu items." },
+    american: { score: 72, reason: "Festival crowds favor broad menus and quick throughput." },
+  },
+  "performing-arts": {
+    italian: { score: 83, reason: "Theater demand favors pre-show sit-down dining." },
+    seafood: { score: 80, reason: "Performing-arts nights lift premium dinner demand." },
+    steakhouse: { score: 84, reason: "Performing-arts traffic supports upscale timed dining." },
+  },
 };
 
 const VEGAS_INSTRUCTIONS: Record<keyof VegasCards, StrategicSpecialInstructions> = {
@@ -209,6 +289,23 @@ function pickNumber(metadata: Record<string, unknown>, keys: string[]): number |
   return null;
 }
 
+function pickBoolean(metadata: Record<string, unknown>, keys: string[]): boolean | null {
+  for (const key of keys) {
+    const value = metadata[key];
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") {
+      if (value === 1) return true;
+      if (value === 0) return false;
+    }
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (["true", "yes", "y", "1"].includes(normalized)) return true;
+      if (["false", "no", "n", "0"].includes(normalized)) return false;
+    }
+  }
+  return null;
+}
+
 function normalizeEventCategory(value: string | null): string {
   if (!value) return "community";
   const normalized = value.trim().toLowerCase();
@@ -241,6 +338,74 @@ function toNullableIso(value: string | null): string | null {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed.toISOString();
+}
+
+function toDurationDays(startDate: string, endDate: string | null): number {
+  if (!endDate) return 1;
+  const start = toMidnight(new Date(startDate)).getTime();
+  const end = toMidnight(new Date(endDate)).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return 1;
+  return Math.max(1, Math.floor((end - start) / 86400000) + 1);
+}
+
+function normalizeCuisineType(value: string | null): string | null {
+  if (!value) return null;
+  return value.trim().toLowerCase();
+}
+
+function resolveCuisineAffinity(category: string, cuisineType: string | null): CuisineAffinity {
+  if (!cuisineType) return { score: 30, reason: "General dining option." };
+  const categoryMap = CUISINE_AFFINITY_MATRIX[category];
+  if (!categoryMap) return { score: 30, reason: "General dining option." };
+  return categoryMap[cuisineType] ?? { score: 30, reason: "General dining option." };
+}
+
+function toPhqMultiplier(attendance: number): number {
+  const attendanceScore = Math.min(100000, Math.max(0, attendance || 5000)) / 100000;
+  return 0.5 + attendanceScore * 1.5;
+}
+
+function isMissingRelationError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeCode = "code" in error ? String(error.code ?? "") : "";
+  const maybeMessage = "message" in error ? String(error.message ?? "") : "";
+  return maybeCode === "PGRST205" || maybeMessage.toLowerCase().includes("does not exist");
+}
+
+async function readOptionalCount(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  candidates: OptionalCountQuery[],
+): Promise<number | null> {
+  for (const candidate of candidates) {
+    const { count, error } = await supabase
+      .schema(candidate.schema)
+      .from(candidate.table)
+      .select("*", { count: "exact", head: true });
+    if (!error) return count ?? 0;
+    if (isMissingRelationError(error)) continue;
+    throw error;
+  }
+  return null;
+}
+
+async function readGlideOptionalCounts(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<GlideOptionalCounts> {
+  const exportList = await readOptionalCount(supabase, GLIDE_OPTIONAL_COUNT_QUERIES.exportList);
+  const shifts = await readOptionalCount(supabase, GLIDE_OPTIONAL_COUNT_QUERIES.shifts);
+  const scheduledReports = await readOptionalCount(
+    supabase,
+    GLIDE_OPTIONAL_COUNT_QUERIES.scheduledReports,
+  );
+  const shiftCasinos = await readOptionalCount(
+    supabase,
+    GLIDE_OPTIONAL_COUNT_QUERIES.shiftCasinos,
+  );
+  const shiftRestaurants = await readOptionalCount(
+    supabase,
+    GLIDE_OPTIONAL_COUNT_QUERIES.shiftRestaurants,
+  );
+  return { exportList, shifts, scheduledReports, shiftCasinos, shiftRestaurants };
 }
 
 function buildProvenance(
@@ -293,12 +458,9 @@ export async function GET() {
     const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
     const now = new Date();
     const todayText = now.toISOString().slice(0, 10);
-    const in14 = new Date(now);
-    in14.setDate(in14.getDate() + 14);
-    const in30 = new Date(now);
-    in30.setDate(in30.getDate() + 30);
 
     const [
+      glideOptionalCounts,
       { data: eventRowsRaw, error: eventError },
       { data: venueRowsRaw, error: venueError },
       { data: restaurantRowsRaw, error: restaurantError },
@@ -307,6 +469,7 @@ export async function GET() {
       { data: scoreRowsRaw, error: scoreError },
       { data: impactRowsRaw, error: impactError },
     ] = await Promise.all([
+      readGlideOptionalCounts(supabase),
       supabase
         .schema("vegas")
         .from("events")
@@ -343,7 +506,7 @@ export async function GET() {
       supabase
         .schema("vegas")
         .from("event_impact")
-        .select("event_id, restaurant_id, impact_score")
+        .select("event_id, restaurant_id, impact_score, metadata")
         .order("impact_score", { ascending: false })
         .limit(10000),
     ]);
@@ -410,6 +573,7 @@ export async function GET() {
           attendance,
           startDate,
           endDate,
+          durationDays: toDurationDays(startDate, endDate),
           daysUntil: toDaysUntil(now, startDate),
           color: toEventColor(category),
           location: pickString(meta, ["location", "address", "city"]),
@@ -417,6 +581,11 @@ export async function GET() {
       })
       .filter((row): row is VegasEventRow => row !== null)
       .sort((a, b) => a.daysUntil - b.daysUntil);
+
+    const eventById = new Map<number, VegasEventRow>();
+    for (const event of events) {
+      eventById.set(event.id, event);
+    }
 
     const latestScoreByRestaurant = new Map<number, number>();
     const latestDateByRestaurant = new Map<number, string>();
@@ -433,6 +602,10 @@ export async function GET() {
 
     const impactSumByRestaurant = new Map<number, number>();
     const impactCountByRestaurant = new Map<number, number>();
+    const topImpactByRestaurant = new Map<
+      number,
+      { eventId: number; impactScore: number; expectedSpend: number | null }
+    >();
     for (const row of impactRows) {
       if (!row.restaurant_id || row.impact_score === null) continue;
       const parsedImpact = Number(row.impact_score);
@@ -445,6 +618,22 @@ export async function GET() {
         row.restaurant_id,
         (impactCountByRestaurant.get(row.restaurant_id) ?? 0) + 1,
       );
+
+      if (!row.event_id) continue;
+      const impactMeta = asObject(row.metadata);
+      const expectedSpend = pickNumber(impactMeta, [
+        "expected_spend",
+        "hospitality_spend",
+        "predicted_spend",
+      ]);
+      const currentTop = topImpactByRestaurant.get(row.restaurant_id);
+      if (!currentTop || parsedImpact > currentTop.impactScore) {
+        topImpactByRestaurant.set(row.restaurant_id, {
+          eventId: row.event_id,
+          impactScore: parsedImpact,
+          expectedSpend,
+        });
+      }
     }
 
     const fryerCountByRestaurant = new Map<number, number>();
@@ -484,6 +673,22 @@ export async function GET() {
           impactCount > 0
             ? (impactSumByRestaurant.get(restaurantId) ?? 0) / impactCount
             : null;
+        const topImpact = topImpactByRestaurant.get(restaurantId);
+        const topEvent = topImpact ? eventById.get(topImpact.eventId) ?? null : null;
+        const cuisineType = normalizeCuisineType(
+          pickString(meta, ["cuisine_type", "cuisineType", "cuisine"]),
+        );
+        const affinity = resolveCuisineAffinity(topEvent?.category ?? "community", cuisineType);
+        const isServiceCuisine = cuisineType === "service";
+        const phqMultiplier = topEvent ? toPhqMultiplier(topEvent.attendance) : null;
+        const hospitalityImpact = topImpact?.impactScore ?? eventPressure;
+        const expectedSpend =
+          topImpact?.expectedSpend ??
+          pickNumber(meta, ["expected_spend", "expectedSpend", "hospitality_spend"]);
+        const zfusionScore =
+          isServiceCuisine || hospitalityImpact === null || phqMultiplier === null
+            ? null
+            : Math.min(100, (affinity.score / 100) * hospitalityImpact * phqMultiplier);
 
         const totalCapacity = capacityByRestaurant.get(restaurantId) ?? null;
         const fryerCount = fryerCountByRestaurant.get(restaurantId) ?? null;
@@ -497,15 +702,50 @@ export async function GET() {
           serviceFrequency,
           oilType: pickString(meta, ["oil_type", "oilType", "U0Jf2"]),
           oilForm: pickString(meta, ["oil_form", "oilForm", "0RcWz"]),
+          cuisineType,
           status: row.account_status ?? pickString(meta, ["status", "s8tNr"]),
           fryerCount,
           totalCapacityLbs: totalCapacity,
           customerStatus,
           opportunityScore: latestScoreByRestaurant.get(restaurantId) ?? null,
           eventPressure,
+          eventId: topEvent?.id ?? null,
+          eventName: topEvent?.name ?? null,
+          eventCategory: topEvent?.category ?? null,
+          eventDate: topEvent?.startDate ?? null,
+          expectedSpend,
+          hospitalityImpact,
+          phqMultiplier,
+          affinityScore: isServiceCuisine ? null : affinity.score,
+          zfusionScore,
+          pitchReasoning: isServiceCuisine
+            ? "Service account excluded from dining opportunity scoring."
+            : affinity.reason,
+          shiftCount: pickNumber(meta, [
+            "shift_count",
+            "shiftCount",
+            "assigned_shift_count",
+            "assignedShiftCount",
+          ]),
+          scheduledReportCount: pickNumber(meta, [
+            "scheduled_reports_count",
+            "scheduledReportCount",
+            "report_count",
+            "maintenance_report_count",
+          ]),
+          exportListed: pickBoolean(meta, [
+            "export_list",
+            "in_export_list",
+            "exportListed",
+            "is_export_listed",
+          ]),
+          metadata: meta,
         } satisfies VegasOpportunityRow;
       })
       .sort((a, b) => {
+        const zfusionA = a.zfusionScore ?? Number.NEGATIVE_INFINITY;
+        const zfusionB = b.zfusionScore ?? Number.NEGATIVE_INFINITY;
+        if (zfusionA !== zfusionB) return zfusionB - zfusionA;
         const scoreA = a.opportunityScore ?? Number.NEGATIVE_INFINITY;
         const scoreB = b.opportunityScore ?? Number.NEGATIVE_INFINITY;
         if (scoreA !== scoreB) return scoreB - scoreA;
@@ -549,10 +789,21 @@ export async function GET() {
       restaurants: restaurantRows.length,
       casinos: casinoRows.length,
       fryers: fryerRows.length,
-      exportList: null,
-      shifts: null,
-      scheduledReports: null,
+      exportList: glideOptionalCounts.exportList,
+      shifts: glideOptionalCounts.shifts,
+      scheduledReports: glideOptionalCounts.scheduledReports,
       lastSync,
+    };
+
+    const glideTables = {
+      restaurants: restaurantRows.length,
+      casinos: casinoRows.length,
+      fryers: fryerRows.length,
+      exportList: glideOptionalCounts.exportList,
+      scheduledReports: glideOptionalCounts.scheduledReports,
+      shifts: glideOptionalCounts.shifts,
+      shiftCasinos: glideOptionalCounts.shiftCasinos,
+      shiftRestaurants: glideOptionalCounts.shiftRestaurants,
     };
 
     const highPriorityCount = opportunities.filter((row) => {
@@ -665,6 +916,11 @@ export async function GET() {
         "vegas.restaurants",
         "vegas.casinos",
         "vegas.fryers",
+        "vegas.export_list",
+        "vegas.scheduled_reports",
+        "vegas.shifts",
+        "vegas.shift_casinos",
+        "vegas.shift_restaurants",
         "vegas.customer_scores",
         "vegas.event_impact",
         ...TRUSTED_MARKET_SOURCE_FEEDS,
@@ -675,6 +931,7 @@ export async function GET() {
       ...envelope,
       cards,
       stats,
+      glideTables,
       events,
       opportunities,
       ai: toAiEnvelopeMeta(aiSnapshot),

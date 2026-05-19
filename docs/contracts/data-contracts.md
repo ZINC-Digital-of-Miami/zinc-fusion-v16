@@ -45,7 +45,10 @@
 ## Vegas Intel Turnover Contract (Body Scope)
 - `/api/vegas/intel` must return DB-backed `events`, `opportunities`, and `stats` payloads used by the Vegas body sections.
 - `events` rows must remain future-dated and sorted by soonest upcoming date for display.
-- `opportunities` rows must expose customer/prospect classification from service-cadence data and must surface missing oil, fryer, capacity, and contact fields explicitly rather than inventing values.
+- `events` rows must include `durationDays` derived from verified start/end dates (default `1` when end date is missing/invalid).
+- `opportunities` rows must expose customer/prospect classification from service-cadence data and must surface missing oil, fryer, capacity, contact, shift/report cadence, and export-list fields explicitly rather than inventing values.
+- Vegas opportunity scoring must include event-pressure evidence and cuisine-aware reasoning (`zfusionScore`/affinity fields) from verified rows, or explicit missing-state values when required rows are absent.
+- Server output must track all 8 Glide source groups (restaurants, casinos, fryers, export_list, scheduled_reports, shifts, shift_casinos, shift_restaurants) through DB-backed counts; unavailable groups remain `null`.
 - `stats` must include actual row counts for currently wired `vegas.*` serving tables and set not-yet-wired Glide groups to `null` until promoted data exists.
 - The route may include AI card narratives, but body rendering must remain grounded in verified DB rows and include hard-stop language when required source rows are missing.
 

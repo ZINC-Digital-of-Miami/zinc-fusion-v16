@@ -95,6 +95,7 @@ export interface VegasEventRow {
   attendance: number;
   startDate: string;
   endDate: string | null;
+  durationDays: number;
   daysUntil: number;
   color: string;
   location: string | null;
@@ -109,10 +110,25 @@ export interface VegasOpportunityRow {
   serviceFrequency: string | null;
   oilType: string | null;
   oilForm: string | null;
+  cuisineType: string | null;
   status: string | null;
   fryerCount: number | null;
   totalCapacityLbs: number | null;
   customerStatus: "customer" | "prospect";
   opportunityScore: number | null;
   eventPressure: number | null;
+  eventId: number | null;
+  eventName: string | null;
+  eventCategory: string | null;
+  eventDate: string | null;
+  expectedSpend: number | null;
+  hospitalityImpact: number | null;
+  phqMultiplier: number | null;
+  affinityScore: number | null;
+  zfusionScore: number | null;
+  pitchReasoning: string | null;
+  shiftCount: number | null;
+  scheduledReportCount: number | null;
+  exportListed: boolean | null;
+  metadata: Record<string, unknown>;
 }

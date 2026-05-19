@@ -56,6 +56,11 @@ function formatAttendance(value: number): string {
   return Number.isFinite(value) ? value.toLocaleString() : "0";
 }
 
+function formatCount(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "missing";
+  return Number.isFinite(value) ? value.toLocaleString() : "missing";
+}
+
 function urgencyColor(daysUntil: number): string {
   if (daysUntil <= 7) return "#ef4444";
   if (daysUntil <= 21) return "#f59e0b";
@@ -249,8 +254,10 @@ export default function VegasIntelPage() {
                       className="w-[52px] h-[52px] rounded-full border-[3px] flex flex-col items-center justify-center"
                       style={{ borderColor: "#06b6d4" }}
                     >
-                      <div className="text-base font-bold text-white/90 leading-none">1</div>
-                      <div className="text-[8px] uppercase text-white/50">Day</div>
+                      <div className="text-base font-bold text-white/90 leading-none">
+                        {event.durationDays}
+                      </div>
+                      <div className="text-[8px] uppercase text-white/50">Days</div>
                     </div>
                   </div>
                 </div>
@@ -275,6 +282,22 @@ export default function VegasIntelPage() {
                     ? `${Math.round(row.totalCapacityLbs)} lbs`
                     : "Missing capacity telemetry";
                 const oilLabel = row.oilType ?? "Oil type not populated";
+                const shiftLabel =
+                  row.shiftCount === null ? "Missing shift links" : `${row.shiftCount} shift links`;
+                const reportLabel =
+                  row.scheduledReportCount === null
+                    ? "Missing report cadence"
+                    : `${row.scheduledReportCount} scheduled reports`;
+                const exportLabel =
+                  row.exportListed === null
+                    ? "Export-list state missing"
+                    : row.exportListed
+                      ? "In export list"
+                      : "Not in export list";
+                const eventLabel =
+                  row.eventName && row.eventDate
+                    ? `${row.eventName} (${formatDate(row.eventDate)})`
+                    : "No linked event window";
                 return (
                   <div
                     key={row.id}
@@ -301,6 +324,12 @@ export default function VegasIntelPage() {
                         <div className="text-xs text-white/40 mt-1">
                           Fryers: {row.fryerCount ?? "Missing fryer telemetry"} | Capacity: {capacityLabel}
                         </div>
+                        <div className="text-xs text-white/35 mt-1">
+                          {shiftLabel} | {reportLabel} | {exportLabel}
+                        </div>
+                        <div className="text-xs text-white/35 mt-1">
+                          Event: {eventLabel} | Reason: {row.pitchReasoning ?? "General dining option."}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
@@ -309,6 +338,10 @@ export default function VegasIntelPage() {
                             {row.opportunityScore !== null ? row.opportunityScore.toFixed(1) : "n/a"}
                           </div>
                           <div className="text-[10px] uppercase text-white/40">Score</div>
+                          <div className="text-sm font-semibold text-white/80 mt-1">
+                            {row.zfusionScore !== null ? row.zfusionScore.toFixed(1) : "n/a"}
+                          </div>
+                          <div className="text-[10px] uppercase text-white/40">ZFusion</div>
                         </div>
                         <button
                           type="button"
@@ -326,8 +359,12 @@ export default function VegasIntelPage() {
         </section>
 
         {stats?.lastSync ? (
-          <div className="text-xs text-slate-500 font-mono">
-            Last sync: {formatDate(stats.lastSync)}
+          <div className="space-y-1">
+            <div className="text-xs text-slate-500 font-mono">Last sync: {formatDate(stats.lastSync)}</div>
+            <div className="text-xs text-slate-500 font-mono">
+              Glide groups - export list: {formatCount(stats.exportList)}, shifts: {formatCount(stats.shifts)},
+              scheduled reports: {formatCount(stats.scheduledReports)}
+            </div>
           </div>
         ) : null}
       </div>
