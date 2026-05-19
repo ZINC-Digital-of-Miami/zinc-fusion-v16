@@ -1576,6 +1576,30 @@ html, body {
   }
 }
 
+@media (max-width: 480px) {
+  .vegas-segment-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .vegas-event-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .vegas-event-stats {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .vegas-opp-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+}
+
 /* ==========================================================================
    SPA PAGE VISIBILITY
    ========================================================================== */

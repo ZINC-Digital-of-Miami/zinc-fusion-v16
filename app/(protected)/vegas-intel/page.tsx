@@ -74,6 +74,7 @@ export default function VegasIntelPage() {
   const [events, setEvents] = useState<VegasEventRow[]>([]);
   const [opportunities, setOpportunities] = useState<VegasOpportunityRow[]>([]);
   const [segment, setSegment] = useState<VegasSegment>("all");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/vegas/intel", { cache: "no-store" })
@@ -82,10 +83,12 @@ export default function VegasIntelPage() {
         if (res.ok && res.data) setSnapshot(res.data);
         setStats(res.stats ?? null);
         setCards(res.cards ?? null);
-        setEvents((res.events ?? []).slice(0, 8));
+        const orderedEvents = [...(res.events ?? [])].sort((a, b) => a.daysUntil - b.daysUntil);
+        setEvents(orderedEvents.slice(0, 8));
         setOpportunities(res.opportunities ?? []);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const customers = useMemo(
@@ -126,11 +129,26 @@ export default function VegasIntelPage() {
     prospects: prospects.length,
     events: events.length || snapshot?.activeEvents || 0,
   };
+  const eventAttendanceTotal = useMemo(
+    () => events.reduce((sum, row) => sum + row.attendance, 0),
+    [events],
+  );
+  const eventNext7Days = useMemo(
+    () => events.filter((row) => row.daysUntil <= 7).length,
+    [events],
+  );
+
+  const opportunityHeading =
+    segment === "customers"
+      ? `Customers (${displayedOpportunities.length})`
+      : segment === "prospects"
+        ? `Prospects (${displayedOpportunities.length})`
+        : `All Accounts (${displayedOpportunities.length})`;
 
   return (
     <BackendShell>
-      <div className="w-full min-h-screen bg-[#0a0a0a] text-slate-200 px-3 md:px-6 pb-20 space-y-12">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="w-full min-h-screen bg-[#0a0a0a] text-slate-200 px-3 md:px-6 pb-20">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-1">
               <Building2 className="w-8 h-8" />
@@ -142,8 +160,16 @@ export default function VegasIntelPage() {
           </div>
         </header>
 
-        <section>
-          <div className="grid grid-cols-4 max-[480px]:grid-cols-2 gap-3 max-[480px]:gap-2 mb-12">
+        <section className="mb-12">
+          <div
+            className="vegas-segment-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: "12px",
+              marginBottom: "48px",
+            }}
+          >
             {SEGMENTS.map((item) => {
               const active = segment === item.id;
               const mainValue = segmentValues[item.id];
@@ -154,13 +180,14 @@ export default function VegasIntelPage() {
                   key={item.id}
                   type="button"
                   onClick={() => setSegment(item.id)}
-                  className="text-left min-h-[140px] px-4 py-5 flex flex-col justify-between rounded-none transition-all"
+                  className="text-left min-h-[140px] px-4 py-5 flex flex-col justify-between rounded-none"
                   style={{
                     background: active ? `${item.accent}15` : "rgba(255,255,255,0.02)",
                     border: active
                       ? `2px solid ${item.accent}`
                       : "1px solid rgba(255,255,255,0.08)",
                     borderLeft: `4px solid ${item.accent}`,
+                    transition: "all 0.2s ease",
                   }}
                 >
                   <div>
@@ -177,25 +204,26 @@ export default function VegasIntelPage() {
                       {item.label}
                     </div>
                   </div>
-                  <div className="flex gap-4 mt-4 pt-3 border-t border-white/10">
+                  <div
+                    className="flex gap-4 mt-4 pt-3"
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+                  >
                     <div>
                       <div className="text-sm font-semibold text-white/80">
                         {item.id === "events"
-                          ? `${events.filter((event) => event.daysUntil <= 14).length}`
+                          ? eventAttendanceTotal.toLocaleString()
                           : `${totalFryers}`}
                       </div>
                       <div className="text-[9px] uppercase tracking-[0.5px] text-white/40">
-                        {item.id === "events" ? "14d" : "Fryers"}
+                        {item.id === "events" ? "Attendance" : "Fryers"}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm font-semibold text-white/80">
-                        {item.id === "events"
-                          ? `${events.filter((event) => event.daysUntil <= 30).length}`
-                          : `${Math.round(totalCapacity)}`}
+                        {item.id === "events" ? `${eventNext7Days}` : `${Math.round(totalCapacity)}`}
                       </div>
                       <div className="text-[9px] uppercase tracking-[0.5px] text-white/40">
-                        {item.id === "events" ? "30d" : "Capacity"}
+                        {item.id === "events" ? "Next 7 Days" : "Capacity"}
                       </div>
                     </div>
                   </div>
@@ -206,28 +234,46 @@ export default function VegasIntelPage() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-xs font-semibold uppercase tracking-[1px] opacity-60 mb-4">Upcoming Events</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-[1px] opacity-60 mb-4">
+            Upcoming Events ({events.length})
+          </h2>
           <div className="flex flex-col gap-0.5">
-            {events.length === 0 ? (
-              <div className="p-10 text-center opacity-50 bg-white/[0.02] border border-white/10">
+            {loading ? (
+              <LoadingRow message="Loading..." />
+            ) : events.length === 0 ? (
+              <div
+                className="p-10 text-center opacity-50"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
                 {cards?.upcomingEvents?.body ?? "Hard stop: upcoming-event card has no verified data."}
               </div>
             ) : (
               events.map((event) => (
                 <div
                   key={event.id}
-                  className="vegas-event-row bg-white/[0.02] border border-white/10 p-5 md:px-6 md:py-5 flex items-center gap-6 max-[480px]:flex-col max-[480px]:items-stretch max-[480px]:gap-2 rounded-none"
+                  className="vegas-event-row"
+                  style={{
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    padding: "20px 24px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "24px",
+                  }}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-base font-semibold text-white/95 mb-1.5">{event.name}</div>
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="text-[13px] text-white/50">{event.venue ?? "Venue unavailable"}</span>
                       <span
-                        className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-sm border"
+                        className="text-[10px] font-semibold uppercase px-2 py-0.5"
                         style={{
                           background: `${event.color}20`,
                           color: event.color,
-                          borderColor: `${event.color}33`,
+                          borderRadius: "2px",
                         }}
                       >
                         {event.category}
@@ -236,7 +282,10 @@ export default function VegasIntelPage() {
                     <div className="text-xs text-white/40">{formatDate(event.startDate)}</div>
                   </div>
 
-                  <div className="vegas-event-stats flex items-center gap-4 shrink-0 max-[480px]:flex-wrap max-[480px]:gap-2">
+                  <div
+                    className="vegas-event-stats"
+                    style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}
+                  >
                     <div className="text-right">
                       <div className="text-xl font-bold text-white/90">{formatAttendance(event.attendance)}</div>
                       <div className="text-[10px] uppercase text-white/40">Attendance</div>
@@ -267,33 +316,31 @@ export default function VegasIntelPage() {
         </section>
 
         <section className="mb-12">
-          <h2 className="text-xs font-semibold uppercase tracking-[1px] opacity-60 mb-4">Account Opportunities</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-[1px] opacity-60 mb-4">
+            {opportunityHeading}
+          </h2>
           <div className="flex flex-col gap-2">
-            {displayedOpportunities.length === 0 ? (
-              <div className="p-10 text-center opacity-50 bg-white/[0.02] border border-white/10">
+            {loading ? (
+              <LoadingRow message="Loading..." />
+            ) : displayedOpportunities.length === 0 ? (
+              <div
+                className="p-10 text-center opacity-50"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
                 {cards?.restaurantAccounts?.body ??
                   "Hard stop: restaurant-accounts card has no verified account-score data."}
               </div>
             ) : (
               displayedOpportunities.map((row) => {
                 const accent = row.customerStatus === "customer" ? "#2dd4bf" : "#b91c1c";
+                const fryerLabel = row.fryerCount === null ? "Missing fryer telemetry" : String(row.fryerCount);
                 const capacityLabel =
                   row.totalCapacityLbs !== null
-                    ? `${Math.round(row.totalCapacityLbs)} lbs`
+                    ? `${Math.round(row.totalCapacityLbs).toLocaleString()} lbs`
                     : "Missing capacity telemetry";
-                const oilLabel = row.oilType ?? "Oil type not populated";
-                const shiftLabel =
-                  row.shiftCount === null ? "Missing shift links" : `${row.shiftCount} shift links`;
-                const reportLabel =
-                  row.scheduledReportCount === null
-                    ? "Missing report cadence"
-                    : `${row.scheduledReportCount} scheduled reports`;
-                const exportLabel =
-                  row.exportListed === null
-                    ? "Export-list state missing"
-                    : row.exportListed
-                      ? "In export list"
-                      : "Not in export list";
                 const eventLabel =
                   row.eventName && row.eventDate
                     ? `${row.eventName} (${formatDate(row.eventDate)})`
@@ -301,55 +348,55 @@ export default function VegasIntelPage() {
                 return (
                   <div
                     key={row.id}
-                    className="vegas-opp-row flex items-stretch bg-white/[0.02] border border-white/10 overflow-hidden rounded-none max-[480px]:flex-col max-[480px]:items-stretch max-[480px]:gap-2"
+                    className="vegas-opp-row"
+                    style={{
+                      display: "flex",
+                      alignItems: "stretch",
+                      background: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      overflow: "hidden",
+                    }}
                   >
                     <div className="w-1 shrink-0" style={{ background: accent }} />
-                    <div className="flex items-center gap-4 px-6 py-4 flex-1 max-[480px]:flex-col max-[480px]:items-stretch">
+                    <div
+                      className="flex-1"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        padding: "16px 24px",
+                      }}
+                    >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-1">
-                          <div className="text-[15px] font-semibold text-white">{row.name}</div>
+                          <div className="text-[15px] font-semibold text-white">
+                            {(row.casino ?? "Casino unavailable") + " - " + row.name}
+                          </div>
                           {row.customerStatus === "prospect" ? (
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.5px] px-2 py-0.5 rounded-sm bg-[rgba(185,28,28,0.2)] text-[#f87171]">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.5px] px-2 py-0.5 bg-[rgba(185,28,28,0.2)] text-[#f87171]">
                               Prospect
                             </span>
                           ) : null}
                         </div>
                         <div className="text-xs text-white/50">
-                          {(row.casino ?? "Casino unavailable") +
-                            " | " +
-                            (row.serviceFrequency ?? "Service cadence missing") +
-                            " | " +
-                            oilLabel}
-                        </div>
-                        <div className="text-xs text-white/40 mt-1">
-                          Fryers: {row.fryerCount ?? "Missing fryer telemetry"} | Capacity: {capacityLabel}
+                          {`${fryerLabel} fryers (${capacityLabel}) | ${row.serviceFrequency ?? "No schedule"}`}
                         </div>
                         <div className="text-xs text-white/35 mt-1">
-                          {shiftLabel} | {reportLabel} | {exportLabel}
-                        </div>
-                        <div className="text-xs text-white/35 mt-1">
-                          Event: {eventLabel} | Reason: {row.pitchReasoning ?? "General dining option."}
+                          {(row.oilType ?? "Oil type missing") +
+                            " | " +
+                            (row.contactPerson ?? "Contact missing") +
+                            " | " +
+                            eventLabel}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right">
-                          <div className="text-sm font-semibold text-white/90">
-                            {row.opportunityScore !== null ? row.opportunityScore.toFixed(1) : "n/a"}
-                          </div>
-                          <div className="text-[10px] uppercase text-white/40">Score</div>
-                          <div className="text-sm font-semibold text-white/80 mt-1">
-                            {row.zfusionScore !== null ? row.zfusionScore.toFixed(1) : "n/a"}
-                          </div>
-                          <div className="text-[10px] uppercase text-white/40">ZFusion</div>
-                        </div>
-                        <button
-                          type="button"
-                          className="px-4 py-2 text-xs font-semibold bg-transparent border border-white/20 rounded-sm text-white/80 shrink-0"
-                        >
-                          Intel
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        className="px-4 py-2 text-xs font-semibold bg-transparent border border-white/20 text-white/80 shrink-0"
+                        style={{ borderRadius: "2px" }}
+                      >
+                        Intel
+                      </button>
                     </div>
                   </div>
                 );
@@ -369,5 +416,16 @@ export default function VegasIntelPage() {
         ) : null}
       </div>
     </BackendShell>
+  );
+}
+
+function LoadingRow({ message }: { message: string }) {
+  return (
+    <div
+      className="p-10 text-center opacity-50"
+      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)" }}
+    >
+      {message}
+    </div>
   );
 }
