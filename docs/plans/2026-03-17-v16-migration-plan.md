@@ -120,9 +120,9 @@
 | **Database**           | Prisma Postgres (cloud)         | Supabase Postgres                                                  |
 | **Schema mgmt**        | Prisma + 34 migrations          | Supabase migrations (SQL-first)                                    |
 | **Frontend**           | Next.js on Vercel               | Next.js on Vercel (new project) + shadcn/ui + Radix + Tailwind CSS |
-| **Scheduling**         | Inngest (104 functions, Docker) | pg_cron + http extension by default; ZL chart raw refresh via local DuckDB + Python promote |
+| **Scheduling**         | Inngest (104 functions, Docker) | pg_cron + http extension by default; ZL chart raw/deep refresh via local DuckDB + bounded Python promote |
 | **DB client (TS)**     | pg.Pool + Prisma for validation | Supabase JS client + pg.Pool for bulk                              |
-| **DB client (Python)** | psycopg2 direct                 | psycopg2 direct to Supabase Postgres                               |
+| **DB client (Python)** | psycopg2 direct                 | DuckDB for deep ZL/AG training data; psycopg2 direct to Supabase for bounded serving promotion |
 | **ML**                 | AutoGluon (local, CPU)          | AutoGluon (local, CPU) — rebuilt clean                             |
 | **Specialists**        | 11 Python signal generators     | 11 Python signal generators — rebuilt clean                        |
 | **Auth**               | Custom cookie-based             | Supabase Auth                                                      |
@@ -135,9 +135,9 @@
 | Scenario                      | Approach                                                                                                                                                  | Why                                                                                                                                                   |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Frontend dev**              | Reads from cloud Supabase                                                                                                                                 | Single source of truth. No local/cloud drift. `vercel env pull` provides connection.                                                                  |
-| **Python training/inference** | Reads canonical raw data from cloud Supabase, can materialize the bounded AG training source into local PostgreSQL for training, and writes intermediates to **local parquet files** during compute. Promotes validated outputs back to cloud. | Cloud is canonical. Local PostgreSQL is a training-source staging database only, not Supabase and not serving truth. Intermediates stay local during iteration. Only validated artifacts are promoted back to cloud DB. |
-| **Data ingestion**            | Runs **INSIDE Postgres** via pg_cron + http extension by default; ZL Databento chart raw data uses local DuckDB + Python promote                         | No Vercel cron routes. ZL chart raw history needs a durable local recovery store before serving rows are promoted.                                     |
-| **Supabase CLI**              | Used for migrations ONLY (`supabase db push`, `supabase db diff --linked`)                                                                                | No `supabase status`. No `supabase start`. No local Supabase or Docker containers. Local PostgreSQL, when used, is a separate AG training-source database. |
+| **Python training/inference** | Reads deep ZL history and AG training source data from local DuckDB/local files. Reads cloud Supabase only for compact serving/non-chart context when needed. Promotes validated compact outputs back to cloud. | Deep training history stays local so Supabase does not carry large chart/training payloads. Only bounded serving rows and validated compact outputs go to cloud DB. |
+| **Data ingestion**            | Runs **INSIDE Postgres** via pg_cron + http extension by default for non-chart sources; ZL Databento raw/deep chart data uses local DuckDB + bounded Python promote | No Vercel cron routes. ZL chart raw history needs a durable local recovery store before bounded serving rows are promoted.                              |
+| **Supabase CLI**              | Used for migrations ONLY (`supabase db push`, `supabase db diff --linked`)                                                                                | No `supabase status`. No `supabase start`. No local Supabase or Docker containers. DuckDB is the local deep-history/training store, not local Supabase. |
 
 **Guard rail:** Create a `training` Postgres role that can only write to `training.*` and `forecasts.*` schemas. The Python pipeline uses this role. Frontend service role is read-only on those schemas.
 
@@ -170,15 +170,15 @@
 +-----------------------------------------------------------+
 |              LOCAL MACHINE (compute workspace)              |
 |  Python ML Pipeline (rebuilt from scratch)                  |
-|  - Reads raw data from cloud Supabase via psycopg2         |
-|    (cloud is canonical; local PostgreSQL is AG staging only) |
+|  - Reads deep ZL and AG source data from local DuckDB       |
+|  - Reads cloud Supabase only for compact serving/non-chart context |
 |  - Writes intermediates to local parquet files              |
-|  - promote_to_cloud.py pushes validated outputs to cloud   |
+|  - promote_to_cloud.py pushes validated compact outputs to cloud |
 |                                                            |
 |  ZL Databento Raw Store                                    |
 |  - data/duckdb/zinc_fusion_raw.duckdb                      |
-|  - raw.databento_zl_ohlcv_1h stores raw hourly bars        |
-|  - fusion.zl_duckdb_pipeline promotes chart serving rows   |
+|  - raw.databento_zl_ohlcv_1h stores raw/deep hourly bars   |
+|  - fusion.zl_duckdb_pipeline promotes bounded chart serving rows |
 |                                                            |
 |  ProFarmer Scraper (Python Playwright, system cron)        |
 |  - Writes directly to cloud Supabase                       |
@@ -189,20 +189,108 @@
 
 | Layer                                                             | Canonical Location          | Notes                                                        |
 | ----------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------ |
-| ZL Databento raw hourly chart history                             | **Local DuckDB**            | `data/duckdb/zinc_fusion_raw.duckdb`; promoted to Supabase serving tables |
+| ZL Databento raw/deep hourly chart history                        | **Local DuckDB**            | `data/duckdb/zinc_fusion_raw.duckdb`; source for chart rollups and AG training |
+| ZL chart serving cache                                            | **Cloud Supabase**          | Bounded `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price` only |
 | Raw ingest tables (econ, alt, supply, non-chart mkt)               | **Cloud Supabase**          | pg_cron + http writes directly to cloud                      |
 | Serving tables (analytics, forecasts.target_zones)                | **Cloud Supabase**          | Dashboard reads from cloud                                   |
 | Published forecasts / Target Zones                                | **Cloud Supabase**          | Pre-computed, served to dashboard                            |
 | Training metadata (model_registry, training_runs)                 | **Cloud Supabase**          | Registry of what was trained and when                        |
 | Ops observability (ingest_run, pipeline_alerts)                   | **Cloud Supabase**          | All logging in cloud                                         |
-| Wide intermediate artifacts (feature matrix, specialist parquets) | **Local compute workspace** | Parquet files during processing only — not canonical storage |
+| Wide intermediate artifacts (feature matrix, specialist parquets) | **Local DuckDB / local compute workspace** | DuckDB/local parquet during processing only — not Supabase serving storage |
 | Model artifacts (AutoGluon model files)                           | **Local compute workspace** | Large binary artifacts, not in any database                  |
 
-**Training data storage architecture** (whether wide training artifacts should be retained locally vs promoted to cloud `training.*` tables) is a separate checkpoint decision, still gated. Current posture: cloud Supabase `training.*` tables exist and are the intended destination for `promote_to_cloud.py`. Local parquet files are ephemeral compute intermediates. As of the 2026-05-09 training-prep remediation, local prep artifacts live under `data/fusion/`, model artifacts live under `models/fusion/`, and cloud promotion is isolated behind the explicit `promote_to_cloud.py` approval gate. Promotion strips `target_price_{h}d` labels out of cloud `training.matrix_1d.feature_snapshot`; labels remain local-only training columns.
+### ZL Chart Data Ownership — DuckDB + Supabase
+
+The ZL chart path intentionally uses both local DuckDB and cloud Supabase:
+
+| Lane | Owner | Tables / Files | Writer | Reader | Rule |
+| ---- | ----- | -------------- | ------ | ------ | ---- |
+| Raw/deep chart recovery store | **Local DuckDB** | `data/duckdb/zinc_fusion_raw.duckdb`, `raw.databento_zl_ohlcv_1h`, `ops.databento_zl_fetch_log` | `python -m fusion.zl_duckdb_pipeline refresh` | Python promotion, AG training, and audit checks | Retain full Databento hourly history locally. |
+| Chart serving store | **Cloud Supabase** | `mkt.price_1h`, `mkt.price_1d`, `mkt.latest_price` | `python -m fusion.zl_duckdb_pipeline refresh --promote` | Next.js API routes and dashboard chart | Serve only validated bounded rows to the app. |
+| Retired finer intraday tables | **Not active** | `mkt.price_15m`, `mkt.price_1m` | No writer | No site reader after cleanup | Remove route fallbacks and do not schedule or populate these tables without a new approved migration. |
+| Non-chart warehouse data | **Cloud Supabase** | `mkt.futures_1d`, `mkt.options_1d`, econ/alt/supply/training/analytics/ops/vegas tables | Supabase `pg_cron` + `http`, approved Python workers, or approved external scraper | API routes, ML pipeline, reporting | Supabase remains canonical for schema-managed serving, auth, forecasts, analytics, ops, and non-chart source tables. |
+
+The obsolete Supabase-native chart writers `ingest_zl_intraday()` and
+`rollup_zl_daily()` are retained only as historical migration artifacts until
+approved cloud application of `202605180003_disable_supabase_zl_chart_cron.sql`
+disables their schedules and public execution. They must not be treated as the
+active ZL chart data path.
+
+### Supabase Chart Serving Retention Budget
+
+Supabase must stay small enough to be a serving cache, not the deep market-data
+warehouse. The cleanup target is:
+
+| Table | Cloud Purpose | Retention / Size Rule | Source |
+| ----- | ------------- | --------------------- | ------ |
+| `mkt.price_1h` | Intraday chart window and current daily-roll source | Rolling 180 calendar days by default; never deep history | Promoted from DuckDB 1h bars |
+| `mkt.price_1d` | Robust daily chart history for the site | Daily bars only; keep compact long history, with a soft cap of 10,000 rows per symbol unless explicitly raised | Rolled from DuckDB 1h bars |
+| `mkt.latest_price` | Status bar/live ticker | One row per symbol | Latest promoted DuckDB 1h close |
+| `mkt.price_15m` / `mkt.price_1m` | None | Retired from active chart path; no writer, no route dependency | N/A |
+
+All deep chart history, AG training windows, target labels, and exploratory bar
+depth stay in DuckDB/local artifacts. Supabase chart tables must be pruned by an
+approved migration or maintenance job before any deep backfill is promoted.
+
+### Chart Data Cleanup Implementation Plan — 2026-05-18
+
+Goal: keep Supabase from growing into the chart warehouse while preserving a
+robust chart history and AG training history in DuckDB.
+
+1. **Route cleanup**
+   - Modify `app/api/zl/intraday/route.ts` so it reads only `mkt.price_1h`.
+   - Modify `app/api/zl/price-1d/route.ts` so any current-day daily fill reads
+     only `mkt.price_1h`, never `mkt.price_15m` or `mkt.price_1m`.
+   - Add or update guard/unit coverage so `price_15m` and `price_1m` cannot
+     reappear in active chart routes.
+   - Verification: `npm run lint`, `npm run build`, focused route/guard tests.
+
+2. **Promotion/retention cleanup**
+   - Update `python/fusion/zl_duckdb_pipeline.py` to promote only bounded
+     `mkt.price_1h`, daily `mkt.price_1d`, and `mkt.latest_price`.
+   - Add a retention guard for `mkt.price_1h` with default 180 calendar days.
+   - Keep `mkt.price_1d` daily-only and compact; do not promote intraday depth
+     into daily storage beyond one row per symbol/date.
+   - Verification: DuckDB pipeline tests prove full local history remains while
+     cloud promotion is bounded.
+
+3. **Supabase cleanup migration**
+   - Create a migration only after approval.
+   - Disable any remaining cron schedule or public execution path for
+     `ingest_zl_intraday()` and `rollup_zl_daily()`.
+   - Add approved retention maintenance for `mkt.price_1h`.
+   - Decide whether `mkt.price_15m` and `mkt.price_1m` are dropped or retained as
+     empty retired tables. Do not drop them without explicit SQL approval.
+   - Verification: `cron.job` has zero ZL chart jobs; active route/code scan has
+     zero `mkt.price_15m`/`mkt.price_1m` dependencies; row counts match retention.
+
+4. **AG training-source cleanup**
+   - Migrate `python/fusion/build_matrix.py`, `python/fusion/train_models.py`,
+     and `python/fusion/training_readiness_gate.py` away from local PostgreSQL
+     and deep cloud reads for AG training.
+   - DuckDB/local artifacts become the AG source for deep history, feature
+     matrix assembly, and target labels.
+   - Cloud `training.*` tables keep only explicitly approved compact metadata or
+     validated published outputs.
+   - Verification: dry-run training readiness reports DuckDB/local source paths
+     and does not require deep chart rows in Supabase. Training itself still
+     requires explicit user approval.
+
+5. **Edge/serverless pull cleanup**
+   - Confirm no Supabase Edge Function, Vercel route, Vercel cron, or browser
+     path fetches chart data from Databento or Glide directly.
+   - Chart data pull path is only DuckDB/Python refresh plus bounded Supabase
+     promotion.
+   - Vegas/Glide operational data remains separate: read-only Glide sync into
+     Supabase staging/serving tables, then API routes read Supabase.
+   - Verification: repo scan for cron/edge/browser data-pull paths and
+     `npm run guard:completion`.
+
+**Training data storage architecture** is locked to local-first for AG: DuckDB/local artifacts own deep history, matrix assembly, and target labels. Cloud Supabase `training.*` tables may retain compact metadata or explicitly approved serving/registry outputs, but they must not become the deep AG matrix store. As of the 2026-05-18 cleanup target, local PostgreSQL training-source references are legacy cleanup targets; AG training should migrate to DuckDB/local artifacts before the next approved training run. Cloud promotion is isolated behind explicit approval gates, and target labels remain local-only training columns unless a compact validated forecast output is being published.
 
 ### Cron-First Ingestion Contract
 
-Most ingestion runs inside Supabase Postgres via pg_cron + http extension. The locked 2026-05-18 ZL chart exception runs Databento hourly raw pulls into local DuckDB and promotes clean rows into Supabase serving tables. No ingestion readiness can be claimed until:
+Most non-chart ingestion runs inside Supabase Postgres via pg_cron + http extension. The locked 2026-05-18 ZL chart exception runs Databento hourly raw pulls into local DuckDB and promotes clean rows into Supabase serving tables. No ingestion readiness can be claimed until:
 
 1. **Functions exist** — plpgsql ingestion functions are deployed via migration
 2. **Cron jobs are registered** — `SELECT count(*) FROM cron.job` returns expected schedule count
@@ -229,8 +317,8 @@ Most ingestion runs inside Supabase Postgres via pg_cron + http extension. The l
 | -------------- | -------------------------------------- | ------------------------------------ | -------------------------------- | ----------- |
 | `price_1d`     | ZL daily OHLCV — powers the chart      | Python promote from local DuckDB raw ZL store | Dashboard chart, all pages       | Daily       |
 | `price_1h`     | ZL hourly bars                         | Python promote from local DuckDB raw ZL store | Intraday chart view              | Hourly      |
-| `price_15m`    | ZL 15-min bars                         | pg_cron: zl-intraday                 | Intraday chart zoom              | 15min       |
-| `price_1m`     | ZL 1-min bars (90-day retention)       | pg_cron: zl-intraday                 | Fine-grain chart                 | 1min        |
+| `price_15m`    | Retired legacy chart table             | No active writer; cleanup target             | No site reader after cleanup     | 15min       |
+| `price_1m`     | Retired legacy chart table             | No active writer; cleanup target             | No site reader after cleanup     | 1min        |
 | `latest_price` | Most recent ZL price + timestamp       | Python promote from local DuckDB raw ZL store | Status bar, live ticker          | Real-time   |
 | `futures_1d`   | 84 commodity/index futures daily       | pg_cron: databento-futures           | Specialist features, cross-asset | Daily       |
 | `options_1d`   | ZL options chain                       | pg_cron: databento-options           | Vol surface                      | Daily       |
@@ -383,9 +471,9 @@ legacy baseline had 104 fragmented Inngest functions. V16 consolidates non-chart
 
 **Consolidation map:**
 
-| V16 pg_cron Function         | Replaces (legacy baseline Inngest)                                                                                                                                                   | Schedule                 | Target Schema |
+| V16 Replacement              | Replaces (legacy baseline Inngest)                                                                                                                                                   | Schedule                 | Target Schema |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ | ------------- |
-| `duckdb_zl_databento_refresh` | `zl-daily`, `zl-1h`                                                                                                                                                                  | Manual/system schedule outside Vercel | local DuckDB -> mkt serving |
+| `python -m fusion.zl_duckdb_pipeline refresh --promote` | `zl-daily`, `zl-1h`                                                                                                                                                 | Manual/system schedule outside Vercel and outside Supabase pg_cron | local DuckDB -> Supabase `mkt.price_1h`, `mkt.price_1d`, `mkt.latest_price` |
 | `ingest_databento_futures()` | 5 futures shards + 5 statistics shards + `databento-futures-1h` + `futures-legacy-symbols-nightly`                                                                                   | Daily 2 AM CT            | mkt           |
 | `ingest_databento_options()` | 5 options shards                                                                                                                                                                     | Daily                    | mkt           |
 | `ingest_fx_daily()`          | `databento-fx-daily`, `fx-spot-daily`, `fx-databento-spot-daily`                                                                                                                     | Daily                    | mkt           |
@@ -411,16 +499,16 @@ legacy baseline had 104 fragmented Inngest functions. V16 consolidates non-chart
 | `check_freshness()`          | `freshnessMonitor`                                                                                                                                                                   | Daily                    | ops           |
 | `ingest_nyfed_daily()`       | `nyfedDaily`                                                                                                                                                                         | Daily                    | econ          |
 
-**No Vercel cron routes exist.** Default ingestion is database-native; ZL chart raw refresh is a Python worker with a local DuckDB raw store.
+**No Vercel cron routes exist.** Default non-chart ingestion is database-native; ZL chart raw refresh is a Python worker with a local DuckDB raw store and Supabase serving promotion.
 
 ### Tier B: Supabase pg_cron (~5 DB-internal jobs)
 
 | Job                           | SQL Operation                                                                                               | Schedule |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- | -------- |
-| Retention: delete old 1m bars | `DELETE FROM mkt.price_1m WHERE trade_date < now() - interval '90 days'`                                    | Daily    |
+| Retired 1m/15m chart retention | Not scheduled; `mkt.price_1m` and `mkt.price_15m` have no approved active writer                               | Disabled |
 | Stale run cleanup             | `UPDATE ops.ingest_run SET status='TIMEOUT' WHERE started_at < now() - interval '24h' AND status='RUNNING'` | Daily    |
 | Materialized view refresh     | `REFRESH MATERIALIZED VIEW analytics.dashboard_summary`                                                     | Hourly   |
-| Latest price rollup           | `INSERT INTO mkt.latest_price SELECT ... FROM mkt.price_1h ...`                                             | Hourly   |
+| Latest price freshness audit  | Read `mkt.latest_price.observed_at`; do not roll up chart price in Supabase while DuckDB promotion owns it   | Hourly   |
 | Data freshness alert          | SQL function checking max dates across critical tables                                                      | Daily    |
 
 ### Tier C: Python Workers (~9 scripts)
@@ -430,12 +518,12 @@ Python writes intermediates to **LOCAL FILES** (parquet), not directly to cloud 
 | Script                            | What It Does                                             | Writes To (Local)                               | Promoted To (Cloud)                               | Trigger                |
 | --------------------------------- | -------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------- | ---------------------- |
 | `zl_duckdb_pipeline.py`           | Refresh ZL Databento hourly raw chart history            | `data/duckdb/zinc_fusion_raw.duckdb`            | `mkt.price_1h`, `mkt.price_1d`, `mkt.latest_price` | Manual / system cron   |
-| `build_matrix.py`                 | Assemble feature matrix                                  | `data/matrix_1d.parquet`                        | training.matrix_1d                                | Manual / system cron   |
-| `train_models.py`                 | AutoGluon training (3 horizons: 30d/90d/180d)            | `models/` artifacts + `data/training_*.parquet` | training.\*, model_registry                       | Manual (training gate) |
-| `generate_specialist_features.py` | 11 specialist feature generators                         | `data/specialist_features_*.parquet`            | training.specialist*features*\*                   | Manual / system cron   |
-| `generate_specialist_signals.py`  | Composite signal extraction                              | `data/specialist_signals.parquet`               | training.specialist_signals_1d                    | After features         |
+| `build_matrix.py`                 | Assemble feature matrix from DuckDB/local artifacts      | `data/matrix_1d.parquet`                        | None by default; deep matrix stays local          | Manual / system cron   |
+| `train_models.py`                 | AutoGluon training (3 horizons: 30d/90d/180d)            | `models/` artifacts + `data/training_*.parquet` | Compact model registry/training-run metadata only | Manual (training gate) |
+| `generate_specialist_features.py` | 11 specialist feature generators                         | `data/specialist_features_*.parquet`            | None by default; compact card inputs only if approved | Manual / system cron   |
+| `generate_specialist_signals.py`  | Composite signal extraction                              | `data/specialist_signals.parquet`               | Compact specialist signal summaries if site-used  | After features         |
 | `generate_forward_forecasts.py`   | Forward inference                                        | `data/forecasts_production.parquet`             | forecasts.production_1d                           | After training         |
-| `run_monte_carlo.py`              | 10,000 MC runs per horizon                               | `data/monte_carlo_*.parquet`                    | forecasts.monte*carlo*_, forecasts.probability\__ | After forecasts        |
+| `run_monte_carlo.py`              | 10,000 MC runs per horizon                               | `data/monte_carlo_*.parquet`                    | Compact probability/Target Zone outputs only      | After forecasts        |
 | `run_garch.py`                    | GJR-GARCH volatility                                     | `data/garch_forecasts.parquet`                  | forecasts.garch_forecasts                         | After price data       |
 | `generate_target_zones.py`        | **NEW** — Pre-compute P30/P50/P70 serving data           | `data/target_zones.parquet`                     | forecasts.target_zones                            | After Monte Carlo      |
 | `promote_to_cloud.py`             | **NEW** — Push validated local outputs to cloud Supabase | N/A (reads local parquet)                       | All promoted tables                               | After validation gate  |
@@ -471,7 +559,7 @@ API keys for external data sources (Databento, FRED, etc.) are stored in **Supab
 | ------------------------- | -------------------------------------------------------- | ------------------------------------------------------------- |
 | `/api/zl/price-1d`        | ZL daily OHLCV for chart                                 | mkt.price_1d                                                  |
 | `/api/zl/price-1h`        | ZL hourly bars                                           | mkt.price_1h                                                  |
-| `/api/zl/intraday`        | ZL 15m/1m bars                                           | mkt.price_15m, mkt.price_1m                                   |
+| `/api/zl/intraday`        | ZL intraday bars using the bounded hourly serving cache          | mkt.price_1h                                                    |
 | `/api/zl/live`            | Latest price + timestamp                                 | mkt.latest_price                                              |
 | `/api/zl/target-zones`    | P30/P50/P70 zone data for `ProbabilitySurface`            | forecasts.target_zones                                        |
 | `/api/zl/forecast`        | Forecast summary (horizon, predicted price, probability) | forecasts.production_1d, forecasts.forecast_summary_1d        |
@@ -484,9 +572,9 @@ API keys for external data sources (Databento, FRED, etc.) are stored in **Supab
 | `/api/vegas/intel`        | Restaurants, events, impact, customer data               | vegas.\*                                                      |
 | `/api/health`             | DB connectivity + data freshness check                   | ops.ingest_run                                                |
 
-### Data Ingestion (pg_cron — NOT Vercel routes)
+### Data Ingestion (pg_cron + DuckDB — NOT Vercel routes)
 
-All data ingestion runs as pg_cron + http plpgsql functions inside Supabase. No Vercel cron routes exist. See Section 5 Tier A for the current list of ~22 pg_cron functions.
+Non-chart ingestion runs as pg_cron + http plpgsql functions inside Supabase. ZL chart raw Databento history runs through local DuckDB and promotes clean rows into Supabase serving tables. No Vercel cron routes exist. See Section 5 Tier A for the current list of non-chart pg_cron functions and Section 5 Tier C for the DuckDB chart worker.
 
 ### Auth Routes
 
@@ -644,16 +732,16 @@ Env vars:
 
 ### Data Posture
 
-Cloud Supabase is canonical for serving, auth, forecasts, analytics, ops, and schema-managed warehouse tables. The 2026-05-18 chart-data reliability exception makes local DuckDB canonical for raw ZL Databento hourly chart history before promotion. The Python pipeline is a compute client:
+Cloud Supabase is canonical for bounded serving, auth, forecasts, analytics, ops, and schema-managed non-chart warehouse tables. The 2026-05-18 chart-data reliability exception makes local DuckDB canonical for raw/deep ZL Databento hourly chart history and AG training source data before bounded promotion. The Python pipeline is a compute client:
 
-- **Reads:** from cloud Supabase (canonical source) via psycopg2
+- **Reads:** from local DuckDB/local files for deep ZL and AG training data; from cloud Supabase only for compact serving/non-chart context
 - **ZL chart raw reads/writes:** local DuckDB `data/duckdb/zinc_fusion_raw.duckdb`, relation `raw.databento_zl_ohlcv_1h`
-- **Training source:** local PostgreSQL staging database for AG only after explicit local load
+- **Training source:** DuckDB/local artifacts before the next approved AG training run
 - **Computes:** locally — all feature engineering, training, forecasting, simulation runs on local machine
 - **Intermediates:** local parquet files — ephemeral compute artifacts, not canonical storage
-- **Promotes:** validated compact outputs back to cloud Supabase via `promote_to_cloud.py`; ZL chart serving rows via `fusion.zl_duckdb_pipeline refresh --promote`
+- **Promotes:** validated compact outputs back to cloud Supabase via `promote_to_cloud.py`; bounded ZL chart serving rows via `fusion.zl_duckdb_pipeline refresh --promote`
 
-Training data storage architecture keeps cloud Supabase canonical while allowing local PostgreSQL as the bounded AG training-source staging database. Current design: `promote_to_cloud.py` pushes validated outputs to cloud `training.*` tables. The local training source is not serving truth and is not a local Supabase replacement.
+Training data storage architecture keeps deep AG truth local in DuckDB/local artifacts. Existing local PostgreSQL training-source code is a cleanup target, not the desired endpoint. `promote_to_cloud.py` should push only validated compact outputs or metadata to cloud `training.*`/`forecasts.*` tables after approval; deep matrices and target labels stay local.
 
 ### Training Gate (carried from legacy baseline — still mandatory)
 
@@ -661,7 +749,7 @@ Training data storage architecture keeps cloud Supabase canonical while allowing
 
 Readiness gate is a separate hard stop. Non-dry-run `train` must also pass:
 
-- local PostgreSQL source checks for all local raw hourly symbols, not a hardcoded symbol subset
+- DuckDB/local source checks for all local raw hourly symbols, not a hardcoded symbol subset
 - local raw FRED checks for all local long-form FRED series, not a hardcoded core-series subset
 - local weather and alt/econ presence and recency checks
 - ProFarmer must be present in the local AG source, not cloud-only
@@ -714,6 +802,25 @@ shadcn/ui provides the component primitives. V16 builds the dashboard shell from
 /sentiment          -> News + CoT (keep first 3-4 rows)
 /vegas-intel        -> Vegas operations (keep ALL, better layout)
 ```
+
+### Page Body Turnover Lock (2026-05-18)
+
+`docs/ops/2026-05-18-v15-vegas-sentiment-visual-and-glide-turnover.md`
+is the exact body-only implementation contract for `/vegas-intel` and
+`/sentiment`. It is not optional guidance.
+
+- Keep the current V16 `BackendShell`, top nav, and top page headers unless the
+  user explicitly reopens them.
+- Do not modify the dashboard chart or any chart behavior under this turnover
+  scope.
+- Rebuild page bodies from scratch using the turnover's exact section order,
+  spacing, padding, card treatment, colors, phone behavior, and data/behavior
+  contracts.
+- Vegas Intel has priority because the turnover defines Kevin's event, Glide,
+  opportunity, scoring, and draft-intel workflow. All Glide work stays
+  server-side and read-only.
+- Agents must read the turnover end-to-end before touching either page body and
+  must map implementation changes back to the named turnover sections.
 
 ### Landing Page (`/`)
 
@@ -775,29 +882,33 @@ These key elements need to be highlighted on the dashboard as cards. Not V16 lau
 
 ### Sentiment (`/sentiment`)
 
-**Directive: Keep first 3-4 rows from legacy baseline.**
+**Directive: Keep the current V16 header, then rebuild the body from the 2026-05-18 turnover.**
 
-| Row   | Content                                            | Status                |
-| ----- | -------------------------------------------------- | --------------------- |
-| 1     | Sentiment overview / headline metrics              | KEEP                  |
-| 2     | News feed with sentiment tags and source filtering | KEEP                  |
-| 3     | CoT positioning / CFTC visualization               | KEEP                  |
-| 4     | Narrative summary                                  | KEEP (if in top rows) |
-| Lower | Deeper analytics                                   | Defer                 |
+| Row | Content | Status |
+| --- | ------- | ------ |
+| 1 | Fear & Greed Composite | KEEP from turnover |
+| 2 | Hero price strip | KEEP from turnover |
+| 3 | Impact on soybean oil futures | KEEP from turnover |
+| 4 | Market snapshot | KEEP from turnover |
+| 5 | Market volatility | KEEP from turnover |
+| 6 | Market participants | KEEP from turnover |
+| 7 | Segmented policy news lanes | KEEP from turnover |
 
 ### Vegas Intel (`/vegas-intel`)
 
-**Directive: Keep ALL. Events = everything. Better layout.**
+**Directive: Keep the current V16 header, then rebuild the body and behavior from the 2026-05-18 turnover. Vegas Intel is Kevin's sales workflow, not a generic dashboard page.**
 
 | Element                  | Status                          | Notes                                                         |
 | ------------------------ | ------------------------------- | ------------------------------------------------------------- |
-| **Events calendar/feed** | KEEP — this is everything       | CES, SEMA, March Madness, conventions                         |
-| **Intel buttons**        | KEEP                            | AI-powered sales strategy recommendations                     |
-| **Restaurant data**      | KEEP                            | Real customer API data, real oil volumes used                 |
-| **Casino/venue mapping** | KEEP                            | Which properties, which events                                |
-| **AI sales strategy**    | KEEP — this is the gold feature | Personalized pitch generation matched with real customer data |
-| **Fryer tracking**       | KEEP                            | Equipment lifecycle, service scheduling                       |
-| **Layout**               | REDESIGN                        | Better information hierarchy, same content                    |
+| **Segment filter cards** | KEEP from turnover              | All accounts, customers, prospects, upcoming events           |
+| **Events rows**          | KEEP from turnover              | Future active events, category colors, countdown circles      |
+| **Opportunity rows**     | KEEP from turnover              | Customer/prospect classification from service cadence         |
+| **Intel buttons**        | KEEP deliberately               | Wire only as a server-side draft-intel workflow if approved   |
+| **Glide operational data** | KEEP from turnover            | 8-table read-only app source, no browser token, no Glide write |
+| **Casino/venue mapping** | KEEP                            | Property joins and event context                              |
+| **AI sales strategy**    | KEEP                            | Evidence-backed oil/service/event/cuisine reasoning           |
+| **Fryer tracking**       | KEEP                            | Equipment lifecycle, service scheduling, missing telemetry surfaced |
+| **Layout**               | REBUILD                         | Exact body spacing, padding, cards, colors, and phone rules from turnover |
 
 ### Strategy (`/strategy`)
 
@@ -875,20 +986,24 @@ V16 tokens for shadcn/ui customization:
 | Supabase Auth callback route works                               | Login -> callback -> session -> authenticated read succeeds |
 | Python pipeline uses direct connection for bulk writes           | Connection string check                                     |
 
-### Gate 4A: Cron Readiness Preflight (NEW — blocks Gate 4)
+### Gate 4A: Cron + Chart Store Readiness Preflight (blocks Gate 4)
 
-**Before any Gate 4 claim, cron infrastructure must be verified:**
+**Before any Gate 4 claim, both the non-chart Supabase cron lane and the ZL DuckDB/Supabase chart lane must be verified:**
 
 | Check                                            | SQL Validation                                                                                                      | Evidence Required                |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | pg_cron extension enabled                        | `SELECT count(*) FROM pg_extension WHERE extname = 'pg_cron'` = 1                                                   | Extension active                 |
 | http extension enabled                           | `SELECT count(*) FROM pg_extension WHERE extname = 'http'` = 1                                                      | Extension active                 |
-| Ingestion functions exist                        | `SELECT count(*) FROM pg_proc WHERE proname LIKE 'ingest_%'` ≥ expected count                                       | Functions deployed via migration |
-| Cron jobs registered                             | `SELECT count(*) FROM cron.job` ≥ Phase 4 expected schedule count                                                   | Schedules active                 |
+| Non-chart ingestion functions exist              | `SELECT count(*) FROM pg_proc WHERE proname LIKE 'ingest_%' AND proname NOT IN ('ingest_zl_intraday')` ≥ expected count | Functions deployed via migration |
+| Non-chart cron jobs registered                   | `SELECT count(*) FROM cron.job WHERE command NOT ILIKE '%ingest_zl_intraday%' AND command NOT ILIKE '%rollup_zl_daily%'` ≥ expected Phase 4 non-chart schedule count | Schedules active                 |
+| Obsolete ZL chart cron jobs disabled             | `SELECT count(*) FROM cron.job WHERE jobname IN ('ingest_zl_intraday', 'rollup_zl_daily') OR command ILIKE '%ingest_zl_intraday%' OR command ILIKE '%rollup_zl_daily%'` = 0 | DuckDB owns chart refresh        |
 | No duplicate job names                           | `SELECT jobname, count(*) FROM cron.job GROUP BY jobname HAVING count(*) > 1` = 0 rows                              | No duplicates                    |
 | No duplicate function names                      | `SELECT proname, count(*) FROM pg_proc WHERE proname LIKE 'ingest_%' GROUP BY proname HAVING count(*) > 1` = 0 rows | No duplicates                    |
 | Vault keys stored                                | `SELECT current_setting('app.databento_api_key') IS NOT NULL` (repeat per source)                                   | Keys accessible                  |
-| At least one successful run per Phase 4 function | `SELECT DISTINCT job_name FROM ops.ingest_run WHERE status = 'SUCCESS'` includes Phase 4 functions                  | First-success evidence           |
+| DuckDB raw store initialized                     | Read-only DuckDB query returns `raw.databento_zl_ohlcv_1h` and `ops.databento_zl_fetch_log`                         | Local raw store exists           |
+| Supabase chart serving rows promoted             | `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price` have recent `ZL` rows                                         | App can read chart data          |
+| At least one successful run per Phase 4 writer   | `SELECT DISTINCT job_name FROM ops.ingest_run WHERE status = 'SUCCESS'` includes non-chart Phase 4 functions and `duckdb_zl_databento_refresh` | First-success evidence           |
+| No retired chart table dependency                | Route/code scan shows no active read or writer for `mkt.price_15m` or `mkt.price_1m`                       | Supabase chart cache is bounded  |
 
 **Preflight SQL block (run before claiming Gate 4):**
 
@@ -896,8 +1011,18 @@ V16 tokens for shadcn/ui customization:
 -- 1. Extension check
 SELECT extname FROM pg_extension WHERE extname IN ('pg_cron', 'http', 'pg_net');
 
--- 2. Schedule density
-SELECT count(*) AS total_jobs FROM cron.job;
+-- 2. Non-chart schedule density
+SELECT count(*) AS non_chart_jobs
+FROM cron.job
+WHERE command NOT ILIKE '%ingest_zl_intraday%'
+  AND command NOT ILIKE '%rollup_zl_daily%';
+
+-- 2b. Obsolete ZL chart cron jobs must be absent
+SELECT jobname, command
+FROM cron.job
+WHERE jobname IN ('ingest_zl_intraday', 'rollup_zl_daily')
+   OR command ILIKE '%ingest_zl_intraday%'
+   OR command ILIKE '%rollup_zl_daily%';
 
 -- 3. Duplicate job name audit
 SELECT jobname, count(*) FROM cron.job GROUP BY jobname HAVING count(*) > 1;
@@ -910,7 +1035,9 @@ GROUP BY proname HAVING count(*) > 1;
 -- 5. Critical source health (staleness per table)
 SELECT 'mkt.price_1d' AS tbl, max(bucket_ts) AS latest, now() - max(bucket_ts) AS age FROM mkt.price_1d
 UNION ALL
-SELECT 'mkt.latest_price', max(updated_at), now() - max(updated_at) FROM mkt.latest_price
+SELECT 'mkt.price_1h', max(bucket_ts), now() - max(bucket_ts) FROM mkt.price_1h
+UNION ALL
+SELECT 'mkt.latest_price', max(observed_at), now() - max(observed_at) FROM mkt.latest_price
 UNION ALL
 SELECT 'econ.rates_1d', max(observation_date), now() - max(observation_date)::timestamp FROM econ.rates_1d;
 
@@ -925,6 +1052,10 @@ FROM ops.ingest_run WHERE status = 'SUCCESS' GROUP BY job_name;
 -- 8. Duplicate ingested row check (example for price_1d)
 SELECT symbol, bucket_ts, count(*) FROM mkt.price_1d
 GROUP BY symbol, bucket_ts HAVING count(*) > 1;
+
+-- 9. Retired chart tables must not have active dependencies
+-- Code/repo check, not SQL: no active route reader, cron schedule, or promotion writer
+-- may depend on mkt.price_15m or mkt.price_1m.
 ```
 
 **Gate 4A MUST pass before Gate 4 can be claimed.** If `cron.job` is empty, Gate 4 is blocked regardless of function existence.
@@ -933,7 +1064,9 @@ GROUP BY symbol, bucket_ts HAVING count(*) > 1;
 
 | Check                                                | Evidence Required                                                              |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Each pg_cron ingestion function writes expected rows | Manual trigger -> DB row count increases                                       |
+| Each non-chart pg_cron ingestion function writes expected rows | Manual trigger -> DB row count increases                             |
+| DuckDB chart refresh/promote writes expected rows    | Local DuckDB row count increases and Supabase `mkt.price_1h`, `mkt.price_1d`, `mkt.latest_price` refresh |
+| Supabase chart cache stays bounded                   | `mkt.price_1h` stays within approved rolling window; `mkt.price_1d` stays daily-only and compact; `mkt.price_1m`/`mkt.price_15m` have no active dependencies |
 | Each API read route returns expected shape           | Sample response matches contract                                               |
 | Chart renders with real data from Supabase           | Visual inspection on preview deploy                                            |
 | Target Zones render in `ProbabilitySurface`          | Card reads `/api/zl/target-zones` and displays P30/P50/P70 levels              |
@@ -947,7 +1080,7 @@ GROUP BY symbol, bucket_ts HAVING count(*) > 1;
 
 | Check                                                            | Evidence Required                              |
 | ---------------------------------------------------------------- | ---------------------------------------------- |
-| `build_matrix.py` writes to training.matrix_1d in cloud Supabase | Row count > 0, column count matches            |
+| `build_matrix.py` writes AG matrix to DuckDB/local artifact, not deep Supabase storage | Row count > 0, column count matches; no deep matrix promotion |
 | All 11 specialist feature generators complete                    | specialist*features*{bucket} has rows for each |
 | `generate_specialist_signals.py` produces 33 signal columns      | Check specialist_signals_1d                    |
 | Training run completes for all 3 horizons                        | training_runs has 3 new rows                   |
@@ -1024,7 +1157,7 @@ All 6 pages are rewritten from scratch using legacy baseline as **VISUAL referen
 
 | Step  | Action                                                                                        | Exit Evidence                               |
 | ----- | --------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| 1.5.1 | Rewrite Landing page from scratch (legacy baseline is visual reference ONLY — no code copied) | Page renders in empty/placeholder state     |
+| 1.5.1 | Rewrite Landing page from scratch (legacy baseline is visual reference ONLY — no code copied) | Page renders in empty state until real data is wired |
 | 1.5.2 | Rewrite Dashboard page from scratch (chart component, cards, status bar)                      | Page renders with empty state, no mock data |
 | 1.5.3 | Rewrite Strategy page from scratch                                                            | Page renders with empty state               |
 | 1.5.4 | Rewrite Legislation page from scratch                                                         | Page renders with empty state               |
@@ -1046,7 +1179,7 @@ All 6 pages are rewritten from scratch using legacy baseline as **VISUAL referen
 
 | Step | Action                                                                                                    | Exit Evidence                                      |
 | ---- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| 2.1  | Seed `mkt.price_1d` with legacy baseline historical data (manual export/import)                           | 2+ years of ZL daily bars in Supabase              |
+| 2.1  | Promote bounded daily serving rows from DuckDB into `mkt.price_1d`                                        | Daily ZL bars available in Supabase without deep intraday history |
 | 2.2  | Build `/api/zl/price-1d` read route                                                                       | Returns OHLCV JSON matching legacy baseline format |
 | 2.3  | Rewrite LightweightZlCandlestickChart from scratch (legacy baseline visual reference, ZERO code copied)   | Chart renders with real data from Supabase         |
 | 2.4  | Keep chart free of Target Zone overlay wiring                                                             | No Target Zone primitive or chart prop remains      |
@@ -1054,8 +1187,8 @@ All 6 pages are rewritten from scratch using legacy baseline as **VISUAL referen
 | 2.6  | Rewrite chart watermark from scratch                                                                      | Watermark visible                                  |
 | 2.7  | Build `/api/zl/live` read route                                                                           | Returns latest price                               |
 | 2.8  | Rewrite useZlLivePrice hook from scratch                                                                  | Status bar shows live price                        |
-| 2.9  | Rewrite dashboard cards from scratch (legacy baseline visual reference, ZERO code copied, ZERO mock data) | Cards render with placeholder/seeded data          |
-| 2.10 | Build `/api/zl/price-1h` route                                                                            | Hourly data serves correctly                       |
+| 2.9  | Rewrite dashboard cards from scratch (legacy baseline visual reference, ZERO code copied, ZERO mock data) | Cards render empty state or verified real data |
+| 2.10 | Build `/api/zl/price-1h` and `/api/zl/intraday` routes on `mkt.price_1h` only                             | Hourly data serves correctly; no 1m/15m fallback   |
 | 2.11 | Parity check: legacy baseline chart vs V16 chart side-by-side                                             | Visually identical                                 |
 
 **2026-05-18 chart freshness correction:** raw ZL Databento hourly chart data
@@ -1063,9 +1196,11 @@ belongs in local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb`, relation
 `raw.databento_zl_ohlcv_1h`. `fusion.zl_duckdb_pipeline refresh --promote`
 accepts Databento HTTP `200` and `206` NDJSON payloads, stores raw hourly bars
 locally with a timestamp overlap cursor, rolls UTC daily bars, and promotes only
-clean serving rows into Supabase `mkt.price_1h`, `mkt.price_1d`, and
-`mkt.latest_price`. This repair does not require a Supabase migration or
-`db push`.
+clean bounded serving rows into Supabase `mkt.price_1h`, `mkt.price_1d`, and
+`mkt.latest_price`. The 1h serving cache feeds the daily rollup. Supabase must
+not carry ZL 1m/15m chart data or deep hourly history. This repair does not
+require a Supabase migration or `db push` for data freshness, but pruning or
+dropping retired cloud tables requires an approved migration.
 
 **Exit criteria:** Chart renders identically to legacy baseline with real historical data. Live price route works. Cards render.
 
@@ -1106,36 +1241,38 @@ This phase establishes cron readiness before any ingestion function is built. No
 
 **Entry:** Phase 4A complete (cron infrastructure verified). Chart needs fresh data, not just seed data.
 
-Default ingestion is implemented as plpgsql functions using pg_cron + http extension inside Supabase. ZL chart raw Databento history is the locked exception: Python writes raw hourly bars to local DuckDB and promotes clean serving rows to Supabase. No Vercel cron routes. No vercel.json cron config. API keys remain in Supabase Vault unless a local `DATABENTO_API_KEY` is explicitly supplied for the Python refresh.
+Default ingestion is implemented as plpgsql functions using pg_cron + http extension inside Supabase. ZL chart raw/deep Databento history is the locked exception: Python writes raw hourly bars to local DuckDB and promotes only bounded 1h, daily, and latest serving rows to Supabase. No Vercel cron routes. No Supabase Edge Function chart pulls. No vercel.json cron config. API keys remain in Supabase Vault unless a local `DATABENTO_API_KEY` is explicitly supplied for the Python refresh.
 
 | Step | Action                                                                                                                               | Exit Evidence                                              |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
 | 4.1  | (Completed in Phase 4A — Vault keys already stored)                                                                                  | Verified in Phase 4A exit                                  |
 | 4.2  | Build `fusion.zl_duckdb_pipeline` DuckDB raw refresh/promote path for ZL chart OHLCV                                                  | New rows in local DuckDB and Supabase serving tables        |
-| 4.3  | Verify `/api/zl/price-1h`, `/api/zl/price-1d`, and `/api/zl/live` read promoted serving rows                                          | Intraday, daily, and latest price paths fresh               |
+| 4.3  | Verify `/api/zl/price-1h`, `/api/zl/price-1d`, `/api/zl/intraday`, and `/api/zl/live` read promoted 1h/daily/latest serving rows only | Intraday, daily, and latest price paths fresh; no 1m/15m dependency |
 | 4.4  | Build `ingest_fred_core()` plpgsql function (chart-critical FRED subset: rates, vol indices, inflation, activity, crude, tallow PPI) | Core econ.\* tables updating with chart-critical series    |
 | 4.5  | Build `ingest_databento_futures()` plpgsql function (all futures + stats)                                                            | mkt.futures_1d updating                                    |
 | 4.6  | Build `ingest_databento_options()` plpgsql function                                                                                  | mkt.options_1d updating                                    |
 | 4.7  | Build `ingest_fx_daily()` plpgsql function                                                                                           | mkt.fx_1d updating                                         |
 | 4.8  | Build `ingest_etf_daily()` plpgsql function                                                                                          | mkt.etf_1d updating                                        |
 | 4.9  | Build `ingest_cftc_weekly()` plpgsql function                                                                                        | mkt.cftc_1w updating                                       |
-| 4.10 | Register all pg_cron schedules for steps 4.2-4.9                                                                                     | `SELECT count(*) FROM cron.job` ≥ expected Phase 4 count   |
+| 4.10 | Register pg_cron schedules for non-chart steps 4.4-4.9; keep ZL chart refresh outside Supabase pg_cron                               | Non-chart `cron.job` count meets expected Phase 4 count; no ZL chart cron jobs registered |
 | 4.11 | Build `check_freshness()` plpgsql function                                                                                           | ops.pipeline_alerts populating                             |
-| 4.12 | Verify at least one successful controlled run of each Phase 4 function                                                               | `ops.ingest_run` has `status = 'SUCCESS'` row for each function |
-| 4.13 | Run Gate 4A preflight again (post-registration)                                                                                      | All cron readiness checks pass with registered jobs        |
+| 4.12 | Verify at least one successful controlled run of each Phase 4 writer, including DuckDB refresh/promote                                | `ops.ingest_run` has `status = 'SUCCESS'` row for each non-chart function and `duckdb_zl_databento_refresh` |
+| 4.13 | Add approved pruning/retention maintenance for `mkt.price_1h`; leave `mkt.price_1d` daily-only and compact                           | 1h rows remain inside rolling retention budget              |
+| 4.14 | Remove active readers/writers/schedules for `mkt.price_15m` and `mkt.price_1m`                                                       | Route/code scan has zero active dependencies                |
+| 4.15 | Run Gate 4A preflight again (post-registration)                                                                                      | All cron readiness checks pass with registered jobs        |
 
-**Exit criteria:** Chart shows today's data. ZL raw hourly bars are durable in local DuckDB and promoted to Supabase serving tables. Core market tables outside the ZL chart path update on schedule via pg_cron. `ingest_fred_core()` feeds chart-critical FRED series. Freshness monitoring active. Gate 4A re-verified with registered jobs. No Vercel cron routes. `cron.job` count matches expected Phase 4 schedule density for database-native jobs.
+**Exit criteria:** Chart shows today's data. ZL raw/deep hourly bars are durable in local DuckDB and only bounded 1h/daily/latest serving rows are promoted to Supabase. Core market tables outside the ZL chart path update on schedule via pg_cron. `ingest_fred_core()` feeds chart-critical FRED series. Freshness monitoring active. Gate 4A re-verified with registered jobs. No Vercel cron routes. No Supabase Edge Function chart pulls. No active 1m/15m chart readers or writers. `cron.job` count matches expected Phase 4 schedule density for database-native non-chart jobs.
 
 ### Phase 5: Python Pipeline Rebuild
 
-**Entry:** Phase 4 complete (data flowing into Supabase).
+**Entry:** Phase 4 complete (deep ZL history durable in DuckDB and bounded serving rows flowing into Supabase).
 
 Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only validated outputs are promoted to cloud Supabase via `promote_to_cloud.py`. This prevents half-baked training artifacts from polluting the production database.
 
 | Step | Action                                                                                                            | Exit Evidence                                                                           |
 | ---- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | 5.1  | Rebuild `config.py` — frozen model zoo, schema constants, DB URLs, local output paths                             | Config loads cleanly                                                                    |
-| 5.2  | Rebuild `build_matrix.py` — reads from cloud Supabase, writes `data/fusion/matrix_1d.parquet` locally             | Local parquet has rows with expected column count and separate target columns           |
+| 5.2  | Rebuild `build_matrix.py` — reads from DuckDB/local artifacts plus compact Supabase context only when needed, writes `data/fusion/matrix_1d.parquet` locally | Local parquet has rows with expected column count and separate target columns; no deep matrix cloud dependency |
 | 5.3  | Rebuild specialist feature generators (all 11) — writes `data/fusion/specialist_features/*.parquet` locally       | Local parquet files populated for each bucket with no target columns                    |
 | 5.4  | Rebuild `generate_specialist_signals.py` — writes `data/fusion/specialist_signals.parquet` locally                | Local parquet has 33 signal columns                                                     |
 | 5.5  | Rebuild `train_models.py` — AutoGluon, 3 horizons (30d/90d/180d), frozen zoo — writes artifacts + parquet locally | Training completes, artifacts saved locally, training_runs parquet logged               |
@@ -1209,13 +1346,13 @@ Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only vali
 | Step | Action                                                                                                                                                                                                                              | Exit Evidence                                            |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | 8.1  | Build `/api/sentiment/overview` route                                                                                                                                                                                               | Returns news + CoT data                                  |
-| 8.2  | Wire Sentiment page with real data — first 3-4 rows from legacy baseline visual reference (ZERO code copied, ZERO mock data)                                                                                                        | Sentiment overview, news feed, CoT, narrative render     |
+| 8.2  | Wire Sentiment page with real data and rebuild body exactly from the 2026-05-18 turnover (ZERO code copied, ZERO mock data, current V16 header locked)                                                                              | Seven turnover sections render with exact body tokens and phone behavior |
 | 8.3  | Build `/api/legislation/feed` route                                                                                                                                                                                                 | Returns legislation + executive actions + congress bills |
 | 8.4  | Wire Legislation page with real data (ZERO code copied from legacy baseline, ZERO mock data)                                                                                                                                        | Feed renders with tags and relevance                     |
 | 8.5  | Build `/api/strategy/posture` route                                                                                                                                                                                                 | Returns ACCUMULATE/WAIT/DEFER + rationale                |
 | 8.6  | Wire Strategy page with real data — keep content, redesign layout (ZERO code copied from legacy baseline, ZERO mock data)                                                                                                           | Posture, calculator, waterfall, risk metrics render      |
 | 8.7  | Build `/api/vegas/intel` route                                                                                                                                                                                                      | Returns events, restaurants, scores, customer data       |
-| 8.8  | Wire Vegas Intel page with real data — ALL content, better layout. Events = everything. Intel buttons + AI sales strategy + real customer API data + real oil usage = gold. (ZERO code copied from legacy baseline, ZERO mock data) | All elements render                                      |
+| 8.8  | Wire Vegas Intel page with real data and rebuild body exactly from the 2026-05-18 turnover. Events, segment filters, opportunity rows, Glide depth, AI sales strategy, and draft Intel behavior are required. (ZERO code copied from legacy baseline, ZERO mock data) | Turnover body and behavior contract passes desktop/phone visual check |
 | 8.9  | Parity check: all pages vs legacy baseline                                                                                                                                                                                          | Functionality matches or exceeds                         |
 
 **Exit criteria:** All 6 pages (Landing, Dashboard, Strategy, Legislation, Sentiment, Vegas Intel) operational.
@@ -1282,11 +1419,11 @@ Python pipeline writes all intermediates to **LOCAL FILES** (parquet). Only vali
 Run these first — they reveal architectural problems fastest:
 
 1. **Does Phase 4A verify cron readiness and first successful writes before claiming data readiness?** If `cron.job` is empty or no function has a successful `ops.ingest_run` entry, all downstream ingestion claims are false. Run the Gate 4A preflight SQL block.
-2. **Can Python connect to cloud Supabase and write a row?** If this fails, the entire training pipeline design is blocked.
-3. **Does the chart render with seeded data from Supabase?** If this fails, the core product is broken.
+2. **Can Python connect to cloud Supabase and write a compact validated output row?** If this fails, the promotion path is blocked.
+3. **Does the chart render with real promoted data from Supabase?** If this fails, the core product is broken.
 4. **Does a single pg_cron + http plpgsql function fire, fetch data, and write to a table?** If this fails, the entire ingestion architecture is wrong.
 5. **Does Supabase Auth work with the shadcn/ui shell?** If this fails, the auth design needs rework.
-6. **Can `build_matrix.py` read from Supabase and assemble features?** If this fails, the Python <> Supabase data flow needs debugging.
+6. **Can `build_matrix.py` read from DuckDB/local artifacts and assemble features without a deep Supabase dependency?** If this fails, the AG source boundary needs debugging.
 7. **Does `check_freshness()` detect and alert on stale data?** Simulate a stale source and verify `ops.pipeline_alerts` fires. This must work before Gate 4/Gate 5 claims.
 
 ---

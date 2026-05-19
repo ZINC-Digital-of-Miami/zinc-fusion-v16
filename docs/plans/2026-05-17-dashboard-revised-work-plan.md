@@ -55,15 +55,31 @@
 - Vegas Intel page reads from `vegas.*` tables with AI card fallback for strategy analysis
 
 ### D5: Cadence
-- Chart data: daily/hourly (ZL price_1d, price_1h)
+- Chart data: local DuckDB raw hourly Databento refresh promoted to Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`
 - Non-price ingestion: weekly weekend batch
 - AI cards: daily refresh via `fill_site_with_trusted_data.py` (OpenRouter)
-- ProFarmer: hourly 7am–4am ET (only active hourly edge cron)
+- ProFarmer: hourly 7am–4am ET by Python Playwright system schedule with GitHub Actions fallback; not a Vercel cron route
 
-### D6: Duplicate Dashboard Page
+### D6: DuckDB + Supabase Chart Split
+- DuckDB owns raw/deep ZL Databento chart recovery and AG training source data at `data/duckdb/zinc_fusion_raw.duckdb`.
+- Supabase owns bounded clean chart serving tables, auth, schema, forecasts, analytics, ops, and all non-chart warehouse data.
+- Supabase chart storage is limited to `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
+- The 1h serving cache rolls the daily chart bar; no 1m/15m Supabase chart store is active.
+- Frontend chart routes read Supabase only; they never read DuckDB directly.
+- The obsolete Supabase-native ZL chart cron writers and any Edge/serverless chart pulls stay disabled unless a new approved migration reverses that decision.
+
+### D7: Duplicate Dashboard Page
 - `app/dashboard/page.tsx` is a dead route — `(protected)/layout.tsx` wins URL resolution
 - Must NOT delete without explicit approval
 - Documented as a "gotcha" in memory
+
+### D8: Vegas/Sentiment Turnover Precision
+- `docs/ops/2026-05-18-v15-vegas-sentiment-visual-and-glide-turnover.md` is the exact implementation contract for Vegas Intel and Sentiment body work.
+- The turnover scope is body-only. Current V16 `BackendShell`, top nav, and top page headers stay locked unless explicitly reopened.
+- The dashboard chart and chart behavior are excluded from this turnover work.
+- Vegas Intel is highest priority within the turnover because it carries Kevin's operational sales workflow, Glide depth, event pressure logic, opportunity rows, and draft intel behavior.
+- Agents must implement exact body tokens, section order, spacing, card treatment, phone rules, API fields, and behavior logic from the turnover. Approximate visual matches are defects.
+- Glide remains read-only and server-side: canonical app ID `6262JQJdNjhra79M25e4`, 8 table groups, no browser token, no public unauthenticated sync route, no Glide writes.
 
 ---
 
@@ -106,21 +122,38 @@
 
 | # | Task | Effort |
 |---|------|--------|
-| 4.1 | FRED core ingestion | 4h |
-| 4.2 | Databento futures ingestion | 3h |
-| 4.3 | CFTC weekly ingestion | 2h |
-| 4.4 | FX daily ingestion | 2h |
-| 4.5 | Verify ZL daily ingestion | 1h |
-| 4.6 | Weekly batch jobs (8+ sources) | 8h |
+| 4.1 | Verify DuckDB raw ZL refresh and Supabase serving promotion (`price_1h`, `price_1d`, `latest_price`) | 2h |
+| 4.2 | Confirm obsolete Supabase-native ZL chart cron jobs are disabled in cloud | 1h |
+| 4.3 | Remove active route fallbacks/readers for `mkt.price_15m` and `mkt.price_1m` | 1h |
+| 4.4 | Add approved Supabase retention/pruning for bounded `mkt.price_1h`; keep `mkt.price_1d` daily-only and compact | 2h |
+| 4.5 | Migrate AG matrix/source planning from local PostgreSQL/cloud reads to DuckDB/local artifacts | 4h |
+| 4.6 | FRED core ingestion | 4h |
+| 4.7 | Databento futures ingestion (non-chart cross-asset futures, not ZL chart refresh) | 3h |
+| 4.8 | CFTC weekly ingestion | 2h |
+| 4.9 | FX daily ingestion | 2h |
+| 4.10 | Weekly batch jobs (8+ sources) | 8h |
 
-### WAVE 5: Vegas Intel — Glide Integration (Week 3)
+### WAVE 5: Vegas Intel — Turnover-Exact Body + Glide Integration (Week 3)
 
 | # | Task | Effort |
 |---|------|--------|
-| 5.1 | Locate V15 Glide API keys | 2h |
-| 5.2 | Build Glide → Supabase sync pg_cron function | 6h |
-| 5.3 | Wire Vegas Intel page to `vegas.*` tables | 4h |
-| 5.4 | Build customer scoring | 3h |
+| 5.1 | Read the full 2026-05-18 turnover and map each Vegas body section to V16 files before editing | 1h |
+| 5.2 | Re-run the 8-table read-only Glide probe for app ID `6262JQJdNjhra79M25e4` without printing secrets | 2h |
+| 5.3 | Design approval-gated raw Glide landing and serving promotion path for restaurants, casinos, fryers, export_list, scheduled_reports, shifts, shift_casinos, and shift_restaurants | 3h |
+| 5.4 | Build server-side Glide sync into approved Supabase tables only after migration approval | 6h |
+| 5.5 | Expand `/api/vegas/intel` payload with verified oil type, service cadence, contact, casino/property, fryer count, total capacity, event timing, cuisine/event pressure, and provenance fields | 4h |
+| 5.6 | Rebuild Vegas body below the locked header: segment cards, event rows, countdown circles, opportunity rows, empty/missing states, and max-width 480px body behavior | 6h |
+| 5.7 | Implement deliberate server-side draft Intel workflow only if approved; do not imply the V15 button already had a completed workflow | 4h |
+| 5.8 | Verify desktop and phone screenshots against the turnover, plus lint/build/guard | 3h |
+
+### WAVE 5B: Sentiment Body Precision (Week 3)
+
+| # | Task | Effort |
+|---|------|--------|
+| 5B.1 | Read the full 2026-05-18 turnover and map all seven Sentiment body sections to current V16 files before editing | 1h |
+| 5B.2 | Rebuild Sentiment body below the locked header: Fear & Greed, price strip, futures impact, market snapshot, volatility, participants, and headline lanes | 8h |
+| 5B.3 | Restore turnover-specified card hierarchy, gauges, bars, badges, section accents, and phone behavior without changing chart code | 4h |
+| 5B.4 | Verify desktop and phone screenshots against the turnover, plus lint/build/guard | 3h |
 
 ### WAVE 6: Production Hardening (Week 3–4)
 
@@ -160,7 +193,7 @@
 | **M0: Bugs Closed + Cleanup** | BUG-001/003/004 fixed, duplicate page resolved, cruft deleted | May 19 |
 | **M1: OpenRouter Live** | All 5 AI card snapshots regenerated with DeepSeek V4 Flash, cards validate | May 21 |
 | **M2: ProFarmer Scraping** | Playwright scraper running hourly, data landing in `alt.profarmer_news` | May 25 |
-| **M3: Core Data Fresh** | FRED core, Databento futures, CFTC, FX all running with SUCCESS status | May 28 |
+| **M3: Core Data Fresh** | DuckDB ZL refresh/promote has SUCCESS evidence; Supabase chart serving tables are fresh; FRED core, Databento futures, CFTC, FX all running with SUCCESS status | May 28 |
 | **M4: Vegas Glide Live** | `vegas.*` tables populated from Glide JSON API, Vegas Intel page showing real data | Jun 3 |
 | **M5: Auth + Guard Clean** | API routes use anon key + JWT, active fusion guard passes, prior audit findings fixed | Jun 8 |
 | **M6: Full Feature Set** | 7 specialist cards, contract calculator, NeuralSphere, pipeline run complete | Jun 15 |
@@ -178,7 +211,7 @@
 
 4. **`ops.ingest_run.status` vocabulary split:** Repaired in source 2026-05-18. A corrective migration normalizes persisted values to `RUNNING`, `SUCCESS`, `FAILED`, and `TIMEOUT`; cloud deployment still requires explicit `db push` approval.
 
-5. **ZL chart freshness pinned by Databento `206`:** Repaired in source 2026-05-18 by locking the active ZL chart path to local DuckDB raw storage plus Python promotion. A follow-up migration disables the obsolete Supabase-native ZL chart cron writers, and frontend chart routes continue reading Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
+5. **ZL chart freshness pinned by Databento `206`:** Repaired in source 2026-05-18 by locking the active ZL chart path to local DuckDB raw storage plus Python promotion. Source migration `202605180003_disable_supabase_zl_chart_cron.sql` disables the obsolete Supabase-native ZL chart cron writers once explicitly pushed to cloud. Frontend chart routes continue reading Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`; they do not read DuckDB directly. Cleanup target: remove all active `mkt.price_15m`/`mkt.price_1m` route dependencies and prevent Edge/serverless chart pulls outside the DuckDB promotion path.
 
 6. **ProFarmer login pause:** The legacy scraper required a specific wait after login before navigation. Must be preserved in the new Playwright implementation.
 

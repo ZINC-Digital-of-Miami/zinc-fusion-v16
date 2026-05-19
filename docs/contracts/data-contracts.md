@@ -1,8 +1,8 @@
 # V16 Data Contracts (Weekly Batch Pivot - 2026-05-07)
 
 ## Core Market Contracts (High-Frequency Path Retained)
-- `mkt.price_1h`: hourly OHLCV feed for chart freshness.
-- `mkt.price_1d`: daily OHLCV rollup for daily-bar path.
+- `mkt.price_1h`: bounded hourly OHLCV serving cache for chart freshness.
+- `mkt.price_1d`: daily OHLCV serving table rolled from the hourly path.
 - `mkt.latest_price`: most recent price for live status.
 - `forecasts.target_zones`: P30/P50/P70 horizontal levels.
 
@@ -10,7 +10,10 @@
 - Raw ZL Databento hourly history for AG/training is stored in local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb`.
 - DuckDB relation `raw.databento_zl_ohlcv_1h` is the raw recovery table for Databento `ohlcv-1h` records.
 - On filesystems that do not support DuckDB file locks, the refresh writes through a temporary lock-capable working copy and copies the closed DuckDB file back to `data/duckdb/zinc_fusion_raw.duckdb`.
-- Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price` are the chart-serving tables read by frontend API routes.
+- Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price` are the only active chart-serving tables read by frontend API routes.
+- Supabase must not store deep ZL intraday history. `mkt.price_1h` is a bounded serving cache, `mkt.price_1d` is daily-only, and `mkt.latest_price` is one current row per symbol.
+- Supabase `mkt.price_15m` and `mkt.price_1m` are retired from the active chart path. They must have no route dependency, no writer, and no schedule unless a new approved migration reverses this decision.
+- Daily chart rows are filled from the DuckDB/Python 1h promotion path, not from finer Supabase intraday tables.
 - Supabase-native `ingest_zl_intraday()` and `rollup_zl_daily()` are obsolete for ZL chart freshness and must remain unscheduled/revoked; they are not active serving writers.
 - `python -m fusion.zl_duckdb_pipeline refresh --promote` is the raw-store recovery and replay path into Supabase serving tables, including Databento HTTP `200` and `206` NDJSON payload handling.
 
@@ -22,7 +25,9 @@
 ## Forecast/Training Cadence Contract
 - Weekly retraining is the default cadence.
 - Weekly forecast publication follows successful weekly retrain.
-- Training and publication must remain explicit and auditable in `training.*` and `forecasts.*` tables.
+- Deep AG source data, feature matrices, target labels, and training intermediates stay in DuckDB/local artifacts.
+- Cloud `training.*` tables are for compact metadata, registry, and explicitly approved serving summaries only.
+- Publication must remain explicit and auditable in compact `training.*` metadata and `forecasts.*` tables.
 
 ## Sentiment and Legislation Contracts
 - Sentiment and Legislation page content is GPT-driven from approved news/policy sources.
