@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 
 import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
-import type { ApiEnvelope, VegasIntelSnapshot } from "@/lib/contracts/api";
+import type {
+  ApiEnvelope,
+  VegasEventRow,
+  VegasIntelSnapshot,
+  VegasIntelStats,
+  VegasOpportunityRow,
+} from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -10,7 +16,7 @@ import {
   uniqueTrustedMarketUrls,
 } from "@/lib/server/trusted-market-sources";
 
-type VegasIntelCards = {
+type VegasCards = {
   upcomingEvents: AiCardContent;
   aiSalesStrategy: AiCardContent;
   restaurantAccounts: AiCardContent;
@@ -19,10 +25,71 @@ type VegasIntelCards = {
 
 type VegasIntelAiSnapshot = {
   snapshot?: Partial<VegasIntelSnapshot>;
-  cards?: VegasIntelCards;
+  cards?: VegasCards;
 } & AiSnapshotMeta;
 
-const VEGAS_INSTRUCTIONS: Record<keyof VegasIntelCards, StrategicSpecialInstructions> = {
+type RestaurantRow = {
+  id: number;
+  restaurant_name: string;
+  account_status: string | null;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+type CasinoRow = {
+  id: number;
+  casino_name: string;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+type EventRow = {
+  id: number;
+  event_name: string;
+  event_date: string;
+  venue_id: number | null;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+type VenueRow = {
+  id: number;
+  venue_name: string;
+  metadata: unknown;
+};
+
+type FryerRow = {
+  restaurant_id: number | null;
+  fryer_count: number | null;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+type CustomerScoreRow = {
+  restaurant_id: number | null;
+  score_date: string;
+  score: number | null;
+};
+
+type EventImpactRow = {
+  event_id: number | null;
+  restaurant_id: number | null;
+  impact_score: number | null;
+};
+
+const EVENT_COLOR_MAP: Record<string, string> = {
+  expos: "#2962FF",
+  conferences: "#14b8a6",
+  concerts: "#a855f7",
+  sports: "#22c55e",
+  festivals: "#ff6b35",
+  "performing-arts": "#f59e0b",
+  community: "#06b6d4",
+  "school-holidays": "#ec4899",
+  fallback: "#6b7280",
+};
+
+const VEGAS_INSTRUCTIONS: Record<keyof VegasCards, StrategicSpecialInstructions> = {
   upcomingEvents: {
     cardTopic: "Event-Driven Demand Window Risk",
     strategicObjective:
@@ -117,10 +184,69 @@ const VEGAS_INSTRUCTIONS: Record<keyof VegasIntelCards, StrategicSpecialInstruct
   },
 };
 
+function asObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
+}
+
+function pickString(metadata: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const value = metadata[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function pickNumber(metadata: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    const value = metadata[key];
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const parsed = Number(value.replace(/,/g, "").trim());
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return null;
+}
+
+function normalizeEventCategory(value: string | null): string {
+  if (!value) return "community";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "performing_arts") return "performing-arts";
+  if (normalized === "school_holidays") return "school-holidays";
+  if (normalized === "conference") return "conferences";
+  if (normalized === "expo") return "expos";
+  if (normalized === "concert") return "concerts";
+  if (normalized === "sport") return "sports";
+  if (normalized in EVENT_COLOR_MAP) return normalized;
+  return "community";
+}
+
+function toEventColor(category: string): string {
+  return EVENT_COLOR_MAP[category] ?? EVENT_COLOR_MAP.fallback;
+}
+
+function toMidnight(value: Date): Date {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
+function toDaysUntil(current: Date, futureDateText: string): number {
+  const now = toMidnight(current).getTime();
+  const target = toMidnight(new Date(futureDateText)).getTime();
+  return Math.max(0, Math.floor((target - now) / 86400000));
+}
+
+function toNullableIso(value: string | null): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
+
 function buildProvenance(
   generatedAt: string,
   asOf: string,
-  cardKey: keyof VegasIntelCards,
+  cardKey: keyof VegasCards,
   trustedUrls: string[],
 ): AiCardProvenance {
   return {
@@ -165,108 +291,281 @@ export async function GET() {
     );
     const trustedMarket = await fetchTrustedMarketSnapshot();
     const trustedUrls = uniqueTrustedMarketUrls(trustedMarket);
-
-    const today = new Date().toISOString().slice(0, 10);
-    const in14 = new Date();
+    const now = new Date();
+    const todayText = now.toISOString().slice(0, 10);
+    const in14 = new Date(now);
     in14.setDate(in14.getDate() + 14);
-    const in30 = new Date();
+    const in30 = new Date(now);
     in30.setDate(in30.getDate() + 30);
 
     const [
-      { data: eventRows, error: evtError },
-      { data: restaurantRows, error: restError },
-      { data: fryerRows },
-      { data: scoreRows },
-      { data: impactRows },
+      { data: eventRowsRaw, error: eventError },
+      { data: venueRowsRaw, error: venueError },
+      { data: restaurantRowsRaw, error: restaurantError },
+      { data: casinoRowsRaw, error: casinoError },
+      { data: fryerRowsRaw, error: fryerError },
+      { data: scoreRowsRaw, error: scoreError },
+      { data: impactRowsRaw, error: impactError },
     ] = await Promise.all([
       supabase
         .schema("vegas")
         .from("events")
-        .select("id, event_name, event_date")
-        .gte("event_date", today)
+        .select("id, event_name, event_date, venue_id, metadata, ingested_at")
+        .gte("event_date", todayText)
         .order("event_date", { ascending: true })
         .limit(200),
       supabase
         .schema("vegas")
+        .from("venues")
+        .select("id, venue_name, metadata")
+        .limit(400),
+      supabase
+        .schema("vegas")
         .from("restaurants")
-        .select("id, restaurant_name, account_status")
-        .eq("account_status", "active")
+        .select("id, restaurant_name, account_status, metadata, ingested_at")
+        .limit(1000),
+      supabase
+        .schema("vegas")
+        .from("casinos")
+        .select("id, casino_name, metadata, ingested_at")
         .limit(500),
       supabase
         .schema("vegas")
         .from("fryers")
-        .select("restaurant_id, fryer_count")
-        .limit(500),
+        .select("restaurant_id, fryer_count, metadata, ingested_at")
+        .limit(5000),
       supabase
         .schema("vegas")
         .from("customer_scores")
         .select("restaurant_id, score_date, score")
         .order("score_date", { ascending: false })
-        .limit(500),
+        .limit(5000),
       supabase
         .schema("vegas")
         .from("event_impact")
         .select("event_id, restaurant_id, impact_score")
         .order("impact_score", { ascending: false })
-        .limit(500),
+        .limit(10000),
     ]);
 
-    if (evtError) {
+    const firstError =
+      eventError ??
+      venueError ??
+      restaurantError ??
+      casinoError ??
+      fryerError ??
+      scoreError ??
+      impactError;
+
+    if (firstError) {
       return NextResponse.json(
-        { ok: false, data: null, asOf: new Date().toISOString(), error: evtError.message },
+        { ok: false, data: null, asOf: new Date().toISOString(), error: firstError.message },
         { status: 500 },
       );
     }
 
-    if (restError) {
-      return NextResponse.json(
-        { ok: false, data: null, asOf: new Date().toISOString(), error: restError.message },
-        { status: 500 },
+    const eventRows = (eventRowsRaw ?? []) as EventRow[];
+    const venueRows = (venueRowsRaw ?? []) as VenueRow[];
+    const restaurantRows = (restaurantRowsRaw ?? []) as RestaurantRow[];
+    const casinoRows = (casinoRowsRaw ?? []) as CasinoRow[];
+    const fryerRows = (fryerRowsRaw ?? []) as FryerRow[];
+    const scoreRows = (scoreRowsRaw ?? []) as CustomerScoreRow[];
+    const impactRows = (impactRowsRaw ?? []) as EventImpactRow[];
+
+    const venueMap = new Map<number, string>();
+    for (const row of venueRows) {
+      venueMap.set(row.id, row.venue_name);
+    }
+
+    const casinoNameMap = new Map<string, string>();
+    for (const row of casinoRows) {
+      const meta = asObject(row.metadata);
+      casinoNameMap.set(String(row.id), row.casino_name);
+      const glideRowId = pickString(meta, ["glide_row_id", "row_id", "rowId", "glideRowId"]);
+      if (glideRowId) casinoNameMap.set(glideRowId, row.casino_name);
+    }
+
+    const events: VegasEventRow[] = eventRows
+      .map((row): VegasEventRow | null => {
+        const meta = asObject(row.metadata);
+        const isActive = meta.is_active;
+        if (typeof isActive === "boolean" && !isActive) return null;
+
+        const category = normalizeEventCategory(
+          pickString(meta, ["event_type", "category", "eventCategory", "type"]),
+        );
+        const attendance = pickNumber(meta, ["attendance", "rank", "predicted_attendance"]) ?? 0;
+        const venue =
+          pickString(meta, ["venue", "venue_name", "location_name"]) ??
+          (row.venue_id ? venueMap.get(row.venue_id) ?? null : null);
+        const startDate = row.event_date;
+        const endDate =
+          pickString(meta, ["end_date", "endDate", "event_end_date"]) ?? null;
+
+        return {
+          id: row.id,
+          name: row.event_name,
+          category,
+          venue,
+          attendance,
+          startDate,
+          endDate,
+          daysUntil: toDaysUntil(now, startDate),
+          color: toEventColor(category),
+          location: pickString(meta, ["location", "address", "city"]),
+        } satisfies VegasEventRow;
+      })
+      .filter((row): row is VegasEventRow => row !== null)
+      .sort((a, b) => a.daysUntil - b.daysUntil);
+
+    const latestScoreByRestaurant = new Map<number, number>();
+    const latestDateByRestaurant = new Map<number, string>();
+    for (const row of scoreRows) {
+      if (!row.restaurant_id || row.score === null) continue;
+      const parsedScore = Number(row.score);
+      if (!Number.isFinite(parsedScore)) continue;
+      const prevDate = latestDateByRestaurant.get(row.restaurant_id);
+      if (!prevDate || row.score_date >= prevDate) {
+        latestDateByRestaurant.set(row.restaurant_id, row.score_date);
+        latestScoreByRestaurant.set(row.restaurant_id, parsedScore);
+      }
+    }
+
+    const impactSumByRestaurant = new Map<number, number>();
+    const impactCountByRestaurant = new Map<number, number>();
+    for (const row of impactRows) {
+      if (!row.restaurant_id || row.impact_score === null) continue;
+      const parsedImpact = Number(row.impact_score);
+      if (!Number.isFinite(parsedImpact)) continue;
+      impactSumByRestaurant.set(
+        row.restaurant_id,
+        (impactSumByRestaurant.get(row.restaurant_id) ?? 0) + parsedImpact,
+      );
+      impactCountByRestaurant.set(
+        row.restaurant_id,
+        (impactCountByRestaurant.get(row.restaurant_id) ?? 0) + 1,
       );
     }
 
-    const events = eventRows ?? [];
-    const activeRestaurants = restaurantRows ?? [];
-    const fryers = fryerRows ?? [];
-    const customerScores = scoreRows ?? [];
-    const eventImpacts = impactRows ?? [];
+    const fryerCountByRestaurant = new Map<number, number>();
+    const capacityByRestaurant = new Map<number, number>();
+    for (const row of fryerRows) {
+      if (!row.restaurant_id) continue;
+      const fryerCount = row.fryer_count ?? 0;
+      fryerCountByRestaurant.set(
+        row.restaurant_id,
+        (fryerCountByRestaurant.get(row.restaurant_id) ?? 0) + fryerCount,
+      );
+      const meta = asObject(row.metadata);
+      const capacity = pickNumber(meta, ["total_capacity_lbs", "capacity_lbs", "xhrM0"]);
+      if (capacity !== null) {
+        capacityByRestaurant.set(
+          row.restaurant_id,
+          (capacityByRestaurant.get(row.restaurant_id) ?? 0) + capacity,
+        );
+      }
+    }
 
-    const activeEvents = events.length;
-    const highPriority = activeRestaurants.length;
-    const events14d = events.filter((e) => new Date(e.event_date).getTime() <= in14.getTime()).length;
-    const events30d = events.filter((e) => new Date(e.event_date).getTime() <= in30.getTime()).length;
+    const opportunities: VegasOpportunityRow[] = restaurantRows
+      .map((row) => {
+        const meta = asObject(row.metadata);
+        const serviceFrequency = pickString(meta, [
+          "service_frequency",
+          "serviceFrequency",
+          "Po4Zg",
+        ]);
+        const customerStatus = serviceFrequency ? "customer" : "prospect";
+        const casinoLink =
+          pickString(meta, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ?? null;
+        const casino = casinoLink ? casinoNameMap.get(casinoLink) ?? casinoLink : null;
+        const restaurantId = row.id;
+        const impactCount = impactCountByRestaurant.get(restaurantId) ?? 0;
+        const eventPressure =
+          impactCount > 0
+            ? (impactSumByRestaurant.get(restaurantId) ?? 0) / impactCount
+            : null;
+
+        const totalCapacity = capacityByRestaurant.get(restaurantId) ?? null;
+        const fryerCount = fryerCountByRestaurant.get(restaurantId) ?? null;
+
+        return {
+          id: restaurantId,
+          glideRowId: pickString(meta, ["glide_row_id", "row_id", "rowId", "glideRowId"]),
+          name: row.restaurant_name,
+          casino,
+          contactPerson: pickString(meta, ["contact_person", "primary_contact", "doeXs"]),
+          serviceFrequency,
+          oilType: pickString(meta, ["oil_type", "oilType", "U0Jf2"]),
+          oilForm: pickString(meta, ["oil_form", "oilForm", "0RcWz"]),
+          status: row.account_status ?? pickString(meta, ["status", "s8tNr"]),
+          fryerCount,
+          totalCapacityLbs: totalCapacity,
+          customerStatus,
+          opportunityScore: latestScoreByRestaurant.get(restaurantId) ?? null,
+          eventPressure,
+        } satisfies VegasOpportunityRow;
+      })
+      .sort((a, b) => {
+        const scoreA = a.opportunityScore ?? Number.NEGATIVE_INFINITY;
+        const scoreB = b.opportunityScore ?? Number.NEGATIVE_INFINITY;
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        const pressureA = a.eventPressure ?? Number.NEGATIVE_INFINITY;
+        const pressureB = b.eventPressure ?? Number.NEGATIVE_INFINITY;
+        return pressureB - pressureA;
+      });
+
+    const events14d = events.filter((row) => row.daysUntil <= 14).length;
+    const events30d = events.filter((row) => row.daysUntil <= 30).length;
     const nextEvent = events[0] ?? null;
 
-    const knownFryerCounts = fryers
-      .map((row) => Number(row.fryer_count))
-      .filter((count) => Number.isFinite(count) && count >= 0);
-    const totalFryers = knownFryerCounts.reduce((acc, count) => acc + count, 0);
-    const lowRedundancySites = knownFryerCounts.filter((count) => count <= 1).length;
-    const unknownFryerSites = Math.max(0, fryers.length - knownFryerCounts.length);
-
-    const latestScoreDate = customerScores[0]?.score_date ?? null;
-    const latestScores = customerScores.filter((row) => row.score_date === latestScoreDate);
-    const scoredAccounts = latestScores
-      .map((row) => Number(row.score))
-      .filter((value) => Number.isFinite(value));
+    const scoredValues = opportunities
+      .map((row) => row.opportunityScore)
+      .filter((value): value is number => value !== null);
     const avgScore =
-      scoredAccounts.length > 0
-        ? scoredAccounts.reduce((acc, value) => acc + value, 0) / scoredAccounts.length
+      scoredValues.length > 0
+        ? scoredValues.reduce((sum, value) => sum + value, 0) / scoredValues.length
         : null;
 
-    const impactValues = eventImpacts
-      .map((row) => Number(row.impact_score))
-      .filter((value) => Number.isFinite(value));
+    const pressureValues = opportunities
+      .map((row) => row.eventPressure)
+      .filter((value): value is number => value !== null);
     const avgImpact =
-      impactValues.length > 0
-        ? impactValues.reduce((acc, value) => acc + value, 0) / impactValues.length
+      pressureValues.length > 0
+        ? pressureValues.reduce((sum, value) => sum + value, 0) / pressureValues.length
         : null;
+
+    const allIngestedTimestamps = [
+      ...eventRows.map((row) => row.ingested_at),
+      ...restaurantRows.map((row) => row.ingested_at),
+      ...casinoRows.map((row) => row.ingested_at),
+      ...fryerRows.map((row) => row.ingested_at),
+    ]
+      .map((value) => toNullableIso(value))
+      .filter((value): value is string => value !== null)
+      .sort();
+    const lastSync = allIngestedTimestamps.at(-1) ?? null;
+
+    const stats: VegasIntelStats = {
+      restaurants: restaurantRows.length,
+      casinos: casinoRows.length,
+      fryers: fryerRows.length,
+      exportList: null,
+      shifts: null,
+      scheduledReports: null,
+      lastSync,
+    };
+
+    const highPriorityCount = opportunities.filter((row) => {
+      if (row.opportunityScore === null) return false;
+      return row.opportunityScore >= 70;
+    }).length;
 
     const dbSnapshot: VegasIntelSnapshot = {
-      activeEvents,
-      highPriorityAccounts: highPriority,
-      updatedAt: new Date().toISOString(),
+      activeEvents: events.length,
+      highPriorityAccounts: highPriorityCount > 0 ? highPriorityCount : opportunities.length,
+      updatedAt: lastSync ?? new Date().toISOString(),
     };
+
     const snapshot: VegasIntelSnapshot = {
       activeEvents: aiSnapshot?.snapshot?.activeEvents ?? dbSnapshot.activeEvents,
       highPriorityAccounts:
@@ -281,45 +580,47 @@ export async function GET() {
     const vix = trustedMarket.vix.value;
     const cl5dText =
       cl5d === null ? "n/a" : `${cl5d * 100 >= 0 ? "+" : ""}${(cl5d * 100).toFixed(2)}%`;
-    const fallbackCards: VegasIntelCards = {
+
+    const fallbackCards: VegasCards = {
       upcomingEvents: {
         title: "Upcoming Events",
         body: nextEvent
-          ? `${events14d} events are scheduled over the next 14 days (${events30d} over 30 days). Next demand catalyst is ${nextEvent.event_name} on ${nextEvent.event_date}.`
+          ? `${events14d} events are scheduled over the next 14 days (${events30d} over 30 days). Next demand catalyst is ${nextEvent.name} on ${nextEvent.startDate}.`
           : "Hard stop: no verified vegas.events rows are available for upcoming demand-window analysis.",
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.upcomingEvents,
         provenance: buildProvenance(generatedAt, asOf, "upcomingEvents", trustedUrls),
       },
       aiSalesStrategy: {
         title: "AI Sales Strategy",
-        body: activeRestaurants.length === 0 || events.length === 0
-          ? "Hard stop: account-targeted strategy is blocked because verified event or active-account rows are missing."
-          : `Prioritize high-volume active accounts ahead of the ${events14d > 0 ? "next two-week event cluster" : "next demand window"}. Average modeled event impact is ${avgImpact?.toFixed(2) ?? "n/a"}. Current oil-cost backdrop is CL ${cl?.toFixed(2) ?? "n/a"} with 5-day ${cl5dText} and VIX ${vix?.toFixed(2) ?? "n/a"}, so cost-certainty messaging should be staged and urgency-tiered.`,
+        body:
+          opportunities.length === 0 || events.length === 0
+            ? "Hard stop: account-targeted strategy is blocked because verified event or account rows are missing."
+            : `Prioritize high-volume customer accounts before the next event cluster. Average modeled event pressure is ${avgImpact?.toFixed(2) ?? "n/a"}. Current oil-cost backdrop is CL ${cl?.toFixed(2) ?? "n/a"} with 5-day ${cl5dText} and VIX ${vix?.toFixed(2) ?? "n/a"}, so cost-certainty messaging should be sequenced by urgency.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.aiSalesStrategy,
         provenance: buildProvenance(generatedAt, asOf, "aiSalesStrategy", trustedUrls),
       },
       restaurantAccounts: {
         title: "Restaurant Accounts",
-        body: latestScores.length === 0
-          ? "Hard stop: no verified vegas.customer_scores rows are available for account-priority ranking."
-          : `Latest scoring window (${latestScoreDate}) covers ${latestScores.length} accounts with average opportunity score ${avgScore?.toFixed(2) ?? "n/a"}. Sequence outreach from highest opportunity tier first, then roll down by event-window overlap.`,
+        body:
+          scoredValues.length === 0
+            ? "Hard stop: no verified vegas.customer_scores rows are available for account-priority ranking."
+            : `Current account set has ${opportunities.length} rows with average opportunity score ${avgScore?.toFixed(2) ?? "n/a"}. Sequence outreach from highest opportunity tier first, then roll down by event-window overlap.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.restaurantAccounts,
         provenance: buildProvenance(generatedAt, asOf, "restaurantAccounts", trustedUrls),
       },
       fryerTracking: {
         title: "Fryer Equipment Tracking",
-        body: fryers.length === 0
-          ? "Hard stop: fryer lifecycle guidance is blocked because no verified vegas.fryers rows are available."
-          : knownFryerCounts.length === 0
-            ? `Verified fryer rows exist for ${fryers.length} tracked sites, but fryer-count telemetry is not yet populated. Service prioritization should use event impact and account urgency until count telemetry is promoted.`
-            : `Verified fryer inventory totals ${totalFryers} units across ${fryers.length} tracked sites; ${lowRedundancySites} sites run low redundancy (one fryer or fewer) and ${unknownFryerSites} sites still require fryer-count telemetry. Service prioritization should front-load low-redundancy sites before high-impact event windows.`,
+        body:
+          fryerRows.length === 0
+            ? "Hard stop: fryer lifecycle guidance is blocked because no verified vegas.fryers rows are available."
+            : `Verified fryer rows: ${fryerRows.length}. Sites with capacity telemetry: ${Array.from(capacityByRestaurant.values()).length}. Missing capacity data must be surfaced explicitly before equipment-specific pitch claims.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.fryerTracking,
         provenance: buildProvenance(generatedAt, asOf, "fryerTracking", trustedUrls),
       },
     };
 
     const rawCards = aiSnapshot?.cards ?? fallbackCards;
-    const cards: VegasIntelCards = {
+    const cards: VegasCards = {
       upcomingEvents: {
         ...fallbackCards.upcomingEvents,
         ...rawCards.upcomingEvents,
@@ -359,12 +660,23 @@ export async function GET() {
       ok: true,
       data: snapshot,
       asOf: new Date().toISOString(),
-      source: ["vegas.events", "vegas.restaurants", "vegas.customer_scores", "vegas.fryers", "vegas.event_impact", ...TRUSTED_MARKET_SOURCE_FEEDS].join(","),
+      source: [
+        "vegas.events",
+        "vegas.restaurants",
+        "vegas.casinos",
+        "vegas.fryers",
+        "vegas.customer_scores",
+        "vegas.event_impact",
+        ...TRUSTED_MARKET_SOURCE_FEEDS,
+      ].join(","),
     };
 
     return NextResponse.json({
       ...envelope,
       cards,
+      stats,
+      events,
+      opportunities,
       ai: toAiEnvelopeMeta(aiSnapshot),
     });
   } catch (err) {

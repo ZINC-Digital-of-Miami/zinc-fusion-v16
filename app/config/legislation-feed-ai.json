@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-17T07:17:18-04:00",
+  "generatedAt": "2026-05-19T07:08:09-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,7 +7,7 @@
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "The current policy watchlist is still thin but usable: 5 explicit agriculture or trade-adjacent items are live, led by USDA's May 15 modified-organisms request for information and Commerce's May 14 BASF foreign-trade-zone filing. That is enough to keep policy on the dashboard, but not enough to override the current energy-led market posture.",
+      "body": "The current policy watchlist is no longer just a side monitor: 22 relevance-screened agriculture or trade-adjacent items are live, and the visible set is led by H.R.7567, USDA's May 15 modified-organisms request for information, and Commerce's BASF foreign-trade-zone filing. Item breadth is still concentrated, but the 685.18 uncertainty print is large enough to put policy back into lead-driver status.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Relevance and Procurement Transmission",
         "strategicObjective": "Rank whether the current policy feed is actually capable of changing soybean-oil buyer behavior or is still just a monitoring surface.",
@@ -30,42 +30,49 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-15",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
-          "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+          "https://www.congress.gov/bill/119th-congress/house-bill/7567",
+          "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
         ],
         "sourceRecords": [
           {
             "source": "Federal Register",
             "recordHint": "USDA modified-organisms RFI",
-            "observedAt": "2026-05-15T00:00:00Z",
+            "observedAt": "2026-05-15T00:00:00+00:00",
             "url": "https://www.federalregister.gov/documents/2026/05/15/2026-09833/request-for-information-on-modified-organisms-subject-to-the-plant-protection-act"
           },
           {
             "source": "Federal Register",
             "recordHint": "BASF agricultural FTZ subzone filing",
-            "observedAt": "2026-05-14T00:00:00Z",
+            "observedAt": "2026-05-14T00:00:00+00:00",
             "url": "https://www.federalregister.gov/documents/2026/05/14/2026-09702/foreign-trade-zone-102-application-for-subzone-basf-agricultural-solutions-us-llc-fenton-and-palmyra"
           },
           {
             "source": "Congress.gov",
             "recordHint": "Farm, Food, and National Security Act of 2026",
-            "observedAt": "2026-05-07T17:39:50Z",
+            "observedAt": "2026-05-07T17:39:50+00:00",
             "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+          },
+          {
+            "source": "FRED",
+            "recordHint": "Economic Policy Uncertainty latest reading",
+            "observedAt": "2026-05-17",
+            "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
           }
         ],
         "notes": [
-          "Only procurement-relevant agriculture and trade items were kept in the snapshot.",
-          "Policy remains secondary to energy in the current buyer posture."
+          "The card ranks the visible item set but also states the screened universe size so thin breadth is not mistaken for full coverage.",
+          "Policy can be lead-driver status even when the live item set is concentrated because the macro uncertainty series is currently extreme."
         ]
       }
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Source breadth is concentrated rather than broad: Agriculture Department contributes 3 of the 5 current items, or 60.0% of the visible feed, while Commerce and Congress each contribute one. That concentration keeps confidence moderate at best; relevance is there, but corroboration breadth is not.",
+      "body": "Source breadth is still concentrated rather than broad: Agriculture Department contributes 3 of the visible top 5 items, or 60.0%, while Commerce and Congress contribute one each. That concentration lowers corroboration confidence even though the category remains procurement-relevant.",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Concentration and Signal Reliability",
         "strategicObjective": "Measure whether current source concentration supports a confident policy read or demands caution.",
@@ -88,8 +95,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-15",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -98,26 +105,26 @@
         "sourceRecords": [
           {
             "source": "Federal Register",
-            "recordHint": "three USDA-led current items in visible policy set",
-            "observedAt": "2026-05-15T00:00:00Z",
+            "recordHint": "three Agriculture Department-led current items in visible policy set",
+            "observedAt": "2026-05-15T00:00:00+00:00",
             "url": "https://www.federalregister.gov"
           },
           {
             "source": "Congress.gov",
             "recordHint": "one congressional anchor item in visible policy set",
-            "observedAt": "2026-05-07T17:39:50Z",
+            "observedAt": "2026-05-07T17:39:50+00:00",
             "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           }
         ],
         "notes": [
           "Source concentration math is explicit inside the card.",
-          "Confidence is tied to breadth, not just raw item relevance."
+          "Confidence is tied to corroboration breadth, not just raw item relevance."
         ]
       }
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "The current theme map is led by policy tags on all 5 items, with trade-adjacent coding on 2 of 5 and agriculture context on 2 of 5. That says the feed is more administrative than shock-driven; buyers should watch trade mechanics and USDA process, not expect an immediate legislative cost wave.",
+      "body": "The visible theme map is still administrative-leaning: policy tags sit on all 5 visible items, trade-adjacent coding shows up on 2 of 5, agriculture context shows up on 2 of 5, and macro framing is carried by 1 of 5. That means buyers should treat the feed as a policy-risk watch surface, not as proof of an immediate soybean-oil rule shock.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify which policy themes deserve the most buyer attention in the current window.",
@@ -140,8 +147,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-15",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -150,25 +157,34 @@
         "sourceRecords": [
           {
             "source": "Federal Register",
-            "recordHint": "USDA and Commerce items used for trade/policy tag counts",
-            "observedAt": "2026-05-15T00:00:00Z",
+            "recordHint": "USDA and Commerce items used for trade, policy, and agriculture tag counts",
+            "observedAt": "2026-05-15T00:00:00+00:00",
             "url": "https://www.federalregister.gov"
           },
           {
             "source": "Congress.gov",
-            "recordHint": "farm bill anchor item used for macro/policy tag count",
-            "observedAt": "2026-05-07T17:39:50Z",
+            "recordHint": "farm-bill anchor item used for macro and policy tag count",
+            "observedAt": "2026-05-07T17:39:50+00:00",
             "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
           }
         ],
         "notes": [
-          "Theme ranking is based on the actual visible current item set.",
-          "The current taxonomy is informative but not dense enough for regime-calling."
+          "Theme ranking is based on the visible current item set rather than a raw feed dump.",
+          "The current taxonomy is informative but still too administrative to justify rule-shock language by itself."
         ]
       }
     }
   },
   "items": [
+    {
+      "source": "Congress.gov",
+      "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
+      "publishedAt": "2026-05-07T17:39:50+00:00",
+      "tags": [
+        "macro",
+        "policy"
+      ]
+    },
     {
       "source": "Agriculture Department",
       "title": "Request for Information on Modified Organisms Subject to the Plant Protection Act",
@@ -189,15 +205,6 @@
     },
     {
       "source": "Agriculture Department",
-      "title": "Notice of Request for Revision To and Extension of Approval of an Information Collection; Restrictions on Importation of Live Poultry, Poultry Meat, and Other Poultry Products From Specified Regions",
-      "publishedAt": "2026-05-14T00:00:00+00:00",
-      "tags": [
-        "policy",
-        "trade"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
       "title": "Codex Alimentarius Commission: Meeting of the Codex Alimentarius Commission",
       "publishedAt": "2026-05-13T00:00:00+00:00",
       "tags": [
@@ -206,12 +213,13 @@
       ]
     },
     {
-      "source": "Congress.gov",
-      "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
-      "publishedAt": "2026-05-07T17:39:50+00:00",
+      "source": "Agriculture Department",
+      "title": "Updated Staple Food Stocking Standards for Retailers in the Supplemental Nutrition Assistance Program",
+      "publishedAt": "2026-05-08T00:00:00+00:00",
       "tags": [
         "macro",
-        "policy"
+        "policy",
+        "agriculture"
       ]
     }
   ]

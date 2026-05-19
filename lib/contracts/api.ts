@@ -77,3 +77,42 @@ export interface VegasIntelSnapshot {
   updatedAt: IsoDateTimeString;
 }
 
+export interface VegasIntelStats {
+  restaurants: number;
+  casinos: number;
+  fryers: number;
+  exportList: number | null;
+  shifts: number | null;
+  scheduledReports: number | null;
+  lastSync: IsoDateTimeString | null;
+}
+
+export interface VegasEventRow {
+  id: number;
+  name: string;
+  category: string;
+  venue: string | null;
+  attendance: number;
+  startDate: string;
+  endDate: string | null;
+  daysUntil: number;
+  color: string;
+  location: string | null;
+}
+
+export interface VegasOpportunityRow {
+  id: number;
+  glideRowId: string | null;
+  name: string;
+  casino: string | null;
+  contactPerson: string | null;
+  serviceFrequency: string | null;
+  oilType: string | null;
+  oilForm: string | null;
+  status: string | null;
+  fryerCount: number | null;
+  totalCapacityLbs: number | null;
+  customerStatus: "customer" | "prospect";
+  opportunityScore: number | null;
+  eventPressure: number | null;
+}

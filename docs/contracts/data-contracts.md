@@ -29,9 +29,25 @@
 - Cloud `training.*` tables are for compact metadata, registry, and explicitly approved serving summaries only.
 - Publication must remain explicit and auditable in compact `training.*` metadata and `forecasts.*` tables.
 
+### Local AG Panel Foundation (Checkpoint 23)
+- Active local training-source mode may run through `AUTOGLUON_TRAINING_SOURCE=local_postgres_panel` while symbol-time panel remediation is in progress.
+- This mode is local-only and must read/write only localhost PostgreSQL tables:
+  - `training.matrix_panel_1h`
+  - `training.matrix_panel_targets_1h`
+  - `ops.local_panel_build_manifest`
+- No cloud Supabase training-source writes are allowed from this panel builder flow.
+- Training remains blocked by readiness gates and explicit approval requirements.
+
 ## Sentiment and Legislation Contracts
 - Sentiment and Legislation page content is GPT-driven from approved news/policy sources.
 - Generated summaries/scores must remain attributable to source records and run timestamps.
+
+## Vegas Intel Turnover Contract (Body Scope)
+- `/api/vegas/intel` must return DB-backed `events`, `opportunities`, and `stats` payloads used by the Vegas body sections.
+- `events` rows must remain future-dated and sorted by soonest upcoming date for display.
+- `opportunities` rows must expose customer/prospect classification from service-cadence data and must surface missing oil, fryer, capacity, and contact fields explicitly rather than inventing values.
+- `stats` must include actual row counts for currently wired `vegas.*` serving tables and set not-yet-wired Glide groups to `null` until promoted data exists.
+- The route may include AI card narratives, but body rendering must remain grounded in verified DB rows and include hard-stop language when required source rows are missing.
 
 ## Dashboard AI Card Instruction Contract
 - `/api/dashboard/risk-factors` must provide per-card `strategicSpecialInstructions` for each driver card and the AI Market Intelligence card.

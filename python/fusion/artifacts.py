@@ -73,7 +73,7 @@ def feature_columns(columns: Iterable[str]) -> list[str]:
     return [
         column
         for column in columns
-        if column != "trade_date" and not column.startswith(TARGET_PREFIX)
+        if column not in {"trade_date", "bucket_ts", "sample_id"} and not column.startswith(TARGET_PREFIX)
     ]
 
 

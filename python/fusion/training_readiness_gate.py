@@ -73,6 +73,7 @@ _ISSUE_PREVIEW_LIMIT = 20
 
 @dataclass(frozen=True)
 class TrainingGateContract:
+    training_source_mode: str
     required_symbols: tuple[str, ...]
     required_fred_series: tuple[str, ...]
     min_daily_rows_per_symbol: int
@@ -201,7 +202,17 @@ def _load_contract() -> TrainingGateContract:
     enforce_parity = os.getenv("TRAINING_ENFORCE_CLOUD_LOCAL_PARITY", "0").strip().lower()
     single_matrix = os.getenv("TRAINING_SINGLE_MATRIX_CONTRACT", "1").strip().lower()
     require_options = os.getenv("TRAINING_REQUIRE_OPTIONS", "0").strip().lower()
+    training_source_mode = (
+        os.getenv("AUTOGLUON_TRAINING_SOURCE", "local_postgres_panel").strip().lower()
+        or "local_postgres_panel"
+    )
+    if training_source_mode not in {"local_postgres_panel", "local_postgres", "parquet_artifacts"}:
+        raise RuntimeError(
+            "unsupported AUTOGLUON_TRAINING_SOURCE for readiness gate: "
+            + f"{training_source_mode!r}"
+        )
     return TrainingGateContract(
+        training_source_mode=training_source_mode,
         required_symbols=_parse_csv(
             os.getenv("TRAINING_REQUIRED_SYMBOLS"),
             (),
@@ -570,6 +581,32 @@ def _check_cloud_matrix_has_no_targets(cur: Any) -> tuple[bool, str]:
             f"training.matrix_1d feature_snapshot contains target labels in {target_payload_rows}/{row_count} rows",
         )
     return True, "training.matrix_1d feature_snapshot contains no target labels"
+
+
+def _check_panel_targets(cur: Any) -> tuple[bool, str]:
+    cur.execute(
+        """
+        SELECT
+          COUNT(*)::BIGINT AS row_count,
+          COUNT(*) FILTER (
+            WHERE target_price_30d IS NOT NULL
+              AND target_price_90d IS NOT NULL
+              AND target_price_180d IS NOT NULL
+          )::BIGINT AS fully_labeled_rows
+        FROM training.matrix_panel_targets_1h
+        """
+    )
+    row_count, fully_labeled_rows = cur.fetchone()
+    row_count = int(row_count or 0)
+    fully_labeled_rows = int(fully_labeled_rows or 0)
+    if row_count <= 0:
+        return False, "training.matrix_panel_targets_1h has 0 rows"
+    if fully_labeled_rows <= 0:
+        return False, "training.matrix_panel_targets_1h has 0 fully-labeled rows"
+    return (
+        True,
+        f"training.matrix_panel_targets_1h fully_labeled_rows={fully_labeled_rows}, rows={row_count}",
+    )
 
 
 def _check_local_matrix_artifact(
@@ -1267,10 +1304,19 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
     blockers: list[str] = []
     now_utc = datetime.now(timezone.utc)
 
-    pass_flag, detail = _check_local_matrix_artifact(contract=contract, now_utc=now_utc)
-    checks.append({"check": "local_matrix_artifact", "passed": pass_flag, "detail": detail})
-    if not pass_flag:
-        blockers.append(detail)
+    if contract.training_source_mode == "local_postgres_panel":
+        checks.append(
+            {
+                "check": "local_matrix_artifact",
+                "passed": True,
+                "detail": "skipped (AUTOGLUON_TRAINING_SOURCE=local_postgres_panel)",
+            }
+        )
+    else:
+        pass_flag, detail = _check_local_matrix_artifact(contract=contract, now_utc=now_utc)
+        checks.append({"check": "local_matrix_artifact", "passed": pass_flag, "detail": detail})
+        if not pass_flag:
+            blockers.append(detail)
 
     if contract.single_matrix_training_contract:
         checks.append(
@@ -1445,51 +1491,116 @@ def run(*, dry_run: bool = False) -> dict[str, object]:
         if not pass_flag:
             blockers.append(detail)
 
-        pass_flag, detail = _check_table_rows_and_age(
-            cur,
-            schema="training",
-            table="matrix_1d",
-            date_column="trade_date",
-            freshness_column="ingested_at",
-            min_rows=contract.min_matrix_rows,
-            max_freshness_age_days=contract.max_factor_age_days,
-            max_value_age_days=contract.max_training_trade_date_age_days,
-            now_utc=now_utc,
-        )
-        checks.append({"check": "training_matrix", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
+        if contract.training_source_mode == "local_postgres_panel":
+            if not _table_exists(cur, schema="training", table="matrix_panel_1h"):
+                detail = "training.matrix_panel_1h missing"
+                checks.append({"check": "training_matrix_panel", "passed": False, "detail": detail})
+                blockers.append(detail)
+            else:
+                pass_flag, detail = _check_table_rows_and_age(
+                    cur,
+                    schema="training",
+                    table="matrix_panel_1h",
+                    date_column="trade_date",
+                    freshness_column="ingested_at",
+                    min_rows=contract.min_matrix_rows,
+                    max_freshness_age_days=contract.max_factor_age_days,
+                    max_value_age_days=contract.max_training_trade_date_age_days,
+                    now_utc=now_utc,
+                )
+                checks.append({"check": "training_matrix_panel", "passed": pass_flag, "detail": detail})
+                if not pass_flag:
+                    blockers.append(detail)
 
-        pass_flag, detail = _check_table_rows_and_age(
-            cur,
-            schema="training",
-            table="matrix_targets_1d",
-            date_column="trade_date",
-            freshness_column="ingested_at",
-            min_rows=contract.min_matrix_rows,
-            max_freshness_age_days=contract.max_factor_age_days,
-            max_value_age_days=contract.max_training_trade_date_age_days,
-            now_utc=now_utc,
-        )
-        checks.append({"check": "training_matrix_targets", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
+                pass_flag, detail = _check_json_payload_width(
+                    cur,
+                    schema="training",
+                    table="matrix_panel_1h",
+                    payload_column="feature_snapshot",
+                    min_keys=contract.min_matrix_feature_keys,
+                )
+                checks.append({"check": "training_matrix_panel_payload", "passed": pass_flag, "detail": detail})
+                if not pass_flag:
+                    blockers.append(detail)
 
-        pass_flag, detail = _check_json_payload_width(
-            cur,
-            schema="training",
-            table="matrix_1d",
-            payload_column="feature_snapshot",
-            min_keys=contract.min_matrix_feature_keys,
-        )
-        checks.append({"check": "training_matrix_payload", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
+            if not _table_exists(cur, schema="training", table="matrix_panel_targets_1h"):
+                detail = "training.matrix_panel_targets_1h missing"
+                checks.append({"check": "training_matrix_panel_targets", "passed": False, "detail": detail})
+                blockers.append(detail)
+            else:
+                pass_flag, detail = _check_table_rows_and_age(
+                    cur,
+                    schema="training",
+                    table="matrix_panel_targets_1h",
+                    date_column="trade_date",
+                    freshness_column="ingested_at",
+                    min_rows=contract.min_matrix_rows,
+                    max_freshness_age_days=contract.max_factor_age_days,
+                    max_value_age_days=contract.max_training_trade_date_age_days,
+                    now_utc=now_utc,
+                )
+                checks.append({"check": "training_matrix_panel_targets", "passed": pass_flag, "detail": detail})
+                if not pass_flag:
+                    blockers.append(detail)
 
-        pass_flag, detail = _check_cloud_matrix_has_no_targets(cur)
-        checks.append({"check": "training_matrix_target_payload", "passed": pass_flag, "detail": detail})
-        if not pass_flag:
-            blockers.append(detail)
+                pass_flag, detail = _check_panel_targets(cur)
+                checks.append({"check": "training_matrix_panel_target_coverage", "passed": pass_flag, "detail": detail})
+                if not pass_flag:
+                    blockers.append(detail)
+
+            checks.append(
+                {
+                    "check": "training_matrix_target_payload",
+                    "passed": True,
+                    "detail": "skipped (AUTOGLUON_TRAINING_SOURCE=local_postgres_panel)",
+                }
+            )
+        else:
+            pass_flag, detail = _check_table_rows_and_age(
+                cur,
+                schema="training",
+                table="matrix_1d",
+                date_column="trade_date",
+                freshness_column="ingested_at",
+                min_rows=contract.min_matrix_rows,
+                max_freshness_age_days=contract.max_factor_age_days,
+                max_value_age_days=contract.max_training_trade_date_age_days,
+                now_utc=now_utc,
+            )
+            checks.append({"check": "training_matrix", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
+
+            pass_flag, detail = _check_table_rows_and_age(
+                cur,
+                schema="training",
+                table="matrix_targets_1d",
+                date_column="trade_date",
+                freshness_column="ingested_at",
+                min_rows=contract.min_matrix_rows,
+                max_freshness_age_days=contract.max_factor_age_days,
+                max_value_age_days=contract.max_training_trade_date_age_days,
+                now_utc=now_utc,
+            )
+            checks.append({"check": "training_matrix_targets", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
+
+            pass_flag, detail = _check_json_payload_width(
+                cur,
+                schema="training",
+                table="matrix_1d",
+                payload_column="feature_snapshot",
+                min_keys=contract.min_matrix_feature_keys,
+            )
+            checks.append({"check": "training_matrix_payload", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
+
+            pass_flag, detail = _check_cloud_matrix_has_no_targets(cur)
+            checks.append({"check": "training_matrix_target_payload", "passed": pass_flag, "detail": detail})
+            if not pass_flag:
+                blockers.append(detail)
 
         if contract.single_matrix_training_contract:
             checks.append(

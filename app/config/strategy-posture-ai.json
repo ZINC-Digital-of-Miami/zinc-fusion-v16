@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-17T07:17:18-04:00",
+  "generatedAt": "2026-05-19T07:08:09-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture remains ACCUMULATE because the current average pressure is 31.7 and only one channel, energy at 54.3, is materially above neutral. That supports staged buying instead of a full stop or panic fill.",
-    "updatedAt": "2026-05-17T07:17:18-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because the average pressure is 41.3, but the 76.7 tariff-threat score means accumulation needs tighter review cadence and tranche discipline rather than passive waiting.",
+    "updatedAt": "2026-05-19T07:08:09-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Current contract math still favors staged execution. Average pressure is 31.7, but energy sits 22.6 points above the stack at 54.3; CL is 101.02 and up +5.87% over five sessions, so splitting coverage windows still reduces timing regret versus waiting for a cleaner print.",
+      "body": "Current contract math still favors staged execution. Average pressure is 41.3, but tariff threat sits 35.4 points above the stack at 76.7 while VIX/OVX are 18.43/72.35 and ZL is 75.37; that makes tranche spacing superior to a one-shot buy or a hands-off wait posture.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify whether current market structure supports staged, one-shot, or defer-and-watch soybean-oil contracting.",
@@ -35,43 +35,43 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",
-          "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo",
-          "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
+          "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo",
+          "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
         ],
         "sourceRecords": [
           {
             "source": "app/config/dashboard-risk-factors-ai.json",
             "recordHint": "current risk-factor synthesis used for contract timing",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "app/config/dashboard-risk-factors-ai.json"
           },
           {
             "source": "Yahoo Finance",
-            "recordHint": "CL close for pass-through framing",
-            "observedAt": "2026-05-15T04:00:00+00:00",
-            "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo"
+            "recordHint": "ZL daily close used for current buyer cost framing",
+            "observedAt": "2026-05-19T04:00:00+00:00",
+            "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo"
           },
           {
             "source": "FRED",
-            "recordHint": "OVX close for execution-stress framing",
-            "observedAt": "2026-05-14",
-            "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
+            "recordHint": "Economic Policy Uncertainty latest reading",
+            "observedAt": "2026-05-17",
+            "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
           }
         ],
         "notes": [
-          "Contract-window guidance is driven by lead-driver dominance, not generic caution language.",
-          "Recommendation is explicitly buyer-side."
+          "Contract timing is tied to cross-driver spread math, not generic caution language.",
+          "Buyer recommendation stays replacement-cost focused rather than speculative."
         ]
       }
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Current driver order is energy 54.3, volatility 41.3, China 36.3, crush 18.9, and policy 7.8. The key takeaway is that the network is not broadly hot; it is top-heavy, with energy doing most of the work.",
+      "body": "Current procurement pressure order is tariff threat (76.7), volatility transmission (47.1), China flow risk (37.3), energy pass-through (29.6), then crush pressure (15.8). The stack matters because only policy is truly dominant; the rest are watch or context channels.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal buyer impact so monitoring time stays on the right channels.",
@@ -94,8 +94,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json"
@@ -103,20 +103,20 @@
         "sourceRecords": [
           {
             "source": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "ordered driver scores for strategy waterfall",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "recordHint": "driver ordering and contribution math for current strategy stack",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "app/config/dashboard-risk-factors-ai.json"
           }
         ],
         "notes": [
-          "The waterfall is derived directly from the refreshed driver-score stack.",
-          "Ordering is based on buyer impact, not institutional prominence."
+          "Waterfall ordering is derived from the active driver scores in the refreshed dashboard snapshot.",
+          "Dominance language is reserved for channels materially above the network average."
         ]
       }
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "ZL is 73.88 and down -1.83% over five sessions, while CL is up +5.87%. That divergence, plus a 22.6-point energy premium over the average stack, means buyer latency risk is still larger than over-coverage risk even though the full network cooled to 31.7.",
+      "body": "Buyer downside asymmetry is elevated but not crisis-grade: average pressure is 41.3, policy uncertainty is 685.18, and managed money is still net long 158,102 contracts or 22.45% of open interest. That says latency risk is real, but controlled tranche execution is still safer than panic coverage.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term soybean-oil procurement risk in explicit asymmetry and latency-risk terms.",
@@ -139,37 +139,30 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=1mo",
-          "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo",
-          "app/config/dashboard-risk-factors-ai.json"
+          "app/config/dashboard-risk-factors-ai.json",
+          "https://publicreporting.cftc.gov"
         ],
         "sourceRecords": [
           {
-            "source": "Yahoo Finance",
-            "recordHint": "ZL close and five-session move",
-            "observedAt": "2026-05-15T04:00:00+00:00",
-            "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=1mo"
-          },
-          {
-            "source": "Yahoo Finance",
-            "recordHint": "CL close and five-session move",
-            "observedAt": "2026-05-15T04:00:00+00:00",
-            "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=1mo"
-          },
-          {
             "source": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "average and lead-driver scores",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "recordHint": "average network risk and lead-driver spread",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "app/config/dashboard-risk-factors-ai.json"
+          },
+          {
+            "source": "CFTC PRE",
+            "recordHint": "latest soybean-oil managed-money positioning",
+            "observedAt": "2026-05-12",
+            "url": "https://publicreporting.cftc.gov"
           }
         ],
         "notes": [
-          "Risk-metric framing is based on cross-market divergence plus lead-driver dominance.",
-          "Cadence recommendation stays buyer-focused."
+          "Risk framing combines active network pressure with weekly positioning rather than treating either one as sufficient.",
+          "Latency risk is expressed in buyer cadence terms, not trader return terms."
         ]
       }
     }

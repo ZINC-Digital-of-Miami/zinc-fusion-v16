@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-05-17T07:17:18-04:00",
+  "generatedAt": "2026-05-19T07:08:09-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "overview": {
-    "headlineCount": 20,
-    "sentimentScore": 94.0,
+    "headlineCount": 11,
+    "sentimentScore": 100.0,
     "cotBias": "bullish",
-    "updatedAt": "2026-05-17T07:17:18-04:00"
+    "updatedAt": "2026-05-19T07:08:09-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Macro-policy sentiment cooled materially into the May 14 data cut: the Economic Policy Uncertainty Index is 151.67, down from the higher early-May prints, so the narrative regime shifted from shock-watch to monitor-only. The remaining live stress is no longer broad policy fear; it is energy pass-through.",
+        "body": "Macro-policy sentiment has snapped back into shock-watch. The Economic Policy Uncertainty Index is 685.18 as of 2026-05-17, which is large enough to move policy from secondary monitor to lead narrative even though the item tape itself is still concentrated.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Policy Sentiment Transmission",
           "strategicObjective": "Classify whether macro-policy narrative pressure is actively changing soybean-oil procurement timing.",
@@ -37,8 +37,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-14",
-          "generatedAt": "2026-05-17T07:17:18-04:00",
+          "asOf": "2026-05-17",
+          "generatedAt": "2026-05-19T07:08:09-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
@@ -48,25 +48,25 @@
             {
               "source": "FRED",
               "recordHint": "Economic Policy Uncertainty latest reading",
-              "observedAt": "2026-05-14",
+              "observedAt": "2026-05-17",
               "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
             },
             {
               "source": "alt.news_events",
               "recordHint": "latest seven-day macro and policy narrative rows",
-              "observedAt": "2026-05-17T07:17:18-04:00",
+              "observedAt": "2026-05-19T07:08:09-04:00",
               "table": "alt.news_events"
             }
           ],
           "notes": [
-            "Macro narrative is anchored to a live uncertainty-series read plus the active headline window.",
-            "Energy remains the lead channel even after policy cooled."
+            "Macro narrative is anchored to the live uncertainty series plus the active headline window.",
+            "The card explicitly separates a series shock from headline-density breadth."
           ]
         }
       },
       {
         "title": "Flow Narrative",
-        "body": "The active seven-day tape holds 20 rows, but only 2 are energy-tagged, 2 are tariff-tagged, and 0 are China-tagged. That means headline velocity is present, but soy-specific thematic density is still thin; the tape is informative, not crowded.",
+        "body": "The active seven-day tape holds 11 rows, with policy tags on 7, macro/fed context on 3, tariff tags on 2, energy tags on 2, and China tags on 0. That means the narrative regime is concentrated and policy-led, not broad and self-confirming.",
         "strategicSpecialInstructions": {
           "cardTopic": "Positioning and Participation Flow Sentiment",
           "strategicObjective": "Determine whether the current headline mix supports stable price discovery or a fragile narrative regime.",
@@ -89,8 +89,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-17T07:17:18-04:00",
-          "generatedAt": "2026-05-17T07:17:18-04:00",
+          "asOf": "2026-05-19T07:08:09-04:00",
+          "generatedAt": "2026-05-19T07:08:09-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "alt.news_events"
@@ -99,19 +99,19 @@
             {
               "source": "alt.news_events",
               "recordHint": "latest seven-day sentiment rows and tag counts",
-              "observedAt": "2026-05-17T07:17:18-04:00",
+              "observedAt": "2026-05-19T07:08:09-04:00",
               "table": "alt.news_events"
             }
           ],
           "notes": [
-            "Flow narrative is density-based, not hype-based.",
-            "Sparse thematic density reduces the value of dramatic language."
+            "Flow narrative is density-based rather than hype-based.",
+            "Concentrated narrative breadth keeps the cadence tight without pretending the tape is broad."
           ]
         }
       },
       {
         "title": "Procurement Narrative",
-        "body": "CFTC is still bullish with managed-money net length of 171,812 contracts, or 24.23% of open interest, but the broad risk network cooled to 31.7. That combination says the right buyer psychology is disciplined accumulation: respect the possibility of upside reflex, but do not confuse that with a need for one-shot execution.",
+        "body": "CFTC is still bullish with managed-money net length of 158,102 contracts, or 22.45% of open interest, while the broad risk network is 41.3 and policy alone is 76.7. That combination says the right buyer psychology is disciplined accumulation with faster re-checks, not one-shot urgency and not passive waiting.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
           "strategicObjective": "Convert sentiment, positioning, and risk-network conditions into a buyer-ready pacing posture.",
@@ -134,8 +134,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-04-28",
-          "generatedAt": "2026-05-17T07:17:18-04:00",
+          "asOf": "2026-05-12",
+          "generatedAt": "2026-05-19T07:08:09-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://publicreporting.cftc.gov",
@@ -145,26 +145,26 @@
             {
               "source": "CFTC PRE",
               "recordHint": "latest soybean-oil managed-money positioning",
-              "observedAt": "2026-04-28",
+              "observedAt": "2026-05-12",
               "url": "https://publicreporting.cftc.gov"
             },
             {
               "source": "app/config/dashboard-risk-factors-ai.json",
-              "recordHint": "current average risk-network score",
-              "observedAt": "2026-05-17T07:17:18-04:00",
+              "recordHint": "current average risk-network score and policy leadership",
+              "observedAt": "2026-05-19T07:08:09-04:00",
               "table": "app/config/dashboard-risk-factors-ai.json"
             }
           ],
           "notes": [
             "Procurement narrative combines positioning with network pressure instead of treating either one as sufficient by itself.",
-            "Recommendation stays buyer-side and pacing-focused."
+            "Recommendation remains buyer-side and pacing-focused."
           ]
         }
       }
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "The latest soybean-oil CoT print (2026-04-28) shows bullish managed-money bias with net length 171,812 contracts and a 24.23% open-interest share. That is supportive of upside reflex risk, but it is still a weekly positioning signal, not a real-time panic trigger.",
+      "body": "The latest soybean-oil CoT print (2026-05-12) still shows bullish managed-money bias with net length 158,102 contracts and a 22.45% open-interest share. That keeps upside reflex risk alive, but it remains a weekly positioning signal rather than a real-time panic trigger.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
         "strategicObjective": "Determine whether managed-money positioning is stabilizing or destabilizing soybean-oil procurement expectations.",
@@ -187,8 +187,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-04-28",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-12",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://publicreporting.cftc.gov"
@@ -197,7 +197,7 @@
           {
             "source": "CFTC PRE",
             "recordHint": "latest soybean-oil managed-money positioning",
-            "observedAt": "2026-04-28",
+            "observedAt": "2026-05-12",
             "url": "https://publicreporting.cftc.gov"
           }
         ],
@@ -209,7 +209,7 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "The highest-signal current public item in the energy stack is EIA's May 15 note that U.S. industrial natural-gas consumption is expected to hit records in 2026 and 2027, while the most soybean-oil-adjacent recent EIA note remains the May 7 piece on renewable diesel and SAF exports. The flow is useful for context, but it is not dense enough to overrule price and positioning math.",
+      "body": "The visible high-signal tape is policy-led: H.R.7567 remains on watch, USDA's modified-organisms RFI is the freshest agriculture-specific federal item, and Commerce's BASF FTZ filing keeps trade mechanics in view. That is useful context, but the flow is still too concentrated to overrule price, positioning, and policy-series math.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
         "strategicObjective": "Assess whether the current headline stream is producing actionable signal or just adding narrative noise.",
@@ -232,30 +232,37 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-15",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
-          "https://www.eia.gov/rss/todayinenergy.xml",
+          "https://www.federalregister.gov",
+          "https://www.congress.gov/bill/119th-congress/house-bill/7567",
           "alt.news_events"
         ],
         "sourceRecords": [
           {
-            "source": "EIA",
-            "recordHint": "Today in Energy feed latest item",
-            "observedAt": "Fri, 15 May 2026 09:00:00 EST",
-            "url": "https://www.eia.gov/todayinenergy/detail.php?id=67686"
+            "source": "Congress.gov",
+            "recordHint": "Farm, Food, and National Security Act current watch item",
+            "observedAt": "2026-05-07T17:39:50+00:00",
+            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+          },
+          {
+            "source": "Federal Register",
+            "recordHint": "USDA modified-organisms RFI anchor item",
+            "observedAt": "2026-05-15T00:00:00+00:00",
+            "url": "https://www.federalregister.gov/documents/2026/05/15/2026-09833/request-for-information-on-modified-organisms-subject-to-the-plant-protection-act"
           },
           {
             "source": "alt.news_events",
             "recordHint": "seven-day headline-tag window",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "alt.news_events"
           }
         ],
         "notes": [
-          "Headline-flow framing gives more weight to thematic coherence than to raw count.",
-          "The tape is still too sparse for regime-calling on headlines alone."
+          "Headline-flow framing gives more weight to thematic coherence than raw count.",
+          "The tape is still too concentrated for regime-calling on headlines alone."
         ]
       }
     }

@@ -38,11 +38,11 @@ LOCKED_TIME_LIMIT_SECONDS = 3600
 LOCKED_NUM_BAG_FOLDS = 5
 LOCKED_NUM_STACK_LEVELS = 1
 LOCKED_MODEL_SELECTION_MODE = "full_zoo"
-LOCKED_TRAINING_SOURCE = "local_postgres"
+LOCKED_TRAINING_SOURCE = "local_postgres_panel"
 LOCKED_MIN_DIRECTIONAL_ACCURACY = 0.70
 MAX_DEFAULT_NUM_CPUS = 8
 MODEL_SELECTION_MODES = {"full_zoo", "include_only", "exclude_only"}
-TRAINING_SOURCE_MODES = {"local_postgres", "parquet_artifacts"}
+TRAINING_SOURCE_MODES = {"local_postgres_panel", "local_postgres", "parquet_artifacts"}
 INTERNAL_MODEL_TYPE_EXCLUSIONS: tuple[str, ...] = (
     "DUMMY",
     "ENS_WEIGHTED",
@@ -447,6 +447,72 @@ def _load_training_frame_from_local_postgres(*, target_mode: str) -> tuple[pd.Da
     return _coerce_training_frame(merged, target_mode=target_mode)
 
 
+def _load_training_frame_from_local_postgres_panel(*, target_mode: str) -> tuple[pd.DataFrame, dict[int, str]]:
+    db_url = resolve_local_training_db_url()
+    _validate_local_training_db_url(db_url)
+
+    try:
+        with psycopg2.connect(db_url, connect_timeout=10, application_name="fusion_train_local_panel_source") as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT
+                      p.trade_date,
+                      p.bucket_ts,
+                      p.feature_snapshot,
+                      t.target_price_30d,
+                      t.target_price_90d,
+                      t.target_price_180d
+                    FROM training.matrix_panel_1h p
+                    JOIN training.matrix_panel_targets_1h t
+                      ON t.sample_id = p.sample_id
+                    ORDER BY p.bucket_ts, p.symbol
+                    """
+                )
+                panel_rows = cur.fetchall()
+    except Exception as exc:  # noqa: BLE001
+        message = str(exc)
+        if "relation" in message and (
+            "training.matrix_panel_1h" in message
+            or "training.matrix_panel_targets_1h" in message
+        ):
+            raise TrainingContractError(
+                "Local AG symbol-time panel tables are missing. Build and load them first with explicit approval: "
+                "`PYTHONPATH=python python3 -m fusion.build_local_symbol_time_panel --execute`."
+            ) from exc
+        raise TrainingContractError(f"unable to read local AG symbol-time panel source: {exc}") from exc
+
+    if not panel_rows:
+        raise TrainingContractError(
+            "local training.matrix_panel_1h is empty; build local symbol-time panel before training"
+        )
+
+    panel = pd.DataFrame(
+        panel_rows,
+        columns=[
+            "trade_date",
+            "bucket_ts",
+            "feature_snapshot",
+            "target_price_30d",
+            "target_price_90d",
+            "target_price_180d",
+        ],
+    )
+    panel_features = pd.json_normalize(panel["feature_snapshot"]).fillna(pd.NA)
+    frame = pd.concat([panel[["trade_date", "bucket_ts"]], panel_features, panel[[
+        "target_price_30d",
+        "target_price_90d",
+        "target_price_180d",
+    ]]], axis=1)
+
+    frame["trade_date"] = pd.to_datetime(frame["trade_date"], errors="coerce").dt.date
+    frame["bucket_ts"] = pd.to_datetime(frame["bucket_ts"], errors="coerce", utc=True)
+    frame = frame.dropna(subset=["trade_date", "bucket_ts"]).sort_values("bucket_ts").reset_index(drop=True)
+    if frame.empty:
+        raise TrainingContractError("local AG symbol-time panel has no usable rows after coercion")
+    return _coerce_training_frame(frame, target_mode=target_mode)
+
+
 def _coerce_training_frame(frame: pd.DataFrame, *, target_mode: str) -> tuple[pd.DataFrame, dict[int, str]]:
     expected_labels = [TARGET_TEMPLATE.format(h=h) for h in HORIZONS]
     labels = target_columns(frame.columns)
@@ -491,9 +557,72 @@ def _load_training_frame(*, target_mode: str, training_source: str) -> tuple[pd.
     if training_source == "parquet_artifacts":
         frame, _ = _load_training_frame_from_artifacts(target_mode="price")
         return _coerce_training_frame(frame, target_mode=target_mode)
+    if training_source == "local_postgres_panel":
+        return _load_training_frame_from_local_postgres_panel(target_mode=target_mode)
     if training_source == "local_postgres":
         return _load_training_frame_from_local_postgres(target_mode=target_mode)
     raise TrainingContractError(f"unsupported training source: {training_source!r}")
+
+
+def _summarize_training_frame_from_local_postgres_panel() -> dict[str, object]:
+    db_url = resolve_local_training_db_url()
+    _validate_local_training_db_url(db_url)
+
+    with psycopg2.connect(db_url, connect_timeout=10, application_name="fusion_train_panel_dry_summary") as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                  COUNT(*)::BIGINT AS rows,
+                  COUNT(DISTINCT p.symbol)::BIGINT AS symbol_count,
+                  MIN(p.trade_date) AS trade_date_min,
+                  MAX(p.trade_date) AS trade_date_max,
+                  COUNT(*) FILTER (
+                    WHERE t.target_price_30d IS NOT NULL
+                      AND t.target_price_90d IS NOT NULL
+                      AND t.target_price_180d IS NOT NULL
+                  )::BIGINT AS fully_labeled_rows
+                FROM training.matrix_panel_1h p
+                JOIN training.matrix_panel_targets_1h t
+                  ON t.sample_id = p.sample_id
+                """
+            )
+            rows, symbol_count, trade_date_min, trade_date_max, fully_labeled_rows = cur.fetchone()
+
+            cur.execute(
+                """
+                SELECT
+                  MIN((SELECT COUNT(*) FROM jsonb_object_keys(feature_snapshot)))::INT AS min_keys,
+                  MAX((SELECT COUNT(*) FROM jsonb_object_keys(feature_snapshot)))::INT AS max_keys
+                FROM training.matrix_panel_1h
+                """
+            )
+            min_keys, max_keys = cur.fetchone()
+
+    return {
+        "rows": int(rows or 0),
+        "symbol_count": int(symbol_count or 0),
+        "feature_columns_min_keys": int(min_keys or 0),
+        "feature_columns_max_keys": int(max_keys or 0),
+        "fully_labeled_rows": int(fully_labeled_rows or 0),
+        "target_columns": [TARGET_TEMPLATE.format(h=h) for h in HORIZONS],
+        "trade_date_min": str(trade_date_min) if trade_date_min else None,
+        "trade_date_max": str(trade_date_max) if trade_date_max else None,
+    }
+
+
+def _dry_run_training_frame_status(*, target_mode: str, training_source: str) -> dict[str, object]:
+    if training_source == "local_postgres_panel":
+        return _summarize_training_frame_from_local_postgres_panel()
+
+    frame, label_map = _load_training_frame(target_mode=target_mode, training_source=training_source)
+    return {
+        "rows": int(len(frame)),
+        "feature_columns": len(feature_columns(frame.columns)),
+        "target_columns": list(label_map.values()),
+        "trade_date_min": str(frame["trade_date"].min()),
+        "trade_date_max": str(frame["trade_date"].max()),
+    }
 
 
 def _split_temporal(
@@ -502,17 +631,25 @@ def _split_temporal(
     label: str,
     horizon: int,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, object]]:
+    sort_column = "bucket_ts" if "bucket_ts" in frame.columns else "trade_date"
     model_columns = ["trade_date", *feature_columns(frame.columns), label]
+    if sort_column not in model_columns:
+        model_columns.insert(1, sort_column)
+
     clean = frame[model_columns].copy()
+    clean = clean.sort_values(sort_column).reset_index(drop=True)
     clean[label] = pd.to_numeric(clean[label], errors="coerce")
     if int(clean[label].notna().sum()) == 0:
         raise TrainingContractError(f"{label} has no numeric values after coercion")
     clean = clean.dropna(subset=[label])
-    numeric_cols = [column for column in model_columns if column not in {"trade_date", label}]
+    numeric_cols = [column for column in model_columns if column not in {"trade_date", sort_column, label}]
     for column in numeric_cols:
         clean[column] = pd.to_numeric(clean[column], errors="coerce")
     clean = clean.dropna(axis=1, how="all")
-    clean = clean.dropna(subset=[column for column in clean.columns if column not in {"trade_date", label}], how="all")
+    clean = clean.dropna(
+        subset=[column for column in clean.columns if column not in {"trade_date", sort_column, label}],
+        how="all",
+    )
 
     n_rows = len(clean)
     min_holdout = max(horizon * 2, 180)
@@ -529,9 +666,12 @@ def _split_temporal(
             f"not enough rows for temporal split: rows={n_rows}, horizon={horizon}, train_end={train_end}, test_start={test_start}"
         )
 
-    train = clean.iloc[:train_end].drop(columns=["trade_date"]).copy()
-    val = clean.iloc[val_start:val_end].drop(columns=["trade_date"])
-    test = clean.iloc[test_start:].drop(columns=["trade_date"])
+    drop_columns = ["trade_date"]
+    if sort_column != "trade_date":
+        drop_columns.append(sort_column)
+    train = clean.iloc[:train_end].drop(columns=drop_columns).copy()
+    val = clean.iloc[val_start:val_end].drop(columns=drop_columns)
+    test = clean.iloc[test_start:].drop(columns=drop_columns)
     for split_name, split_frame in (("train", train), ("validation", val), ("test", test)):
         if not pd.api.types.is_numeric_dtype(split_frame[label]):
             raise TrainingContractError(
@@ -556,12 +696,13 @@ def _split_temporal(
         "train_rows": int(len(train)),
         "validation_rows": int(len(val)),
         "test_rows": int(len(test)),
-        "train_start": str(clean["trade_date"].iloc[0]),
-        "train_end": str(clean["trade_date"].iloc[train_end - 1]),
-        "validation_start": str(clean["trade_date"].iloc[val_start]),
-        "validation_end": str(clean["trade_date"].iloc[val_end - 1]),
-        "test_start": str(clean["trade_date"].iloc[test_start]),
-        "test_end": str(clean["trade_date"].iloc[-1]),
+        "split_axis": sort_column,
+        "train_start": str(clean[sort_column].iloc[0]),
+        "train_end": str(clean[sort_column].iloc[train_end - 1]),
+        "validation_start": str(clean[sort_column].iloc[val_start]),
+        "validation_end": str(clean[sort_column].iloc[val_end - 1]),
+        "test_start": str(clean[sort_column].iloc[test_start]),
+        "test_end": str(clean[sort_column].iloc[-1]),
         "feature_count": int(len([column for column in train.columns if column != label])),
     }
     return train, val, test, meta
@@ -697,6 +838,13 @@ def run(*, dry_run: bool = False, approved: bool = False) -> dict[str, object]:
         contract_lock_enforced,
         model_selection_lock_enforced,
     ) = _resolve_training_contract()
+    single_matrix_contract = training_source != "local_postgres_panel"
+    if training_source == "parquet_artifacts":
+        matrix_source_ref = str(matrix_path())
+    elif training_source == "local_postgres_panel":
+        matrix_source_ref = "local_postgres.training.matrix_panel_1h"
+    else:
+        matrix_source_ref = "local_postgres.training.matrix_1d"
     if num_stack_levels > 0 and num_bag_folds < 2:
         raise TrainingContractError("AUTOGLUON_NUM_STACK_LEVELS requires AUTOGLUON_NUM_BAG_FOLDS >= 2")
     if target_mode not in {"price", "returns"}:
@@ -723,14 +871,10 @@ def run(*, dry_run: bool = False, approved: bool = False) -> dict[str, object]:
     if dry_run:
         frame_status: dict[str, object]
         try:
-            frame, label_map = _load_training_frame(target_mode=target_mode, training_source=training_source)
-            frame_status = {
-                "rows": int(len(frame)),
-                "feature_columns": len(feature_columns(frame.columns)),
-                "target_columns": list(label_map.values()),
-                "trade_date_min": str(frame["trade_date"].min()),
-                "trade_date_max": str(frame["trade_date"].max()),
-            }
+            frame_status = _dry_run_training_frame_status(
+                target_mode=target_mode,
+                training_source=training_source,
+            )
         except Exception as exc:
             frame_status = {"training_source_check": "blocked", "error": str(exc)}
 
@@ -763,7 +907,7 @@ def run(*, dry_run: bool = False, approved: bool = False) -> dict[str, object]:
             "strict_openmp_guard": strict_openmp_guard,
             "writes": [str(model_artifact_dir(run_id)), str(training_runs_path())],
             "cloud_writes": [],
-            "single_matrix_training_contract": True,
+            "single_matrix_training_contract": single_matrix_contract,
             "status": "dry-run",
         }
 
@@ -814,7 +958,7 @@ def run(*, dry_run: bool = False, approved: bool = False) -> dict[str, object]:
         "started_at": started_at,
         "finished_at": datetime.now(timezone.utc).isoformat(),
         "git_sha": _git_sha(),
-        "matrix_path": str(matrix_path()) if training_source == "parquet_artifacts" else "local_postgres.training.matrix_1d",
+        "matrix_path": matrix_source_ref,
         "signals_path": "not_used_single_matrix_contract",
         "model_artifact_dir": str(run_dir),
         "presets": presets,
@@ -840,7 +984,7 @@ def run(*, dry_run: bool = False, approved: bool = False) -> dict[str, object]:
         "status": run_status,
         "horizons": summaries,
         "pip_freeze": _pip_freeze(),
-        "single_matrix_training_contract": True,
+        "single_matrix_training_contract": single_matrix_contract,
     }
     run_dir.joinpath("training_run.json").write_text(json.dumps(run_record, indent=2, sort_keys=True), encoding="utf-8")
 
@@ -911,6 +1055,6 @@ def run(*, dry_run: bool = False, approved: bool = False) -> dict[str, object]:
         "available_full_zoo_model_types": available_full_zoo,
         "min_directional_accuracy": min_directional_accuracy,
         "accuracy_gate_passed": accuracy_gate_passed,
-        "single_matrix_training_contract": True,
+        "single_matrix_training_contract": single_matrix_contract,
         "horizons": summaries,
     }

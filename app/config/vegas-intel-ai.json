@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-17T07:17:18-04:00",
+  "generatedAt": "2026-05-19T07:08:09-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
-    "activeEvents": 15,
-    "highPriorityAccounts": 10,
-    "updatedAt": "2026-05-17T07:17:18-04:00"
+    "activeEvents": 12,
+    "highPriorityAccounts": 0,
+    "updatedAt": "2026-05-19T07:08:09-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "The current Vegas event stack holds 4 events inside 14 days and 6 inside 30 days, out of 15 active future event rows. EDC's final festival day is May 17 and EDC Week runs through May 19, so the primary outreach window is now, not next week.",
+      "body": "The current Vegas event stack holds 1 event inside 14 days and 3 inside 30 days, out of 12 active future event rows. The near-term anchor is the final EDC Week day on May 19, followed by an 18-day gap until June 6 fireworks, so Kevin should shift from surge-response outreach to cleanup now and June reload next.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Driven Demand Window Risk",
         "strategicObjective": "Map short-window event compression into immediate sales and service timing priorities.",
@@ -35,36 +35,43 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.events",
-          "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
+          "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/",
+          "https://www.visitlasvegas.com/experience/post/summer-fireworks-in-vegas/"
         ],
         "sourceRecords": [
           {
             "source": "vegas.events",
             "recordHint": "future event rows used for 14-day and 30-day counts",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "vegas.events"
           },
           {
             "source": "Visit Las Vegas",
-            "recordHint": "EDC Week and EDC festival timing reference",
-            "observedAt": "2026-05-17",
+            "recordHint": "EDC Week timing reference",
+            "observedAt": "2026-05-19",
             "url": "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
+          },
+          {
+            "source": "Visit Las Vegas",
+            "recordHint": "summer fireworks timing reference",
+            "observedAt": "2026-05-19",
+            "url": "https://www.visitlasvegas.com/experience/post/summer-fireworks-in-vegas/"
           }
         ],
         "notes": [
-          "Upcoming-events math is based on live vegas.events counts plus the public EDC timing reference.",
-          "Operational focus is the immediate outreach window."
+          "Upcoming-events math is based on live vegas.events counts plus current public event timing references.",
+          "Operational focus shifts from immediate surge coverage to the next named demand window once EDC Week clears."
         ]
       }
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "All 10 currently scored accounts clear the >=65 priority threshold, and the average account score is 69.68 with mean event-impact score 33.29. That means Kevin should sequence accounts by event adjacency and impact first, not waste time broadening the list, while using today's energy-led cost backdrop as a cost-certainty pitch enhancer.",
+      "body": "No currently scored accounts clear the >=65 priority threshold, and the average account score is 61.26 with mean event-impact score 36.01. That means Kevin should stop treating the book like a saturated urgency list and instead sequence outreach by immediate event adjacency first, June fireworks second, and policy-cost narrative third.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account-Level Sales Execution Strategy",
         "strategicObjective": "Convert account score saturation and event timing into a usable outreach order for Kevin.",
@@ -87,8 +94,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-18",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.customer_scores",
@@ -98,32 +105,32 @@
         "sourceRecords": [
           {
             "source": "vegas.customer_scores",
-            "recordHint": "latest scored-account window and >=65 threshold count",
-            "observedAt": "2026-05-07",
+            "recordHint": "latest scored-account window and >=65 threshold count = 0",
+            "observedAt": "2026-05-18",
             "table": "vegas.customer_scores"
           },
           {
             "source": "vegas.event_impact",
-            "recordHint": "average and max event-impact scores",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "recordHint": "average event-impact score 36.01 across 360 account-event rows",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "vegas.event_impact"
           },
           {
             "source": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "energy-led buyer backdrop used for sales-urgency framing",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "recordHint": "policy-led buyer backdrop used for sales-urgency framing",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "app/config/dashboard-risk-factors-ai.json"
           }
         ],
         "notes": [
-          "Sales sequencing is threshold-driven and event-aware.",
-          "Energy context sharpens timing language but does not replace account ordering."
+          "Sales sequencing is threshold-aware and event-aware.",
+          "Policy context sharpens timing language but does not replace account ordering."
         ]
       }
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "There are 10 active tracked accounts, 10 scored accounts in the current window, and 10 accounts above the high-priority threshold. That is a 100.0% qualified-rate on the current scored set, so the list is saturated and must be sequenced, not filtered.",
+      "body": "There are 10 active tracked accounts, 10 scored accounts in the latest window, and 0 accounts above the high-priority threshold. That is a 0.0% qualified rate on the scored set, so the book is a broad monitor list right now, not a saturated close-now list.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account Priority and Opportunity Concentration",
         "strategicObjective": "Identify whether the current account book is selective or saturated, then set the right field-execution focus.",
@@ -146,8 +153,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-18",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -157,25 +164,25 @@
           {
             "source": "vegas.restaurants",
             "recordHint": "active tracked-account count",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "vegas.restaurants"
           },
           {
             "source": "vegas.customer_scores",
             "recordHint": "latest scored-account and high-priority counts",
-            "observedAt": "2026-05-07",
+            "observedAt": "2026-05-18",
             "table": "vegas.customer_scores"
           }
         ],
         "notes": [
           "Opportunity-set interpretation is count-based and explicit.",
-          "Field focus shifts to sequencing when the book is saturated."
+          "Field focus shifts to sequencing and proof of event adjacency when the book is not yet high-priority dense."
         ]
       }
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer coverage exists for all 10 tracked sites, but populated fryer-count telemetry is still 0 of 10. Operationally that means service planning knows who is in scope before the EDC window, but it still cannot rank equipment intensity with confidence until direct fryer-count sync lands.",
+      "body": "Fryer coverage exists for all 10 tracked sites, but populated fryer-count telemetry is still 0 of 10 and total known fryer capacity remains 0. Operationally that means service planning knows which accounts are in scope, but it still cannot rank equipment intensity or downtime risk with confidence before the next demand window.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Separate account-coverage completeness from equipment-telemetry completeness so service teams do not overstate readiness.",
@@ -198,8 +205,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-17T07:17:18-04:00",
-        "generatedAt": "2026-05-17T07:17:18-04:00",
+        "asOf": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-19T07:08:09-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.fryers",
@@ -208,14 +215,14 @@
         "sourceRecords": [
           {
             "source": "vegas.fryers",
-            "recordHint": "fryer-row coverage and populated fryer_count totals",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "recordHint": "fryer-row coverage = 10 and populated fryer_count total = 0",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "vegas.fryers"
           },
           {
             "source": "vegas.events",
             "recordHint": "near-term event window used to evaluate telemetry urgency",
-            "observedAt": "2026-05-17T07:17:18-04:00",
+            "observedAt": "2026-05-19T07:08:09-04:00",
             "table": "vegas.events"
           }
         ],

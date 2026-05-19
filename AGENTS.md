@@ -53,7 +53,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 10. **Landing page is sacred.** REWRITE from scratch using legacy baseline as visual reference — preserve the design identity. NEVER copy legacy baseline code.
 11. **ZERO mock data.** No placeholders, no temps, no demo/synthetic/random data anywhere, ever. Empty state until real data flows. This is the HARDEST rule.
 12. **ZERO code copying.** Every line of V16 is written fresh. legacy baseline is a visual reference only. Clone-and-clean failed catastrophically — never again.
-13. **Cloud Supabase only for bounded serving/auth/schema.** Cloud Supabase remains canonical for frontend serving tables, auth, forecasts, analytics, ops, and schema-managed non-chart tables. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Locked 2026-05-18 cleanup target: local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb` owns raw/deep ZL Databento chart history and AG training source data. Supabase chart storage is a bounded serving cache containing only `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
+13. **Cloud Supabase only for bounded serving/auth/schema.** Cloud Supabase remains canonical for frontend serving tables, auth, forecasts, analytics, ops, and schema-managed non-chart tables. Supabase CLI is for cloud migrations (`db push`) only. No `supabase status`. No `supabase start`. Locked 2026-05-18 cleanup target: local DuckDB at `data/duckdb/zinc_fusion_raw.duckdb` owns raw/deep ZL Databento chart history and AG training source data. Checkpoint 23 in-progress local-only exception: AG readiness/training source may use localhost symbol-time panel tables (`training.matrix_panel_1h`, `training.matrix_panel_targets_1h`) until DuckDB panel parity is locked. Supabase chart storage is a bounded serving cache containing only `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`.
 14. **No hardcoded port 3000.** Dev server port must be checked for availability first.
 15. **Design holdoff exception (locked 2026-05-07).** For page parity work, do not redesign. Reproduce locked source visuals exactly.
 16. **Locked page authority map (2026-05-07):** Strategy=V16, Vegas Intel=V16, Dashboard=V15, Legislation=V15, Sentiment=V15.
@@ -135,7 +135,7 @@ Full details in the migration plan. Quick reference:
 Frontend (reads):       Supabase JS client with anon key + JWT
 Data ingestion:         pg_cron + http extension by default; ZL Databento chart raw/deep store uses local DuckDB + bounded Python promote
 Python (deep history):  DuckDB at data/duckdb/zinc_fusion_raw.duckdb
-Python (training src):  DuckDB/local files; AG training does not require deep chart rows in Supabase
+Python (training src):  DuckDB/local files by design; Checkpoint 23 in-progress source mode may use local PostgreSQL symbol-time panel tables on localhost only
 Python (cloud reads):   psycopg2 pooled connection to cloud only for compact serving/non-chart reads
 Python (promotes):      psycopg2 direct connection to cloud (port 5432) — bounded serving rows and validated compact outputs only
 Python (intermediates): local parquet files — never written to any database unless an approved promotion contract says so
