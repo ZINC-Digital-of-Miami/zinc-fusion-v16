@@ -306,6 +306,10 @@ function pickBoolean(metadata: Record<string, unknown>, keys: string[]): boolean
   return null;
 }
 
+function pickGlideData(metadata: Record<string, unknown>): Record<string, unknown> {
+  return asObject(metadata.glide_data);
+}
+
 function normalizeEventCategory(value: string | null): string {
   if (!value) return "community";
   const normalized = value.trim().toLowerCase();
@@ -535,6 +539,22 @@ export async function GET() {
     const scoreRows = (scoreRowsRaw ?? []) as CustomerScoreRow[];
     const impactRows = (impactRowsRaw ?? []) as EventImpactRow[];
 
+    const glideRestaurantRows = restaurantRows.filter((row) => {
+      const meta = asObject(row.metadata);
+      return pickString(meta, ["source"]) === "glide";
+    });
+    const activeRestaurantRows = glideRestaurantRows;
+    const activeRestaurantIds = new Set(activeRestaurantRows.map((row) => row.id));
+    const activeFryerRows = fryerRows.filter(
+      (row) => row.restaurant_id !== null && activeRestaurantIds.has(row.restaurant_id),
+    );
+    const activeScoreRows = scoreRows.filter(
+      (row) => row.restaurant_id !== null && activeRestaurantIds.has(row.restaurant_id),
+    );
+    const activeImpactRows = impactRows.filter(
+      (row) => row.restaurant_id !== null && activeRestaurantIds.has(row.restaurant_id),
+    );
+
     const venueMap = new Map<number, string>();
     for (const row of venueRows) {
       venueMap.set(row.id, row.venue_name);
@@ -586,10 +606,11 @@ export async function GET() {
     for (const event of events) {
       eventById.set(event.id, event);
     }
+    const defaultLinkedEvent = events[0] ?? null;
 
     const latestScoreByRestaurant = new Map<number, number>();
     const latestDateByRestaurant = new Map<number, string>();
-    for (const row of scoreRows) {
+    for (const row of activeScoreRows) {
       if (!row.restaurant_id || row.score === null) continue;
       const parsedScore = Number(row.score);
       if (!Number.isFinite(parsedScore)) continue;
@@ -606,7 +627,7 @@ export async function GET() {
       number,
       { eventId: number; impactScore: number; expectedSpend: number | null }
     >();
-    for (const row of impactRows) {
+    for (const row of activeImpactRows) {
       if (!row.restaurant_id || row.impact_score === null) continue;
       const parsedImpact = Number(row.impact_score);
       if (!Number.isFinite(parsedImpact)) continue;
@@ -638,7 +659,7 @@ export async function GET() {
 
     const fryerCountByRestaurant = new Map<number, number>();
     const capacityByRestaurant = new Map<number, number>();
-    for (const row of fryerRows) {
+    for (const row of activeFryerRows) {
       if (!row.restaurant_id) continue;
       const fryerCount = row.fryer_count ?? 0;
       fryerCountByRestaurant.set(
@@ -655,17 +676,24 @@ export async function GET() {
       }
     }
 
-    const opportunities: VegasOpportunityRow[] = restaurantRows
+    const opportunities: VegasOpportunityRow[] = activeRestaurantRows
       .map((row) => {
         const meta = asObject(row.metadata);
-        const serviceFrequency = pickString(meta, [
-          "service_frequency",
-          "serviceFrequency",
-          "Po4Zg",
-        ]);
-        const customerStatus = serviceFrequency ? "customer" : "prospect";
+        const glideData = pickGlideData(meta);
+        const serviceCadence =
+          pickString(meta, ["service_frequency", "serviceFrequency", "Po4Zg"]) ??
+          pickString(glideData, ["service_frequency", "serviceFrequency", "Po4Zg"]);
+        const serviceDays =
+          pickString(meta, ["service_days", "serviceDays", "lf0gF"]) ??
+          pickString(glideData, ["service_days", "serviceDays", "lf0gF"]);
+        const serviceFrequencyLabel =
+          serviceCadence && serviceDays ? `${serviceCadence} (${serviceDays})` : serviceCadence;
+        const customerStatus = serviceCadence ? "customer" : "prospect";
         const casinoLink =
-          pickString(meta, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ?? null;
+          pickString(meta, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ??
+          pickString(glideData, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ??
+          pickString(meta, ["casino_glide_row_id"]) ??
+          null;
         const casino = casinoLink ? casinoNameMap.get(casinoLink) ?? casinoLink : null;
         const restaurantId = row.id;
         const impactCount = impactCountByRestaurant.get(restaurantId) ?? 0;
@@ -675,16 +703,19 @@ export async function GET() {
             : null;
         const topImpact = topImpactByRestaurant.get(restaurantId);
         const topEvent = topImpact ? eventById.get(topImpact.eventId) ?? null : null;
+        const linkedEvent = topEvent ?? defaultLinkedEvent;
         const cuisineType = normalizeCuisineType(
-          pickString(meta, ["cuisine_type", "cuisineType", "cuisine"]),
+          pickString(meta, ["cuisine_type", "cuisineType", "cuisine"]) ??
+            pickString(glideData, ["cuisine_type", "cuisineType", "cuisine"]),
         );
-        const affinity = resolveCuisineAffinity(topEvent?.category ?? "community", cuisineType);
+        const affinity = resolveCuisineAffinity(linkedEvent?.category ?? "community", cuisineType);
         const isServiceCuisine = cuisineType === "service";
-        const phqMultiplier = topEvent ? toPhqMultiplier(topEvent.attendance) : null;
+        const phqMultiplier = linkedEvent ? toPhqMultiplier(linkedEvent.attendance) : null;
         const hospitalityImpact = topImpact?.impactScore ?? eventPressure;
         const expectedSpend =
           topImpact?.expectedSpend ??
-          pickNumber(meta, ["expected_spend", "expectedSpend", "hospitality_spend"]);
+          pickNumber(meta, ["expected_spend", "expectedSpend", "hospitality_spend"]) ??
+          pickNumber(glideData, ["expected_spend", "expectedSpend", "hospitality_spend"]);
         const zfusionScore =
           isServiceCuisine || hospitalityImpact === null || phqMultiplier === null
             ? null
@@ -695,24 +726,35 @@ export async function GET() {
 
         return {
           id: restaurantId,
-          glideRowId: pickString(meta, ["glide_row_id", "row_id", "rowId", "glideRowId"]),
+          glideRowId:
+            pickString(meta, ["glide_row_id", "row_id", "rowId", "glideRowId"]) ??
+            pickString(glideData, ["glide_row_id", "$rowID", "row_id", "rowId", "glideRowId"]),
           name: row.restaurant_name,
           casino,
-          contactPerson: pickString(meta, ["contact_person", "primary_contact", "doeXs"]),
-          serviceFrequency,
-          oilType: pickString(meta, ["oil_type", "oilType", "U0Jf2"]),
-          oilForm: pickString(meta, ["oil_form", "oilForm", "0RcWz"]),
+          contactPerson:
+            pickString(meta, ["contact_person", "primary_contact", "doeXs"]) ??
+            pickString(glideData, ["doeXs", "primary_contact", "Ie35Z", "a3ffP", "maCR5"]),
+          serviceFrequency: serviceFrequencyLabel,
+          oilType:
+            pickString(meta, ["oil_type", "oilType", "U0Jf2"]) ??
+            pickString(glideData, ["oil_type", "oilType", "U0Jf2", "UYUGq"]),
+          oilForm:
+            pickString(meta, ["oil_form", "oilForm", "0RcWz"]) ??
+            pickString(glideData, ["oil_form", "oilForm", "0RcWz"]),
           cuisineType,
-          status: row.account_status ?? pickString(meta, ["status", "s8tNr"]),
+          status:
+            row.account_status ??
+            pickString(meta, ["status", "s8tNr"]) ??
+            pickString(glideData, ["status", "s8tNr"]),
           fryerCount,
           totalCapacityLbs: totalCapacity,
           customerStatus,
           opportunityScore: latestScoreByRestaurant.get(restaurantId) ?? null,
           eventPressure,
-          eventId: topEvent?.id ?? null,
-          eventName: topEvent?.name ?? null,
-          eventCategory: topEvent?.category ?? null,
-          eventDate: topEvent?.startDate ?? null,
+          eventId: linkedEvent?.id ?? null,
+          eventName: linkedEvent?.name ?? null,
+          eventCategory: linkedEvent?.category ?? null,
+          eventDate: linkedEvent?.startDate ?? null,
           expectedSpend,
           hospitalityImpact,
           phqMultiplier,
@@ -726,23 +768,43 @@ export async function GET() {
             "shiftCount",
             "assigned_shift_count",
             "assignedShiftCount",
-          ]),
+          ]) ?? pickNumber(glideData, ["shift_count", "shiftCount", "assigned_shift_count"]),
           scheduledReportCount: pickNumber(meta, [
             "scheduled_reports_count",
             "scheduledReportCount",
             "report_count",
             "maintenance_report_count",
-          ]),
+          ]) ??
+            pickNumber(glideData, [
+              "scheduled_reports_count",
+              "scheduledReportCount",
+              "report_count",
+              "maintenance_report_count",
+            ]),
           exportListed: pickBoolean(meta, [
             "export_list",
             "in_export_list",
             "exportListed",
             "is_export_listed",
-          ]),
+          ]) ?? pickBoolean(glideData, ["export_list", "in_export_list", "exportListed", "Ny3eQ"]),
           metadata: meta,
         } satisfies VegasOpportunityRow;
       })
       .sort((a, b) => {
+        const completenessScoreA =
+          Number(a.serviceFrequency !== null) +
+          Number(a.oilType !== null) +
+          Number(a.contactPerson !== null) +
+          Number(a.totalCapacityLbs !== null) +
+          Number(a.eventDate !== null);
+        const completenessScoreB =
+          Number(b.serviceFrequency !== null) +
+          Number(b.oilType !== null) +
+          Number(b.contactPerson !== null) +
+          Number(b.totalCapacityLbs !== null) +
+          Number(b.eventDate !== null);
+        if (completenessScoreA !== completenessScoreB) return completenessScoreB - completenessScoreA;
+
         const zfusionA = a.zfusionScore ?? Number.NEGATIVE_INFINITY;
         const zfusionB = b.zfusionScore ?? Number.NEGATIVE_INFINITY;
         if (zfusionA !== zfusionB) return zfusionB - zfusionA;
@@ -776,9 +838,9 @@ export async function GET() {
 
     const allIngestedTimestamps = [
       ...eventRows.map((row) => row.ingested_at),
-      ...restaurantRows.map((row) => row.ingested_at),
+      ...activeRestaurantRows.map((row) => row.ingested_at),
       ...casinoRows.map((row) => row.ingested_at),
-      ...fryerRows.map((row) => row.ingested_at),
+      ...activeFryerRows.map((row) => row.ingested_at),
     ]
       .map((value) => toNullableIso(value))
       .filter((value): value is string => value !== null)
@@ -786,9 +848,9 @@ export async function GET() {
     const lastSync = allIngestedTimestamps.at(-1) ?? null;
 
     const stats: VegasIntelStats = {
-      restaurants: restaurantRows.length,
+      restaurants: activeRestaurantRows.length,
       casinos: casinoRows.length,
-      fryers: fryerRows.length,
+      fryers: activeFryerRows.length,
       exportList: glideOptionalCounts.exportList,
       shifts: glideOptionalCounts.shifts,
       scheduledReports: glideOptionalCounts.scheduledReports,
@@ -796,9 +858,9 @@ export async function GET() {
     };
 
     const glideTables = {
-      restaurants: restaurantRows.length,
+      restaurants: activeRestaurantRows.length,
       casinos: casinoRows.length,
-      fryers: fryerRows.length,
+      fryers: activeFryerRows.length,
       exportList: glideOptionalCounts.exportList,
       scheduledReports: glideOptionalCounts.scheduledReports,
       shifts: glideOptionalCounts.shifts,
@@ -862,9 +924,9 @@ export async function GET() {
       fryerTracking: {
         title: "Fryer Equipment Tracking",
         body:
-          fryerRows.length === 0
+          activeFryerRows.length === 0
             ? "Hard stop: fryer lifecycle guidance is blocked because no verified vegas.fryers rows are available."
-            : `Verified fryer rows: ${fryerRows.length}. Sites with capacity telemetry: ${Array.from(capacityByRestaurant.values()).length}. Missing capacity data must be surfaced explicitly before equipment-specific pitch claims.`,
+            : `Verified fryer rows: ${activeFryerRows.length}. Sites with capacity telemetry: ${Array.from(capacityByRestaurant.values()).length}. Missing capacity data must be surfaced explicitly before equipment-specific pitch claims.`,
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.fryerTracking,
         provenance: buildProvenance(generatedAt, asOf, "fryerTracking", trustedUrls),
       },

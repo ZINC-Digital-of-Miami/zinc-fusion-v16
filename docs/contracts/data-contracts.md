@@ -46,11 +46,15 @@
 - `/api/vegas/intel` must return DB-backed `events`, `opportunities`, and `stats` payloads used by the Vegas body sections.
 - `events` rows must remain future-dated and sorted by soonest upcoming date for display.
 - `events` rows must include `durationDays` derived from verified start/end dates (default `1` when end date is missing/invalid).
-- `opportunities` rows must expose customer/prospect classification from service-cadence data and must surface missing oil, fryer, capacity, contact, shift/report cadence, and export-list fields explicitly rather than inventing values.
+- `opportunities` rows represent current Glide restaurant accounts and must preserve customer/prospect classification from verified service cadence fields while surfacing missing oil, fryer, capacity, contact, shift/report cadence, and export-list fields explicitly rather than inventing values.
+- `opportunities` must use only Glide-synced restaurant rows (`metadata.source = glide`) and must not fall back to legacy non-Glide rows.
+- Contact, service cadence, oil type, and schedule fields must resolve from both normalized metadata keys and nested Glide row payload fields when present.
+- Event opportunities must derive from verified event-impact linkage; rows without linked event data must fall back to the next verified upcoming event window rather than synthetic placeholders.
 - Vegas opportunity scoring must include event-pressure evidence and cuisine-aware reasoning (`zfusionScore`/affinity fields) from verified rows, or explicit missing-state values when required rows are absent.
 - Server output must track all 8 Glide source groups (restaurants, casinos, fryers, export_list, scheduled_reports, shifts, shift_casinos, shift_restaurants) through DB-backed counts; unavailable groups remain `null`.
 - `stats` must include actual row counts for currently wired `vegas.*` serving tables and set not-yet-wired Glide groups to `null` until promoted data exists.
 - The route may include AI card narratives, but body rendering must remain grounded in verified DB rows and include hard-stop language when required source rows are missing.
+- If Intel buttons are enabled in the body, `/api/vegas/intel/draft` must provide a server-side draft payload keyed by verified `restaurantId` (optional `eventId`) and return draft-only pitch output without Glide writes.
 
 ## Dashboard AI Card Instruction Contract
 - `/api/dashboard/risk-factors` must provide per-card `strategicSpecialInstructions` for each driver card and the AI Market Intelligence card.

@@ -40,7 +40,7 @@ Implementation rule: an agent may not touch `/vegas-intel` or `/sentiment` body 
 The `/vegas-intel` body implementation must preserve these exact turnover-aligned details:
 
 1. Body section order remains: segment cards, upcoming events rows, account/opportunity rows.
-2. Segment cards use V15 event stats labels and values: total attendance and next-7-day event count.
+2. Segment cards use turnover-aligned per-segment stats: account/customer/prospect cards show fryer totals and capacity totals from opportunity rows; the upcoming-events card shows total attendance and next-7-day event count.
 3. Event rows and opportunity rows keep square card edges, V15 padding/gap values, and countdown-circle sizing.
 4. Phone behavior at `max-width: 480px` is enforced through class hooks:
    - `.vegas-segment-grid` (2 columns, 8px gap)
