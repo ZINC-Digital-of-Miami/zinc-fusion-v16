@@ -27,6 +27,9 @@ regression, fusion-guard unit tests, and Python contract tests.
 Local macOS Next builds use `scripts/next-local.js` to avoid Gatekeeper prompts
 from native SWC binaries on mounted volumes. The package manager must not be run
 to repair that prompt; the wrapper keeps local builds on the WASM SWC path.
+Cloud Vercel builds must emit the standard `.next` directory; the wrapper now
+skips local `.next-local` dist/tsconfig overrides automatically when
+`VERCEL=1`.
 Local builds use the `middleware.ts` request/session hook because the Next 16
 `proxy.ts` convention currently emits a missing `.next/server/proxy.js.nft.json`
 trace artifact in the mounted `--webpack` WASM build path. The local wrapper

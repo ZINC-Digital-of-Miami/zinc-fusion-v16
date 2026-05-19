@@ -11,30 +11,37 @@ if (args.length === 0) {
 }
 
 const env = { ...process.env };
-if (!env.NEXT_LOCAL_DIST_DIR) {
-  env.NEXT_LOCAL_DIST_DIR = args[0] === "build"
-    ? `.next-local/build-${process.pid}-${Date.now()}`
-    : ".next-local/dev";
-}
-if (!env.NEXT_LOCAL_TSCONFIG) {
-  const localTsconfig = path.join(".next-local", "tsconfig.next-local.json");
-  const localTsconfigContents = {
-    extends: "../tsconfig.json",
-    compilerOptions: {
-      paths: {
-        "@/*": ["../*"],
+const runningOnVercel = env.VERCEL === "1";
+
+if (!runningOnVercel) {
+  if (!env.NEXT_LOCAL_DIST_DIR) {
+    env.NEXT_LOCAL_DIST_DIR = args[0] === "build"
+      ? `.next-local/build-${process.pid}-${Date.now()}`
+      : ".next-local/dev";
+  }
+  if (!env.NEXT_LOCAL_TSCONFIG) {
+    const localTsconfig = path.join(".next-local", "tsconfig.next-local.json");
+    const localTsconfigContents = {
+      extends: "../tsconfig.json",
+      compilerOptions: {
+        paths: {
+          "@/*": ["../*"],
+        },
       },
-    },
-  };
-  fs.mkdirSync(path.dirname(localTsconfig), { recursive: true });
-  fs.writeFileSync(
-    localTsconfig,
-    `${JSON.stringify(localTsconfigContents, null, 2)}\n`,
-  );
-  env.NEXT_LOCAL_TSCONFIG = localTsconfig;
+    };
+    fs.mkdirSync(path.dirname(localTsconfig), { recursive: true });
+    fs.writeFileSync(
+      localTsconfig,
+      `${JSON.stringify(localTsconfigContents, null, 2)}\n`,
+    );
+    env.NEXT_LOCAL_TSCONFIG = localTsconfig;
+  }
+} else {
+  delete env.NEXT_LOCAL_DIST_DIR;
+  delete env.NEXT_LOCAL_TSCONFIG;
 }
 
-if (process.platform === "darwin" && env.NEXT_NATIVE_SWC_ALLOWED !== "1") {
+if (!runningOnVercel && process.platform === "darwin" && env.NEXT_NATIVE_SWC_ALLOWED !== "1") {
   env.NEXT_TEST_WASM = "1";
 }
 
