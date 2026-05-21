@@ -241,7 +241,7 @@ const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialI
   china_tension: {
     cardTopic: "China Demand and Flow Risk",
     strategicObjective:
-      "Detect demand-flow rerouting or escalation risk from China-linked macro channels before it manifests as persistent ZL repricing.",
+      "Detect demand-flow rerouting or escalation risk from China-linked macro channels before it manifests as persistent soybean-oil futures repricing.",
     neuralConnectionThesis:
       "Chinese-currency stress, shipping/trade-flow narrative pressure, and China-soy headline clustering can alter marginal demand assumptions and induce asymmetric price response in oil contracts.",
     quantResearchProtocol: [
@@ -289,7 +289,7 @@ const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialI
     strategicObjective:
       "Identify when energy complex dynamics are likely to cascade into soybean oil procurement cost pressure beyond routine volatility.",
     neuralConnectionThesis:
-      "Crude direction, velocity, and energy-volatility coupling drive pass-through pressure; persistent co-movement raises the probability of accelerated cost repricing in ZL-related procurement.",
+      "Crude direction, velocity, and energy-volatility coupling drive pass-through pressure; persistent co-movement raises the probability of accelerated cost repricing in soybean-oil procurement.",
     quantResearchProtocol: [
       "Track crude-oil benchmark level with five-day and twenty-day directional context.",
       "Measure oil-volatility-gauge alignment to distinguish stable trend from unstable stress expansion.",
