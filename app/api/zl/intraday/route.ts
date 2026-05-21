@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createServerDataClient } from "@/lib/server/server-data-client";
 import type { ApiEnvelope, ZlPriceBar } from "@/lib/contracts/api";
 
 const PROJECTION = "symbol, bucket_ts, open, high, low, close, volume";
@@ -9,7 +9,7 @@ const INTRADAY_SOURCE = "mkt.price_1h";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerDataClient();
 
     const { data: rows, error } = await supabase
       .schema("mkt")

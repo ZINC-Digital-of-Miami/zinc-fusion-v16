@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createServerDataClient } from "@/lib/server/server-data-client";
 import type { ApiEnvelope, ZlPriceBar } from "@/lib/contracts/api";
 
 type PriceRow = {
@@ -74,7 +74,7 @@ function buildLatestDatabentoDailyFromIntraday(
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerDataClient();
 
     // Supabase Data API commonly enforces a max-row cap (default 1000).
     // Pull newest rows first so we always include the current chart window.

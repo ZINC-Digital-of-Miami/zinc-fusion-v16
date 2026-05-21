@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 
+import { isAuthDisabledForBuild } from "@/lib/auth-mode";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
 
 export async function GET() {
+  if (isAuthDisabledForBuild()) {
+    return NextResponse.json({
+      ok: true,
+      authenticated: false,
+      authDisabledForBuild: true,
+      checkedAt: new Date().toISOString(),
+    });
+  }
+
   if (!hasEnvVars) {
     return NextResponse.json(
       {

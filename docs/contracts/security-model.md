@@ -1,13 +1,16 @@
 # V16 Security Model (Scaffold)
 
 ## Access Tiers
-- Browser users: authenticated session/JWT with RLS-constrained reads.
+- Build-mode browser users: open access while `AUTH_DISABLED_FOR_BUILD` is true in `lib/auth-mode.ts`.
+- Final production browser users: authenticated session/JWT with RLS-constrained reads.
 - System jobs: service role for controlled writes.
 
 ## Route Boundaries
 - No Vercel cron/API cron route class exists in V16; ingestion runs through Supabase pg_cron by default and the ZL chart exception runs through local DuckDB plus Python promotion.
-- `/api/auth/check` validates active claims.
-- Protected page and API routes require Supabase Auth claims.
+- During the build phase, `middleware.ts`, `(protected)/layout.tsx`, and `requireAuthenticatedApiRequest()` must allow requests without Supabase claims.
+- `/api/auth/check` returns `authDisabledForBuild: true` while the build-mode auth switch is active.
+- Server API data reads use `lib/server/server-data-client.ts`, which selects the server-only service-role client while build-mode auth is disabled and returns to the request-bound Supabase client when auth is re-enabled.
+- Re-enabling final production auth requires flipping `AUTH_DISABLED_FOR_BUILD` to false, then verifying protected page redirects, protected API `401` behavior, and RLS-backed reads in the same gate.
 
 ## Secret Handling
 - `NEXT_PUBLIC_*`: URL + publishable key only.

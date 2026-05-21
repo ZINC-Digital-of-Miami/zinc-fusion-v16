@@ -1,10 +1,15 @@
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
+import { isAuthDisabledForBuild } from "@/lib/auth-mode";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
 
 export async function requireAuthenticatedApiRequest() {
+  if (isAuthDisabledForBuild()) {
+    return null;
+  }
+
   if (!hasEnvVars) {
     return NextResponse.json(
       { ok: false, error: "Supabase auth env vars are not configured" },
@@ -26,6 +31,10 @@ export async function requireAuthenticatedApiRequest() {
 }
 
 export async function requireAuthenticatedPageSession() {
+  if (isAuthDisabledForBuild()) {
+    return;
+  }
+
   if (!hasEnvVars) {
     redirect("/auth/login");
   }

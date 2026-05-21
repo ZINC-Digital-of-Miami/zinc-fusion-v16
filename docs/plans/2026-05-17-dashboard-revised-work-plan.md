@@ -9,7 +9,7 @@
 ## Audit Findings Summary
 
 ### What's Wired and Working
-- 6 dashboard sections rendered behind Supabase Auth at `app/(protected)/dashboard/page.tsx`
+- 6 dashboard sections render through `app/(protected)/dashboard/page.tsx`; build-mode auth is disabled by `lib/auth-mode.ts` until final auth hardening
 - Candlestick chart with SMA-200 overlay, Fibonacci pivot lines
 - ProbabilitySurface (30d/90d/180d heat grid) from `forecasts.target_zones`
 - RegimeAnalysisChart on lightweight-charts
@@ -20,7 +20,7 @@
 
 ### Critical Gaps
 - **Target Zone overlay OFF chart by design** — stays on `ProbabilitySurface` card only
-- **GPT (`gpt-5.5-fast`) being replaced** with OpenRouter free model (DeepSeek V4 Flash)
+- **AI snapshot target reset to OpenAI GPT (`gpt-5.4-fast`)** for daily card files; ChatGPT Pro-backed refresh is a snapshot-generation path, not a backend API billing path
 - **ProFarmer Playwright scraper does NOT exist** — trusted-fill data only
 - **Glide API keys NOT in V16** — must be extracted from V15 project
 - **Previous quality audit findings** have been folded into source fixes; the Quality Playbook install is retired
@@ -35,12 +35,12 @@
 - Target Zones live only in `ProbabilitySurface` dashboard card
 - Regression coverage locks `ZlCandlestickChart` and the protected dashboard page to this decision
 
-### D2: OpenRouter Replaces GPT for AI Cards
-- **Primary:** `deepseek/deepseek-v4-flash:free` (128K context, strong financial/analytical prose)
-- **Fallback:** `qwen/qwen3-coder-480b-a35b:free`
-- API key: Supabase Vault `app.openrouter_api_key`
-- Snapshot source label: `openrouter-daily-refresh`
-- All 5 AI card snapshot files regenerated with new model
+### D2: OpenAI Pro Snapshot Target for AI Cards
+- **Primary snapshot model:** `gpt-5.4-fast` with `high-think`
+- **Refresh path:** ChatGPT Pro/manual or approved direct provider refresh writes committed snapshot JSON files under `app/config/`
+- **Runtime boundary:** ChatGPT Pro web subscription does not automatically provide backend API billing; runtime server calls still require a private provider API key
+- Snapshot source labels accepted by the reader include `chatgpt-pro-subscription-refresh`, `ai-daily-refresh`, and `openrouter-daily-refresh`
+- All 5 AI card snapshot files must preserve model/source metadata and card-level provenance
 - `strategicSpecialInstructions` packet format preserved exactly
 
 ### D3: ProFarmer — Playwright, Hourly 7am–4am ET
@@ -57,7 +57,7 @@
 ### D5: Cadence
 - Chart data: local DuckDB raw hourly Databento refresh promoted to Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`
 - Non-price ingestion: weekly weekend batch
-- AI cards: daily refresh via `fill_site_with_trusted_data.py` (OpenRouter)
+- AI cards: daily refresh via committed snapshot JSON files targeting `gpt-5.4-fast`
 - ProFarmer: hourly 7am–4am ET by Python Playwright system schedule with GitHub Actions fallback; not a Vercel cron route
 
 ### D6: DuckDB + Supabase Chart Split
@@ -97,14 +97,14 @@
 | 1.6 | Audit `DashboardCards.tsx` for vestigial status | 30m |
 | 1.7 | Add regression coverage for no Target Zone chart wiring | 15m |
 
-### WAVE 2: AI Model Migration — GPT → OpenRouter (Week 1)
+### WAVE 2: AI Snapshot Refresh Path (Week 1)
 
 | # | Task | Effort |
 |---|------|--------|
-| 2.1 | Store OpenRouter API key in Supabase Vault | 30m |
-| 2.2 | Build OpenRouter client module | 3h |
-| 2.3 | Modify `fill_site_with_trusted_data.py` — swap OpenAI for OpenRouter | 4h |
-| 2.4 | Update `lib/server/ai-snapshot.ts` — add `openrouter-daily-refresh` | 15m |
+| 2.1 | Confirm the approved direct provider path for daily snapshots | 30m |
+| 2.2 | Keep snapshot metadata locked to `gpt-5.4-fast` + `high-think` | 30m |
+| 2.3 | Keep `fill_site_with_trusted_data.py` writing the approved snapshot model/source metadata | 1h |
+| 2.4 | Keep `lib/server/ai-snapshot.ts` trust labels aligned with approved snapshot sources | 15m |
 | 2.5 | Regenerate all 5 AI card snapshots, validate | 2h |
 | 2.6 | Add model health monitoring | 1h |
 
@@ -159,7 +159,7 @@
 
 | # | Task | Effort |
 |---|------|--------|
-| 6.1 | Fix API auth — anon key + JWT | 4h |
+| 6.1 | Re-enable final auth after build-mode gates pass: claims, redirects, API 401s, and RLS-backed reads | 4h |
 | 6.2 | Consistent loading/error/empty states | 4h |
 | 6.3 | Apply BUG-002 + BUG-006 fixes | 1h |
 | 6.4 | Regenerate quality artifacts | 2h |
@@ -191,11 +191,11 @@
 | Milestone | Criteria | Target |
 |-----------|----------|--------|
 | **M0: Bugs Closed + Cleanup** | BUG-001/003/004 fixed, duplicate page resolved, cruft deleted | May 19 |
-| **M1: OpenRouter Live** | All 5 AI card snapshots regenerated with DeepSeek V4 Flash, cards validate | May 21 |
+| **M1: AI Snapshots Live** | All 5 AI card snapshots regenerated with `gpt-5.4-fast`, cards validate | May 21 |
 | **M2: ProFarmer Scraping** | Playwright scraper running hourly, data landing in `alt.profarmer_news` | May 25 |
 | **M3: Core Data Fresh** | DuckDB ZL refresh/promote has SUCCESS evidence; Supabase chart serving tables are fresh; FRED core, Databento futures, CFTC, FX all running with SUCCESS status | May 28 |
 | **M4: Vegas Glide Live** | `vegas.*` tables populated from Glide JSON API, Vegas Intel page showing real data | Jun 3 |
-| **M5: Auth + Guard Clean** | API routes use anon key + JWT, active fusion guard passes, prior audit findings fixed | Jun 8 |
+| **M5: Auth + Guard Clean** | Build-mode auth disabled until feature work is complete; final auth re-enabled with claims, redirects, API 401s, and RLS-backed reads | Jun 8 |
 | **M6: Full Feature Set** | 7 specialist cards, contract calculator, NeuralSphere, pipeline run complete | Jun 15 |
 | **M7: V16 Dashboard Complete** | All gates pass, all pages operational, zero mock data | Jun 20 |
 
@@ -205,7 +205,7 @@
 
 1. **Duplicate dashboard page:** `app/dashboard/page.tsx` and `app/(protected)/dashboard/page.tsx` are identical. `(protected)` wins route resolution. Do NOT delete naked `app/dashboard/` without explicit approval — it may have been a deliberate fallback or transition artifact.
 
-2. **API route RLS bypass:** Repaired in source 2026-05-18 for dashboard-facing/authenticated read routes. These routes now use the request-bound Supabase server client (`createClient()`), while `/api/health` remains the public uptime probe.
+2. **Build-mode auth disabled:** Source now disables middleware/page/API auth gates through `lib/auth-mode.ts` so pages and API routes are usable without Supabase claims during build. Re-enabling final production auth is a separate hardening gate.
 
 3. **`/api/zl/forecast-targets` envelope divergence:** Repaired 2026-05-18. The route now returns the canonical `{ ok, data, asOf, source }` envelope, and `ProbabilitySurface` consumes `/api/zl/target-zones`.
 
@@ -217,10 +217,10 @@
 
 7. **Satechi Hub may not auto-mount:** V15 project location unknown until manually mounted.
 
-8. **AI card `strategicSpecialInstructions` packets:** Must be preserved exactly in format when migrating from GPT to OpenRouter. These are the "instruction packets" that teach the AI what each card needs.
+8. **AI card `strategicSpecialInstructions` packets:** Must be preserved exactly in format when refreshing AI snapshots. These are the instruction packets that teach the AI what each card needs.
 
 9. **`DashboardCards.tsx` and `dashboard-shell.tsx`:** Appear vestigial but must audit before deleting.
 
-10. **No `layout.tsx` in naked `app/dashboard/`:** Means it has no auth protection — another reason it was likely superseded by `(protected)`.
+10. **No `layout.tsx` in naked `app/dashboard/`:** Historical routing gotcha only; current build-mode auth state is owned by `lib/auth-mode.ts`, not by the route group name.
 
 11. **Training gate:** NEVER start model training without explicit user approval. `train-readiness --dry-run` currently reports `blocked` (row floor not met).

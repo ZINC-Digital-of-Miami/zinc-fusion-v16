@@ -30,7 +30,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 | **DB client (TS)**     | Supabase JS client (reads only)                         |
 | **DB client (Python)** | DuckDB for deep ZL history and AG training source; psycopg2 to cloud Supabase only for bounded serving promotion and compact outputs |
 | **ML**                 | AutoGluon (CPU-only), custom specialist models          |
-| **Auth**               | Supabase Auth                                           |
+| **Auth**               | Build-mode auth disabled by `lib/auth-mode.ts`; Supabase Auth returns in Phase 9 |
 | **API secrets**        | Supabase Vault (accessed via `current_setting()`)       |
 | **Package mgr**        | npm (frontend), uv (Python)                             |
 | **Env mgmt**           | Vercel <> Supabase integration, `vercel env pull`       |
@@ -67,6 +67,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 24. **Symbol budget lock (2026-05-08):** Maintain a compact universe (target ~20-30 symbols); do not reopen 50+ symbol spread without explicit approval.
 25. **Supabase chart-size lock (2026-05-18):** Supabase must not store deep intraday chart history. Do not write, read, schedule, or expose ZL `1m`/`15m` chart bars in Supabase. The site reads 1h and daily serving rows only; daily bars are rolled from 1h in the DuckDB/Python promotion path.
 26. **Turnover precision lock (2026-05-18):** [`docs/ops/2026-05-18-v15-vegas-sentiment-visual-and-glide-turnover.md`](docs/ops/2026-05-18-v15-vegas-sentiment-visual-and-glide-turnover.md) is the exact body-only implementation contract for Vegas Intel and Sentiment. Agents must read it end-to-end before touching either page. Keep current V16 top nav and top page headers unless explicitly reopened. Do not modify the chart under this turnover scope. "Close enough" card spacing, padding, colors, responsive behavior, Glide fields, or Vegas sales logic is a defect.
+27. **Build-mode auth lock (2026-05-21):** Auth must stay off for all pages and API routes while `AUTH_DISABLED_FOR_BUILD` is true in `lib/auth-mode.ts`. Do not reintroduce login redirects, API `401` gates, or auth buttons before the Phase 9 auth hardening gate is explicitly reopened.
 
 ### Process Rules
 
@@ -122,7 +123,7 @@ Full details in the migration plan. Quick reference:
 | **6**   | Remaining ingestion + ProFarmer | All data sources feeding via pg_cron+http, ProFarmer Playwright                                     |
 | **7**   | Dashboard completion            | Target Zones, drivers, regime, cards — all live                                                     |
 | **8**   | Secondary pages wiring          | Sentiment, Legislation, Strategy, Vegas Intel — real data                                           |
-| **9**   | Auth & observability            | Supabase Auth, monitoring, Gate 3 passes                                                            |
+| **9**   | Auth & observability            | Re-enable Supabase Auth after build-mode pages/API routes are complete, then verify monitoring and Gate 3 |
 | **10**  | Parallel validation & cutover   | legacy baseline/V16 parity confirmed, traffic switched                                              |
 
 ---
@@ -290,7 +291,7 @@ V16 is complete when:
 - pg_cron + http functions keep non-ZL-chart sources fresh inside Supabase, while local DuckDB owns raw/deep ZL Databento chart refresh and promotes bounded 1h/daily/latest serving rows
 - Python pipeline runs end-to-end: reads DuckDB/local files for AG training → promotes validated compact outputs to cloud
 - ProFarmer Playwright scraper is working ($500/mo source, 7 sections, 35 runs/week)
-- Auth protects dashboard routes
+- Auth is intentionally disabled during build mode; Phase 9 re-enables route protection after feature completion
 - Zero mock data anywhere in the codebase
 - legacy baseline can be turned off without losing functionality
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import type { AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import { readAiSnapshot, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
-import { createClient } from "@/lib/supabase/server";
+import { createServerDataClient } from "@/lib/server/server-data-client";
 
 type DriverKey =
   | "vix_stress"
@@ -529,7 +529,7 @@ function buildDriverWhatsHappening(
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerDataClient();
     const aiSnapshot = await readAiRiskFactorsSnapshot();
     const responseGeneratedAt = new Date().toISOString();
 

@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { isAuthDisabledForBuild } from "@/lib/auth-mode";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 
 export async function AuthButton() {
+  if (isAuthDisabledForBuild()) {
+    return null;
+  }
+
   const supabase = await createClient();
 
   // You can also use getUser() which will be slower.

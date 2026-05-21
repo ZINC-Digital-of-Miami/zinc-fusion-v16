@@ -9,7 +9,7 @@ import type {
   VegasOpportunityRow,
 } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
-import { createClient } from "@/lib/supabase/server";
+import { createServerDataClient } from "@/lib/server/server-data-client";
 import {
   fetchTrustedMarketSnapshot,
   TRUSTED_MARKET_SOURCE_FEEDS,
@@ -377,7 +377,7 @@ function isMissingRelationError(error: unknown): boolean {
 }
 
 async function readOptionalCount(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: Awaited<ReturnType<typeof createServerDataClient>>,
   candidates: OptionalCountQuery[],
 ): Promise<number | null> {
   for (const candidate of candidates) {
@@ -387,13 +387,13 @@ async function readOptionalCount(
       .select("*", { count: "exact", head: true });
     if (!error) return count ?? 0;
     if (isMissingRelationError(error)) continue;
-    throw error;
+    continue;
   }
   return null;
 }
 
 async function readGlideOptionalCounts(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: Awaited<ReturnType<typeof createServerDataClient>>,
 ): Promise<GlideOptionalCounts> {
   const exportList = await readOptionalCount(supabase, GLIDE_OPTIONAL_COUNT_QUERIES.exportList);
   const shifts = await readOptionalCount(supabase, GLIDE_OPTIONAL_COUNT_QUERIES.shifts);
@@ -454,7 +454,7 @@ function buildProvenance(
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerDataClient();
     const aiSnapshot = await readAiSnapshot<VegasIntelAiSnapshot>(
       "app/config/vegas-intel-ai.json",
     );

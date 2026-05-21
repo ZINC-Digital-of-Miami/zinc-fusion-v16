@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAuthDisabledForBuild } from "../auth-mode";
 import { hasEnvVars } from "../utils";
 
 function isPublicPath(pathname: string): boolean {
@@ -26,6 +27,10 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
+
+  if (isAuthDisabledForBuild()) {
+    return supabaseResponse;
+  }
 
   // Public splash and auth flows remain reachable without a session.
   if (isPublicPath(pathname)) {

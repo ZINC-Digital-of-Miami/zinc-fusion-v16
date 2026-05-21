@@ -1508,7 +1508,7 @@ def main() -> None:
 
         for snapshot in (dashboard_snapshot, strategy_snapshot, sentiment_snapshot, legislation_snapshot, vegas_snapshot):
             snapshot["generatedAt"] = now_et_iso
-            snapshot["model"] = "gpt-5.5-fast"
+            snapshot["model"] = "gpt-5.4-fast"
             snapshot["reasoningEffort"] = "high-think"
             snapshot["source"] = "ai-daily-refresh"
             snapshot["refreshScheduleEt"] = "07:00 America/New_York daily"

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createServerDataClient } from "@/lib/server/server-data-client";
 import type { ApiEnvelope, RegimeState } from "@/lib/contracts/api";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerDataClient();
 
     // Get the latest regime state
     const { data: row, error } = await supabase

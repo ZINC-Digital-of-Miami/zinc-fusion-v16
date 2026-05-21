@@ -6,7 +6,7 @@ import {
   generateVegasIntelReport,
   type VegasIntelReportInput,
 } from "@/lib/server/openrouter";
-import { createClient } from "@/lib/supabase/server";
+import { createServerDataClient } from "@/lib/server/server-data-client";
 
 type RestaurantRow = {
   id: number;
@@ -175,7 +175,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = await createServerDataClient();
 
     const { data: restaurantRaw, error: restaurantError } = await supabase
       .schema("vegas")
