@@ -51,7 +51,7 @@ export type VegasIntelReportResult =
     };
 
 const OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_OPENROUTER_INTEL_MODEL = "google/gemini-2.5-flash";
+const DEFAULT_OPENROUTER_INTEL_MODEL = "nvidia/nemotron-3-super-120b-a12b:free";
 
 function openRouterApiKey(): string | null {
   const key = process.env.OPENROUTER_API_KEY?.trim();

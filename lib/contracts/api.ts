@@ -84,6 +84,8 @@ export interface VegasIntelStats {
   exportList: number | null;
   shifts: number | null;
   scheduledReports: number | null;
+  shiftCasinos: number | null;
+  shiftRestaurants: number | null;
   lastSync: IsoDateTimeString | null;
 }
 

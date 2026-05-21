@@ -112,7 +112,37 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
             source,
             "Expected compact coverage cards for the eight Glide tables.",
         )
+        self.assertIn(
+            "Shift Service Coverage",
+            source,
+            "Expected visible shift-linked account coverage from Glide operational data.",
+        )
+        self.assertIn(
+            "stats?.shiftRestaurants",
+            source,
+            "Expected shift restaurant link counts to be surfaced in the Vegas UI.",
+        )
+        self.assertLess(
+            source.index("Glide Table Coverage"),
+            source.index("Lead View"),
+            "Expected Glide coverage to render directly below the hero before the lead/AI body panels.",
+        )
+        self.assertLess(
+            source.index("{SEGMENTS.map"),
+            source.index("Lead View"),
+            "Expected the four sales segment cards to render directly below the hero before the lead/AI body panels.",
+        )
         self.assertNotIn("trusted-fill prospect rows", source)
+
+    def test_route_exposes_full_glide_shift_counts(self) -> None:
+        route_path = Path("app/api/vegas/intel/route.ts")
+        source = route_path.read_text(encoding="utf-8")
+        contract_source = Path("lib/contracts/api.ts").read_text(encoding="utf-8")
+
+        self.assertIn("shiftCasinos: glideOptionalCounts.shiftCasinos", source)
+        self.assertIn("shiftRestaurants: glideOptionalCounts.shiftRestaurants", source)
+        self.assertIn("shiftCasinos: number | null;", contract_source)
+        self.assertIn("shiftRestaurants: number | null;", contract_source)
 
     def test_draft_route_is_verified_glide_only_and_read_only(self) -> None:
         draft_path = Path("app/api/vegas/intel/draft/route.ts")
@@ -169,9 +199,9 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
             "Expected personal OpenRouter API key path to be server-side only.",
         )
         self.assertIn(
-            "google/gemini-2.5-flash",
+            "nvidia/nemotron-3-super-120b-a12b:free",
             openrouter_source,
-            "Expected Gemini 2.5 Flash default through OpenRouter direct API.",
+            "Expected the selected free OpenRouter default model.",
         )
         self.assertNotIn("@ai-sdk/gateway", package_source + draft_source + openrouter_source)
         self.assertNotIn("AI_GATEWAY_API_KEY", package_source + draft_source + openrouter_source)

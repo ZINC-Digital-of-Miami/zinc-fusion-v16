@@ -13,14 +13,14 @@
 - Candlestick chart with SMA-200 overlay, Fibonacci pivot lines
 - ProbabilitySurface (30d/90d/180d heat grid) from `forecasts.target_zones`
 - RegimeAnalysisChart on lightweight-charts
-- AI Market Intelligence row (GPT-driven via AI snapshot JSON files)
+- AI Market Intelligence row (model-driven via AI snapshot JSON files)
 - Market Risk Factors (5 specialist driver cards)
 - 19 Supabase migrations, all 9 schemas deployed
 - 13 Python pipeline modules scaffolded
 
 ### Critical Gaps
 - **Target Zone overlay OFF chart by design** — stays on `ProbabilitySurface` card only
-- **AI snapshot target reset to OpenAI GPT (`gpt-5.4-fast`)** for daily card files; ChatGPT Pro-backed refresh is a snapshot-generation path, not a backend API billing path
+- **AI snapshot target reset to free OpenRouter (`nvidia/nemotron-3-super-120b-a12b:free`)** for daily card files; subscription UI access is not a backend API billing path
 - **ProFarmer Playwright scraper does NOT exist** — trusted-fill data only
 - **Glide API keys NOT in V16** — must be extracted from V15 project
 - **Previous quality audit findings** have been folded into source fixes; the Quality Playbook install is retired
@@ -35,11 +35,12 @@
 - Target Zones live only in `ProbabilitySurface` dashboard card
 - Regression coverage locks `ZlCandlestickChart` and the protected dashboard page to this decision
 
-### D2: OpenAI Pro Snapshot Target for AI Cards
-- **Primary snapshot model:** `gpt-5.4-fast` with `high-think`
-- **Refresh path:** ChatGPT Pro/manual or approved direct provider refresh writes committed snapshot JSON files under `app/config/`
-- **Runtime boundary:** ChatGPT Pro web subscription does not automatically provide backend API billing; runtime server calls still require a private provider API key
-- Snapshot source labels accepted by the reader include `chatgpt-pro-subscription-refresh`, `ai-daily-refresh`, and `openrouter-daily-refresh`
+### D2: Free OpenRouter Snapshot Target for AI Cards
+- **Primary snapshot model:** `nvidia/nemotron-3-super-120b-a12b:free` with `high-think`
+- **Selection basis:** live OpenRouter catalog check showed zero prompt/completion pricing, near-1M context, reasoning, tool, max-token, temperature, and structured-output support
+- **Refresh path:** approved direct provider refresh writes committed snapshot JSON files under `app/config/`
+- **Runtime boundary:** subscription UI access does not automatically provide backend API billing; runtime server calls still require a private provider API key
+- Snapshot source labels accepted by the reader include `ai-daily-refresh` and `openrouter-daily-refresh`
 - All 5 AI card snapshot files must preserve model/source metadata and card-level provenance
 - `strategicSpecialInstructions` packet format preserved exactly
 
@@ -57,7 +58,7 @@
 ### D5: Cadence
 - Chart data: local DuckDB raw hourly Databento refresh promoted to Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`
 - Non-price ingestion: weekly weekend batch
-- AI cards: daily refresh via committed snapshot JSON files targeting `gpt-5.4-fast`
+- AI cards: daily refresh via committed snapshot JSON files targeting `nvidia/nemotron-3-super-120b-a12b:free`
 - ProFarmer: hourly 7am–4am ET by Python Playwright system schedule with GitHub Actions fallback; not a Vercel cron route
 
 ### D6: DuckDB + Supabase Chart Split
@@ -102,7 +103,7 @@
 | # | Task | Effort |
 |---|------|--------|
 | 2.1 | Confirm the approved direct provider path for daily snapshots | 30m |
-| 2.2 | Keep snapshot metadata locked to `gpt-5.4-fast` + `high-think` | 30m |
+| 2.2 | Keep snapshot metadata locked to `nvidia/nemotron-3-super-120b-a12b:free` + `high-think` | 30m |
 | 2.3 | Keep `fill_site_with_trusted_data.py` writing the approved snapshot model/source metadata | 1h |
 | 2.4 | Keep `lib/server/ai-snapshot.ts` trust labels aligned with approved snapshot sources | 15m |
 | 2.5 | Regenerate all 5 AI card snapshots, validate | 2h |
@@ -191,7 +192,7 @@
 | Milestone | Criteria | Target |
 |-----------|----------|--------|
 | **M0: Bugs Closed + Cleanup** | BUG-001/003/004 fixed, duplicate page resolved, cruft deleted | May 19 |
-| **M1: AI Snapshots Live** | All 5 AI card snapshots regenerated with `gpt-5.4-fast`, cards validate | May 21 |
+| **M1: AI Snapshots Live** | All 5 AI card snapshots regenerated with `nvidia/nemotron-3-super-120b-a12b:free`, cards validate | May 21 |
 | **M2: ProFarmer Scraping** | Playwright scraper running hourly, data landing in `alt.profarmer_news` | May 25 |
 | **M3: Core Data Fresh** | DuckDB ZL refresh/promote has SUCCESS evidence; Supabase chart serving tables are fresh; FRED core, Databento futures, CFTC, FX all running with SUCCESS status | May 28 |
 | **M4: Vegas Glide Live** | `vegas.*` tables populated from Glide JSON API, Vegas Intel page showing real data | Jun 3 |

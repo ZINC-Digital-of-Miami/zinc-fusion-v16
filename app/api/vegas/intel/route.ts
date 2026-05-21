@@ -866,6 +866,8 @@ export async function GET() {
       exportList: glideOptionalCounts.exportList,
       shifts: glideOptionalCounts.shifts,
       scheduledReports: glideOptionalCounts.scheduledReports,
+      shiftCasinos: glideOptionalCounts.shiftCasinos,
+      shiftRestaurants: glideOptionalCounts.shiftRestaurants,
       lastSync,
     };
 

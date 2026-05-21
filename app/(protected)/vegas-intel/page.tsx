@@ -296,6 +296,25 @@ export default function VegasIntelPage() {
     return { glideCustomers, eventReadyCustomers };
   }, [customers]);
 
+  const shiftLinkedAccounts = useMemo(
+    () =>
+      opportunities
+        .filter((row) => (row.shiftCount ?? 0) > 0)
+        .sort((a, b) => (b.shiftCount ?? 0) - (a.shiftCount ?? 0))
+        .slice(0, 8),
+    [opportunities],
+  );
+
+  const shiftAssignmentTotal = useMemo(
+    () => opportunities.reduce((sum, row) => sum + (row.shiftCount ?? 0), 0),
+    [opportunities],
+  );
+
+  const scheduledReportAccountTotal = useMemo(
+    () => opportunities.reduce((sum, row) => sum + (row.scheduledReportCount ?? 0), 0),
+    [opportunities],
+  );
+
   const opportunityHeading =
     segment === "prospects"
       ? `Lead Opportunities (${displayedOpportunities.length})`
@@ -354,54 +373,6 @@ export default function VegasIntelPage() {
             </div>
           </header>
 
-          <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr_1fr]">
-            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
-              <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-red-300/80">
-                <Flame className="h-4 w-4" />
-                Lead View
-              </div>
-              <div className="mb-4 text-3xl font-semibold text-white">
-                {highPriorityLeads.length > 0 ? `${highPriorityLeads.length} verified leads ready for outreach` : "Net-new lead lane intentionally blank"}
-              </div>
-              <p className="text-sm leading-6 text-slate-300">
-                {cards?.aiSalesStrategy?.body ??
-                  "Hard stop: AI sales strategy card is unavailable."}
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <MiniStat
-                  label="Avg lead score"
-                  value={leadScoreAverage === null ? "n/a" : leadScoreAverage.toFixed(1)}
-                />
-                <MiniStat
-                  label="Glide service accounts"
-                  value={leadDataSourceSummary.glideCustomers}
-                />
-                <MiniStat
-                  label="Event-linked accounts"
-                  value={leadDataSourceSummary.eventReadyCustomers}
-                />
-              </div>
-            </div>
-
-            <InfoPanel
-              icon={<CalendarDays className="h-4 w-4 text-violet-300" />}
-              title="Event Pressure"
-              body={cards?.upcomingEvents?.body ?? "Hard stop: upcoming events card unavailable."}
-            />
-            <InfoPanel
-              icon={<Wrench className="h-4 w-4 text-cyan-300" />}
-              title="Service Gaps"
-              body={cards?.fryerTracking?.body ?? "Hard stop: fryer tracking card unavailable."}
-            />
-          </section>
-
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <AiBriefCard title={cards?.upcomingEvents?.title ?? "Upcoming Events"} body={cards?.upcomingEvents?.body} />
-            <AiBriefCard title={cards?.aiSalesStrategy?.title ?? "AI Sales Strategy"} body={cards?.aiSalesStrategy?.body} />
-            <AiBriefCard title={cards?.restaurantAccounts?.title ?? "Restaurant Accounts"} body={cards?.restaurantAccounts?.body} />
-            <AiBriefCard title={cards?.fryerTracking?.title ?? "Fryer Tracking"} body={cards?.fryerTracking?.body} />
-          </section>
-
           <section className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
             <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-300/80">
               <Building2 className="h-4 w-4" />
@@ -450,6 +421,101 @@ export default function VegasIntelPage() {
                 </button>
               );
             })}
+          </section>
+
+          <section className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+            <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-300/80">
+                  <Clock3 className="h-4 w-4" />
+                  Shift Service Coverage
+                </div>
+                <h2 className="text-2xl font-semibold text-white">Real Glide shift links now visible</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
+                  The shift lane is sourced from the Glide operational tables plus restaurant-level shift metadata; missing rows stay explicit instead of being filled.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[520px]">
+                <MiniStat label="Shift rows" value={formatCompactNumber(stats?.shifts ?? glideTables?.shifts)} />
+                <MiniStat
+                  label="Restaurant links"
+                  value={formatCompactNumber(stats?.shiftRestaurants ?? glideTables?.shiftRestaurants ?? shiftAssignmentTotal)}
+                />
+                <MiniStat label="Scheduled reports" value={formatCompactNumber(stats?.scheduledReports ?? scheduledReportAccountTotal)} />
+              </div>
+            </div>
+
+            {shiftLinkedAccounts.length === 0 ? (
+              <LoadingCard message="No shift-linked account rows are visible in the current Glide response." />
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {shiftLinkedAccounts.map((row) => (
+                  <article key={row.id} className="rounded-[16px] border border-white/10 bg-[#0b0f16] p-4">
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-semibold text-white">{row.name}</h3>
+                        <div className="mt-1 text-xs text-slate-400">{row.casino ?? "Casino unavailable"}</div>
+                      </div>
+                      <div className="rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-200">
+                        {row.shiftCount} shifts
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-xs leading-5 text-slate-300">
+                      <div>{row.serviceFrequency ?? "No service cadence listed"}</div>
+                      <div>Reports: {row.scheduledReportCount ?? "n/a"} · Export list: {row.exportListed === null ? "n/a" : row.exportListed ? "yes" : "no"}</div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr_1fr]">
+            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+              <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-red-300/80">
+                <Flame className="h-4 w-4" />
+                Lead View
+              </div>
+              <div className="mb-4 text-3xl font-semibold text-white">
+                {highPriorityLeads.length > 0 ? `${highPriorityLeads.length} verified leads ready for outreach` : "Net-new lead lane intentionally blank"}
+              </div>
+              <p className="text-sm leading-6 text-slate-300">
+                {cards?.aiSalesStrategy?.body ??
+                  "Hard stop: AI sales strategy card is unavailable."}
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <MiniStat
+                  label="Avg lead score"
+                  value={leadScoreAverage === null ? "n/a" : leadScoreAverage.toFixed(1)}
+                />
+                <MiniStat
+                  label="Glide service accounts"
+                  value={leadDataSourceSummary.glideCustomers}
+                />
+                <MiniStat
+                  label="Event-linked accounts"
+                  value={leadDataSourceSummary.eventReadyCustomers}
+                />
+              </div>
+            </div>
+
+            <InfoPanel
+              icon={<CalendarDays className="h-4 w-4 text-violet-300" />}
+              title="Event Pressure"
+              body={cards?.upcomingEvents?.body ?? "Hard stop: upcoming events card unavailable."}
+            />
+            <InfoPanel
+              icon={<Wrench className="h-4 w-4 text-cyan-300" />}
+              title="Service Gaps"
+              body={cards?.fryerTracking?.body ?? "Hard stop: fryer tracking card unavailable."}
+            />
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AiBriefCard title={cards?.upcomingEvents?.title ?? "Upcoming Events"} body={cards?.upcomingEvents?.body} />
+            <AiBriefCard title={cards?.aiSalesStrategy?.title ?? "AI Sales Strategy"} body={cards?.aiSalesStrategy?.body} />
+            <AiBriefCard title={cards?.restaurantAccounts?.title ?? "Restaurant Accounts"} body={cards?.restaurantAccounts?.body} />
+            <AiBriefCard title={cards?.fryerTracking?.title ?? "Fryer Tracking"} body={cards?.fryerTracking?.body} />
           </section>
 
           <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
@@ -628,7 +694,7 @@ export default function VegasIntelPage() {
           {stats?.lastSync ? (
             <footer className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 text-xs text-slate-400">
               Last sync {formatDate(stats.lastSync)}. Glide groups: export list {formatCompactNumber(stats.exportList)},
-              shifts {formatCompactNumber(stats.shifts)}, scheduled reports {formatCompactNumber(stats.scheduledReports)}.
+              shifts {formatCompactNumber(stats.shifts)}, shift restaurants {formatCompactNumber(stats.shiftRestaurants)}, shift casinos {formatCompactNumber(stats.shiftCasinos)}, scheduled reports {formatCompactNumber(stats.scheduledReports)}.
             </footer>
           ) : null}
         </div>
@@ -789,7 +855,7 @@ function OpportunityCard({
           </button>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <MiniStat label="Lead score" value={formatScore(row.opportunityScore)} />
           <MiniStat label="Event pressure" value={formatScore(row.eventPressure)} />
           <MiniStat label="Fryers" value={row.fryerCount ?? "n/a"} />
@@ -797,6 +863,8 @@ function OpportunityCard({
             label="Capacity"
             value={row.totalCapacityLbs === null ? "n/a" : `${Math.round(row.totalCapacityLbs).toLocaleString()} lbs`}
           />
+          <MiniStat label="Shifts" value={row.shiftCount ?? "n/a"} />
+          <MiniStat label="Reports" value={row.scheduledReportCount ?? "n/a"} />
         </div>
       </div>
 

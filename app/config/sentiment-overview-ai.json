@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-21T07:05:03-04:00",
-  "model": "gpt-5.4-fast",
+  "generatedAt": "2026-05-21T07:39:35-04:00",
+  "model": "nvidia/nemotron-3-super-120b-a12b:free",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
