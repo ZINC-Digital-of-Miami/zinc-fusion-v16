@@ -229,7 +229,7 @@ export default function HomePage() {
               </div>
               <h3 className="card-title">Volatility</h3>
               <p className="card-description">
-                VIX regime and cross-asset vol dynamics
+                Volatility-regime and cross-asset stress dynamics
               </p>
               <div className="card-metrics">
                 <div className="metric">

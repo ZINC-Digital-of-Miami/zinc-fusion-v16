@@ -287,7 +287,7 @@ export default function SentimentPage() {
 
   const componentRows = [
     { label: "News Flow", value: headlinePressure, tilt: `${overview?.headlineCount ?? 0} rows` },
-    { label: "CoT Bias", value: cotComponent, tilt: cot.label },
+    { label: "Managed-Money Bias", value: cotComponent, tilt: cot.label },
     { label: "Price Pulse", value: priceComponent, tilt: live ? "live" : "missing" },
   ];
 
@@ -331,7 +331,7 @@ export default function SentimentPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${cot.chip} ${cot.text}`}>
-              CoT Bias {cot.label}
+              Managed-Money Bias {cot.label}
             </span>
             {!loading && overview?.updatedAt && (
               <span className="text-xs text-slate-500 font-mono">
@@ -424,7 +424,7 @@ export default function SentimentPage() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
               <div className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">
-                ZL Futures Contract Price
+                Soybean-Oil Futures Contract Price
               </div>
               <div className="text-5xl md:text-6xl font-bold font-mono text-white">
                 {live?.price != null ? live.price.toFixed(2) : "—"}
@@ -474,9 +474,9 @@ export default function SentimentPage() {
               value={overview ? String(overview.headlineCount) : "—"}
               subtext="Verified 7-day feed rows"
             />
-            <SnapshotCard label="CoT Bias" value={cot.label} subtext={overview?.cotBias ?? "missing"} />
+            <SnapshotCard label="Managed-Money Bias" value={cot.label} subtext={overview?.cotBias ?? "missing"} />
             <SnapshotCard
-              label="ZL Live"
+              label="Soybean-Oil Live"
               value={live?.price != null ? live.price.toFixed(2) : "—"}
               subtext={live ? "Current read" : "missing"}
             />
@@ -500,9 +500,9 @@ export default function SentimentPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <SnapshotCard label="Headline Count" value={overview ? String(overview.headlineCount) : "—"} subtext="7-day verified news feed" />
             <SnapshotCard label="Sentiment Score" value={formatSigned(clampedScore)} subtext={gaugeZone.label} />
-            <SnapshotCard label="CoT Bias" value={cot.label} subtext={cards?.positioningFlow?.title ?? "Managed money"} />
+            <SnapshotCard label="Managed-Money Bias" value={cot.label} subtext={cards?.positioningFlow?.title ?? "Managed money"} />
             <SnapshotCard label="AI Refresh" value={overview?.updatedAt ? formatTimestamp(overview.updatedAt) : "—"} subtext="Snapshot timestamp" />
-            <SnapshotCard label="ZL Live" value={live?.price != null ? live.price.toFixed(2) : "—"} subtext={live?.observedAt ? formatTimestamp(live.observedAt) : "Awaiting live price"} />
+            <SnapshotCard label="Soybean-Oil Live" value={live?.price != null ? live.price.toFixed(2) : "—"} subtext={live?.observedAt ? formatTimestamp(live.observedAt) : "Awaiting live price"} />
             <SnapshotCard label="Headline Flow" value={headlinePressure !== null ? `${headlinePressure}` : "—"} subtext="Derived from verified row count" />
           </div>
           <div className="mt-6 bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors">
@@ -510,7 +510,7 @@ export default function SentimentPage() {
               <div>
                 <div className="text-sm font-bold text-white">Crude Oil / Soybean Oil Cross</div>
                 <div className="text-xs text-slate-500 mt-1">
-                  Current page payload exposes cross-market narrative but not raw CL/VIX/OVX fields.
+                  Current page payload exposes cross-market narrative but not raw crude-oil or volatility-feed fields.
                 </div>
               </div>
               <Activity className="w-5 h-5 text-amber-500" />
@@ -553,7 +553,7 @@ export default function SentimentPage() {
             {[
               {
                 title: "Managed Money",
-                subtitle: cards?.positioningFlow?.title ?? "CoT-linked bias",
+                subtitle: cards?.positioningFlow?.title ?? "Managed-money bias",
                 net: cot.label,
                 detail: overview?.cotBias ?? "missing",
                 value: cotComponent,
@@ -663,7 +663,7 @@ export default function SentimentPage() {
                     "Hard stop: headline lane unavailable because verified sentiment inputs were not returned."}
                 </p>
                 <div className="flex flex-wrap gap-2 mt-3">
-                  {["ZL", "policy", "sentiment"].map((tag) => (
+                  {["soybean oil", "policy", "sentiment"].map((tag) => (
                     <span
                       key={tag}
                       className="px-2 py-0.5 rounded bg-white/5 text-xs text-slate-400 font-mono border border-white/5"
