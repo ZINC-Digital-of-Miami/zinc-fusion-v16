@@ -35,7 +35,6 @@ Read these in parallel:
 - `docs/MASTER_PLAN.md` — current operational truth and completion rule
 - `docs/agent-safety-gates.md` — fail-closed verification contract
 - `docs/plans/2026-03-17-v16-migration-plan.md` — the migration plan (14 sections, every table/route/job/phase defined)
-- `plans/zinc-fusion-v16-ralph-loop-workflow-guide.md` if the requested focus touches planning, architecture, schema, phase gates, or workflow design
 
 ### Step 3 — Scan recent activity
 

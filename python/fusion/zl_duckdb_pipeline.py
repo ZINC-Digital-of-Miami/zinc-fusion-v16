@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import base64
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
@@ -354,7 +354,9 @@ def rollup_daily_rows(conn: duckdb.DuckDBPyConnection, *, since: datetime | None
     ]
 
 
-def _as_utc(value: datetime) -> datetime:
+def _as_utc(value: datetime | date) -> datetime:
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return datetime(value.year, value.month, value.day, tzinfo=timezone.utc)
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)

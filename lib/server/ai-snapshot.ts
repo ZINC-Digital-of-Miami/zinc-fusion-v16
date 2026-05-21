@@ -23,6 +23,7 @@ const TRUSTED_SNAPSHOT_SOURCES = new Set([
   "trusted-authority-pull",
   "ai-daily-refresh",
   "chatgpt-pro-subscription-refresh",
+  "openrouter-daily-refresh",
 ]);
 
 const SNAPSHOT_LOADERS: Record<string, () => Promise<unknown>> = {

@@ -1,7 +1,7 @@
 # ZINC-FUSION-V16: Corrected Execution Plan
 
 **Date:** 2026-03-19
-**Status:** Ready for Ralph Loop execution
+**Status:** Ready for checkpoint execution
 **Origin:** Architecture corrections session — cloud-only DB, pg_cron+http, zero mock data, rewrite-only
 
 ---
@@ -91,7 +91,7 @@ Make all read-only API routes query real Supabase tables (which may be empty).
 |-------|------------|---------|
 | `/api/zl/price-1d` | mkt.price_1d | `{ ok: true, data: [] }` until seeded |
 | `/api/zl/price-1h` | mkt.price_1h | Same pattern |
-| `/api/zl/intraday` | mkt.price_15m, mkt.price_1m | Same |
+| `/api/zl/intraday` | mkt.price_1h | Same |
 | `/api/zl/live` | mkt.latest_price | Same |
 | `/api/zl/target-zones` | forecasts.target_zones | Same |
 | `/api/zl/forecast` | forecasts.production_1d | Same |
@@ -124,7 +124,7 @@ Schedule all via pg_cron.
 
 **Priority order (critical data first):**
 1. ZL daily OHLCV (Databento) → mkt.price_1d
-2. ZL intraday (Databento) → mkt.price_1h, price_15m
+2. ZL intraday (Databento) → mkt.price_1h
 3. FRED (130+ series) → econ.*
 4. Databento futures → mkt.futures_1d
 5. FX daily → mkt.fx_1d
@@ -199,22 +199,6 @@ Wire real data into all pages:
 
 ---
 
-## Ralph Loop Invocation Pattern
+## Checkpoint Invocation Pattern
 
-For each checkpoint:
-
-```
-/ralph-loop "Execute Checkpoint N of 2026-03-19-v16-corrected-execution-plan.md.
-
-RULES:
-1. Read the corrected execution plan first
-2. Read CLAUDE.md rules (updated 2026-03-19)
-3. Read memory for all feedback and project decisions
-4. ZERO mock data — empty state only
-5. ZERO code copying — rewrite everything fresh
-6. Verify against all project rules before finishing
-
-Output <promise>CHECKPOINT N COMPLETE</promise> when done."
---completion-promise "CHECKPOINT N COMPLETE"
---max-iterations 10
-```
+For each checkpoint, run a read-audit -> decision -> implementation -> verification cycle tied to this plan and record decision evidence in docs/decisions/

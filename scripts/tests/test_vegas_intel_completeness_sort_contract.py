@@ -143,6 +143,58 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
             "Draft intel route must return draft collateral without creating sent/stored records.",
         )
 
+    def test_draft_route_rejects_explicit_missing_event_ids(self) -> None:
+        source = Path("app/api/vegas/intel/draft/route.ts").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "if (requestedEventId !== null && !selectedEvent) {",
+            source,
+            "Expected explicit eventId requests to fail closed instead of falling back to another event.",
+        )
+        self.assertIn(
+            "Requested event was not found.",
+            source,
+            "Expected explicit missing event requests to return a clear 404 message.",
+        )
+
+    def test_draft_route_uses_direct_openrouter_not_vercel_ai_gateway(self) -> None:
+        draft_source = Path("app/api/vegas/intel/draft/route.ts").read_text(encoding="utf-8")
+        openrouter_source = Path("lib/server/openrouter.ts").read_text(encoding="utf-8")
+        package_source = Path("package.json").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "generateVegasIntelReport",
+            draft_source,
+            "Expected Intel button route to generate direct AI report payloads.",
+        )
+        self.assertIn(
+            "https://openrouter.ai/api/v1/chat/completions",
+            openrouter_source,
+            "Expected OpenRouter direct API endpoint, not Vercel model routing.",
+        )
+        self.assertIn(
+            "OPENROUTER_API_KEY",
+            openrouter_source,
+            "Expected personal OpenRouter API key path to be server-side only.",
+        )
+        self.assertIn(
+            "google/gemini-2.5-flash",
+            openrouter_source,
+            "Expected Gemini 2.5 Flash default through OpenRouter direct API.",
+        )
+        self.assertNotIn("@ai-sdk/gateway", package_source + draft_source + openrouter_source)
+        self.assertNotIn("AI_GATEWAY_API_KEY", package_source + draft_source + openrouter_source)
+        self.assertNotIn("VERCEL_OIDC_TOKEN", package_source + draft_source + openrouter_source)
+
+    def test_openrouter_snapshot_source_is_trusted_without_gateway(self) -> None:
+        source = Path("lib/server/ai-snapshot.ts").read_text(encoding="utf-8")
+
+        self.assertIn(
+            '"openrouter-daily-refresh"',
+            source,
+            "Expected direct OpenRouter daily refresh snapshots to validate as trusted.",
+        )
+
 
 class SentimentTurnoverContractTest(unittest.TestCase):
     def test_sentiment_page_renders_all_turnover_sections_in_order(self) -> None:

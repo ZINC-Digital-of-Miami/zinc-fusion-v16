@@ -107,35 +107,24 @@ export async function GET() {
         (a, b) => new Date(a.tradeDate).getTime() - new Date(b.tradeDate).getTime(),
       );
 
-    const intradayTables: Array<{ table: "price_1h" | "price_15m" | "price_1m"; limit: number }> = [
-      { table: "price_1h", limit: 96 },
-      { table: "price_15m", limit: 384 },
-      { table: "price_1m", limit: 1440 },
-    ];
+    const { data: intradayRows, error: intradayError } = await supabase
+      .schema("mkt")
+      .from("price_1h")
+      .select("symbol, bucket_ts, open, high, low, close, volume")
+      .eq("symbol", "ZL")
+      .order("bucket_ts", { ascending: false })
+      .limit(96);
 
     let intradaySource: string | null = null;
     let databentoLatest: ZlPriceBar | null = null;
 
-    for (const candidate of intradayTables) {
-      const { data: intradayRows, error: intradayError } = await supabase
-        .schema("mkt")
-        .from(candidate.table)
-        .select("symbol, bucket_ts, open, high, low, close, volume")
-        .eq("symbol", "ZL")
-        .order("bucket_ts", { ascending: false })
-        .limit(candidate.limit);
-
-      if (intradayError || !intradayRows || intradayRows.length === 0) {
-        continue;
-      }
-
+    if (!intradayError && intradayRows && intradayRows.length > 0) {
       databentoLatest = buildLatestDatabentoDailyFromIntraday(
         intradayRows as PriceRow[],
         { symbol: "ZL" },
       );
       if (databentoLatest) {
-        intradaySource = `mkt.${candidate.table}`;
-        break;
+        intradaySource = "mkt.price_1h";
       }
     }
 

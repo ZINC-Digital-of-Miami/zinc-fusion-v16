@@ -78,7 +78,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 6. **Memory first.** Search available project memory before scoped work. Use Kilo local recall or a configured memory MCP when present. If no memory write tool is available, do not claim persistence; document durable decisions in the relevant `docs/decisions/`, `docs/plans/`, or authority doc update.
 7. **Plan before building.** For non-trivial feature, schema, architecture, or workflow changes, audit repo reality first, create numbered decision checkpoints, identify approval gates, then implement only after the scoped path is clear.
 8. **Verify before claiming done.** Run the smallest relevant check for the changed surface and apply `docs/agent-safety-gates.md`: any failed, unavailable, warning-only, or skipped required check means `STATUS: INCOMPLETE`.
-9. **Checkpoint before implementation.** For non-trivial planning work, audit repo reality first, structure the plan as numbered decision checkpoints, run one Ralph Loop per checkpoint, and update docs after each locked decision.
+9. **Checkpoint before implementation.** For non-trivial planning work, audit repo reality first, structure the plan as numbered decision checkpoints, run one checkpoint decision review per checkpoint, and update docs after each locked decision.
 10. **Fail-closed completion.** Read `docs/INDEX.md`, `docs/MASTER_PLAN.md`, and `docs/agent-safety-gates.md` at startup. If any required check is `FAIL`, `NOT RUN`, warning-only, or aborted, report `STATUS: INCOMPLETE`.
 11. **Source and local runtime artifacts are separate lanes.** Source/config/tooling changes require active guard verification before quality can be claimed current; ignored build/cache/log artifacts are never source-of-truth evidence.
 12. **Docs/contracts update in the same change.** Any behavior, config, schema, gate, or operational-truth change must update the relevant docs/contracts in the same change.
@@ -323,15 +323,15 @@ Design — State the proposed data model, API contract, workflow, or UI behavior
 Validate — Identify what could break, which gate proves safety, and what status must be reported if verification cannot run.
 Implement — Apply the smallest scoped change, update required docs/contracts, and verify the changed surface before claiming status.
 
-## ZINC Fusion V16 Ralph Loop Planning Standard
+## ZINC Fusion V16 Checkpoint Planning Standard
 
-For this repository only, every new or revised plan must follow [`plans/zinc-fusion-v16-ralph-loop-workflow-guide.md`](plans/zinc-fusion-v16-ralph-loop-workflow-guide.md) by default.
+For this repository only, every new or revised plan must use numbered decision checkpoints aligned with the canonical migration plan.
 
 Mandatory planning defaults:
 
 1. Audit repository reality before making architecture or refactoring decisions.
 2. Write plan documents as numbered checkpoints that capture decisions, not implementation tasks.
-3. Run one Ralph Loop per checkpoint and write a decision document for each checkpoint.
+3. Run one checkpoint decision review per checkpoint and write a decision document for each checkpoint.
 4. Treat [`docs/plans/2026-03-17-v16-migration-plan.md`](docs/plans/2026-03-17-v16-migration-plan.md) as the canonical build plan. If a small plan or checkpoint note is needed, integrate it back into the canonical plan rather than letting it become a competing source of truth.
 5. Update canonical planning docs and [`AGENTS.md`](AGENTS.md) whenever a checkpoint changes verified ground truth.
 6. Implement only after all checkpoint decisions are locked.

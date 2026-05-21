@@ -64,6 +64,22 @@ RUNTIME_SCAN_ROOTS = (
     "supabase",
 )
 
+AI_PROVIDER_RUNTIME_ROOTS = (
+    "package.json",
+    "package-lock.json",
+    "app",
+    "components",
+    "lib",
+    "scripts",
+    "supabase",
+)
+
+AI_GATEWAY_BLOCKED_DEPENDENCIES = (
+    "ai",
+    "@ai-sdk/gateway",
+    "@vercel/oidc",
+)
+
 
 @dataclass
 class Check:
@@ -230,6 +246,87 @@ def check_forbidden_runtime_terms() -> Check:
     return Check("runtime-vocabulary scan", PASS, "no forbidden runtime-stack terms found")
 
 
+def blocked_ai_gateway_markers() -> tuple[str, ...]:
+    return (
+        "@ai-sdk/" + "gateway",
+        "AI_" + "GATEWAY_API_KEY",
+        "VERCEL_" + "OIDC_TOKEN",
+        "@vercel/" + "oidc",
+        "getVercel" + "OidcToken",
+        "gateway" + "(",
+        'from "ai"',
+        "from 'ai'",
+    )
+
+
+def iter_runtime_files(roots: tuple[str, ...]) -> list[Path]:
+    candidates: list[Path] = []
+    for item in roots:
+        root = ROOT / item
+        if root.is_file():
+            candidates.append(root)
+        elif root.is_dir():
+            candidates.extend(path for path in root.rglob("*") if path.is_file())
+    return candidates
+
+
+def package_dependency_offenders(path: Path) -> list[str]:
+    if not path.is_file():
+        return []
+    try:
+        package = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return []
+
+    offenders: list[str] = []
+    for group in ("dependencies", "devDependencies", "optionalDependencies"):
+        dependencies = package.get(group)
+        if not isinstance(dependencies, dict):
+            continue
+        for dependency in AI_GATEWAY_BLOCKED_DEPENDENCIES:
+            if dependency in dependencies:
+                offenders.append(f"{group}:{dependency}")
+    return offenders
+
+
+def check_no_vercel_ai_gateway_runtime() -> Check:
+    offenders: list[str] = []
+    package_offenders = package_dependency_offenders(ROOT / "package.json")
+    if package_offenders:
+        offenders.extend(f"package.json ({offender})" for offender in package_offenders)
+
+    ignored_parts = {"node_modules", ".next", "Data", "data", "models", "logs", "__pycache__"}
+    ignored_paths = {"scripts/fusion_guard.py"}
+    markers = blocked_ai_gateway_markers()
+
+    for path in iter_runtime_files(AI_PROVIDER_RUNTIME_ROOTS):
+        relative = rel(path)
+        if relative in ignored_paths or relative.startswith("scripts/tests/"):
+            continue
+        if set(path.relative_to(ROOT).parts) & ignored_parts:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for marker in markers:
+            if marker in text:
+                offenders.append(f"{relative} ({marker})")
+                break
+
+    if offenders:
+        return Check(
+            "ai-provider route lock",
+            FAIL,
+            "Vercel AI Gateway/OIDC runtime path found: " + ", ".join(sorted(set(offenders))[:20]),
+        )
+    return Check(
+        "ai-provider route lock",
+        PASS,
+        "no Vercel AI Gateway/OIDC runtime path found",
+    )
+
+
 def command_check(
     name: str,
     argv: list[str],
@@ -279,7 +376,13 @@ def python_check(timeout: int) -> list[Check]:
     checks.append(
         command_check(
             "fusion guard unit tests",
-            ["python3", "-m", "unittest", "scripts.tests.test_fusion_guard"],
+            [
+                "python3",
+                "-m",
+                "unittest",
+                "scripts.tests.test_fusion_guard",
+                "scripts.tests.test_ai_provider_route_lock",
+            ],
             timeout,
         )
     )
@@ -340,6 +443,7 @@ def main(argv: list[str]) -> int:
     checks.extend(check_authority_docs())
     checks.extend(check_changed_file_contract(files))
     checks.append(check_forbidden_runtime_terms())
+    checks.append(check_no_vercel_ai_gateway_runtime())
 
     if args.mode in {"pre-push", "completion"}:
         checks.extend(full_gate_checks(args))

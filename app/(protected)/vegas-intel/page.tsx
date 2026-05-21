@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Building2 } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  Building2,
+  CalendarDays,
+  Clock3,
+  Flame,
+  MapPin,
+  PhoneCall,
+  Sparkles,
+  TriangleAlert,
+  Wrench,
+} from "lucide-react";
 
 import { BackendShell } from "@/components/backend-shell";
 import type { AiCardContent } from "@/lib/contracts/ai-card";
@@ -27,13 +37,33 @@ type VegasIntelResponse = ApiEnvelope<VegasIntelSnapshot | null> & {
   stats?: VegasIntelStats;
   events?: VegasEventRow[];
   opportunities?: VegasOpportunityRow[];
+  glideTables?: {
+    restaurants: number | null;
+    casinos: number | null;
+    fryers: number | null;
+    exportList: number | null;
+    scheduledReports: number | null;
+    shifts: number | null;
+    shiftCasinos: number | null;
+    shiftRestaurants: number | null;
+  };
 };
 
 type VegasIntelDraft = {
   status: string;
+  aiGenerated?: boolean;
+  provider?: string | null;
+  model?: string | null;
+  executiveBrief?: string | null;
   pitchAngle: string | null;
   salesScript: string | null;
+  emailDraft?: string | null;
+  callPlan?: string[];
+  objectionHandling?: string[];
+  riskFlags?: string[];
+  evidenceSummary?: string[];
   nextAction: string | null;
+  aiWarning?: string | null;
   evidenceBullets?: string[];
   eventName?: string | null;
   eventCategory?: string | null;
@@ -49,15 +79,11 @@ type VegasIntelDraftResponse = {
   draft?: VegasIntelDraft;
 };
 
-const SEGMENTS: Array<{
-  id: VegasSegment;
-  label: string;
-  accent: string;
-}> = [
-  { id: "all", label: "All Accounts", accent: "#3b82f6" },
-  { id: "customers", label: "Customers", accent: "#2dd4bf" },
-  { id: "prospects", label: "Prospects", accent: "#ef4444" },
-  { id: "events", label: "Upcoming Events", accent: "#a855f7" },
+const SEGMENTS: Array<{ id: VegasSegment; label: string; accent: string }> = [
+  { id: "all", label: "Sales Universe", accent: "#3b82f6" },
+  { id: "prospects", label: "Lead Opportunities", accent: "#ef4444" },
+  { id: "customers", label: "Customer Coverage", accent: "#2dd4bf" },
+  { id: "events", label: "Event Windows", accent: "#a855f7" },
 ];
 
 function formatDate(value: string | null): string {
@@ -72,13 +98,28 @@ function formatDate(value: string | null): string {
   });
 }
 
+function formatShortDate(value: string | null): string {
+  if (!value) return "n/a";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
+
 function formatAttendance(value: number): string {
   return Number.isFinite(value) ? value.toLocaleString() : "0";
 }
 
-function formatCount(value: number | null | undefined): string {
-  if (value === null || value === undefined) return "missing";
-  return Number.isFinite(value) ? value.toLocaleString() : "missing";
+function formatCompactNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined) return "n/a";
+  return Number.isFinite(value) ? Math.round(value).toLocaleString() : "n/a";
+}
+
+function formatScore(value: number | null): string {
+  if (value === null) return "n/a";
+  return value.toFixed(1);
 }
 
 function urgencyColor(daysUntil: number): string {
@@ -87,13 +128,59 @@ function urgencyColor(daysUntil: number): string {
   return "#22c55e";
 }
 
+function cardTone(status: "customer" | "prospect"): {
+  accent: string;
+  badgeBg: string;
+  badgeText: string;
+} {
+  if (status === "prospect") {
+    return {
+      accent: "#ef4444",
+      badgeBg: "rgba(239, 68, 68, 0.18)",
+      badgeText: "#fca5a5",
+    };
+  }
+  return {
+    accent: "#2dd4bf",
+    badgeBg: "rgba(45, 212, 191, 0.16)",
+    badgeText: "#99f6e4",
+  };
+}
+
+function sourceLabel(row: VegasOpportunityRow): string {
+  const source = row.metadata?.source;
+  return typeof source === "string" && source.trim() ? source : "unknown-source";
+}
+
+function missingFields(row: VegasOpportunityRow): string[] {
+  const gaps: string[] = [];
+  if (!row.contactPerson) gaps.push("contact");
+  if (!row.oilType) gaps.push("oil");
+  if (row.fryerCount === null) gaps.push("fryers");
+  if (row.totalCapacityLbs === null) gaps.push("capacity");
+  if (!row.eventDate) gaps.push("event link");
+  return gaps;
+}
+
+function opportunitySummary(row: VegasOpportunityRow): string {
+  if (row.customerStatus === "prospect") {
+    return row.eventName
+      ? `${row.name} is unserviced in the current dataset, linked to ${row.eventName}, and should be treated as an active lead instead of a missing-service placeholder.`
+      : `${row.name} is unserviced in the current dataset and should be kept in the lead queue until event linkage or routing evidence improves.`;
+  }
+  return row.eventName
+    ? `${row.name} is an active customer account aligned to ${row.eventName}. Keep it in coverage mode, not lead-generation mode.`
+    : `${row.name} is an active customer account with no verified event linkage in the current response.`;
+}
+
 export default function VegasIntelPage() {
   const [snapshot, setSnapshot] = useState<VegasIntelSnapshot | null>(null);
   const [stats, setStats] = useState<VegasIntelStats | null>(null);
   const [cards, setCards] = useState<VegasCards | null>(null);
   const [events, setEvents] = useState<VegasEventRow[]>([]);
   const [opportunities, setOpportunities] = useState<VegasOpportunityRow[]>([]);
-  const [segment, setSegment] = useState<VegasSegment>("all");
+  const [glideTables, setGlideTables] = useState<VegasIntelResponse["glideTables"] | null>(null);
+  const [segment, setSegment] = useState<VegasSegment>("prospects");
   const [loading, setLoading] = useState(true);
   const [intelLoadingId, setIntelLoadingId] = useState<number | null>(null);
   const [intelDraftByRow, setIntelDraftByRow] = useState<Record<number, VegasIntelDraft>>({});
@@ -106,8 +193,8 @@ export default function VegasIntelPage() {
         if (res.ok && res.data) setSnapshot(res.data);
         setStats(res.stats ?? null);
         setCards(res.cards ?? null);
-        const orderedEvents = [...(res.events ?? [])].sort((a, b) => a.daysUntil - b.daysUntil);
-        setEvents(orderedEvents.slice(0, 8));
+        setGlideTables(res.glideTables ?? null);
+        setEvents([...(res.events ?? [])].sort((a, b) => a.daysUntil - b.daysUntil).slice(0, 8));
         setOpportunities(res.opportunities ?? []);
       })
       .catch(() => {})
@@ -150,447 +237,694 @@ export default function VegasIntelPage() {
     () => opportunities.filter((row) => row.customerStatus === "prospect"),
     [opportunities],
   );
+  const eventLinked = useMemo(
+    () => opportunities.filter((row) => row.eventDate !== null),
+    [opportunities],
+  );
+  const highPriorityLeads = useMemo(
+    () => prospects.filter((row) => row.opportunityScore !== null && row.opportunityScore >= 65),
+    [prospects],
+  );
+  const serviceGaps = useMemo(
+    () =>
+      opportunities
+        .map((row) => ({ row, gaps: missingFields(row) }))
+        .filter((entry) => entry.gaps.length > 0)
+        .sort((a, b) => b.gaps.length - a.gaps.length)
+        .slice(0, 6),
+    [opportunities],
+  );
 
   const displayedOpportunities = useMemo(() => {
-    if (segment === "customers") return customers.slice(0, 15);
-    if (segment === "prospects") return prospects.slice(0, 15);
-    if (segment === "events") return opportunities.slice(0, 15);
-    return opportunities.slice(0, 15);
-  }, [customers, opportunities, prospects, segment]);
+    if (segment === "customers") return customers.slice(0, 12);
+    if (segment === "prospects") return prospects.slice(0, 12);
+    if (segment === "events") return eventLinked.slice(0, 12);
+    return opportunities.slice(0, 12);
+  }, [customers, eventLinked, opportunities, prospects, segment]);
 
-  const totalFryers = useMemo(
-    () =>
-      opportunities.reduce((sum, row) => {
-        if (row.fryerCount === null) return sum;
-        return sum + row.fryerCount;
-      }, 0),
-    [opportunities],
-  );
-  const totalCapacity = useMemo(
-    () =>
-      opportunities.reduce((sum, row) => {
-        if (row.totalCapacityLbs === null) return sum;
-        return sum + row.totalCapacityLbs;
-      }, 0),
-    [opportunities],
-  );
-  const customerFryers = useMemo(
-    () =>
-      customers.reduce((sum, row) => {
-        if (row.fryerCount === null) return sum;
-        return sum + row.fryerCount;
-      }, 0),
-    [customers],
-  );
-  const customerCapacity = useMemo(
-    () =>
-      customers.reduce((sum, row) => {
-        if (row.totalCapacityLbs === null) return sum;
-        return sum + row.totalCapacityLbs;
-      }, 0),
-    [customers],
-  );
-  const prospectFryers = useMemo(
-    () =>
-      prospects.reduce((sum, row) => {
-        if (row.fryerCount === null) return sum;
-        return sum + row.fryerCount;
-      }, 0),
-    [prospects],
-  );
-  const prospectCapacity = useMemo(
-    () =>
-      prospects.reduce((sum, row) => {
-        if (row.totalCapacityLbs === null) return sum;
-        return sum + row.totalCapacityLbs;
-      }, 0),
-    [prospects],
-  );
   const segmentValues: Record<VegasSegment, number> = {
-    all: opportunities.length || snapshot?.highPriorityAccounts || 0,
-    customers: customers.length,
+    all: opportunities.length,
     prospects: prospects.length,
+    customers: customers.length,
     events: events.length || snapshot?.activeEvents || 0,
   };
+
+  const leadScoreAverage = useMemo(() => {
+    const values = prospects
+      .map((row) => row.opportunityScore)
+      .filter((value): value is number => value !== null);
+    if (values.length === 0) return null;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }, [prospects]);
+
   const eventAttendanceTotal = useMemo(
     () => events.reduce((sum, row) => sum + row.attendance, 0),
     [events],
   );
-  const eventNext7Days = useMemo(
-    () => events.filter((row) => row.daysUntil <= 7).length,
-    [events],
-  );
-  const segmentStats: Record<VegasSegment, Array<{ value: string | number; label: string }>> = {
-    all: [
-      { value: totalFryers, label: "Fryers" },
-      { value: Math.round(totalCapacity).toLocaleString(), label: "Capacity" },
-    ],
-    customers: [
-      { value: customerFryers, label: "Fryers" },
-      { value: Math.round(customerCapacity).toLocaleString(), label: "Capacity" },
-    ],
-    prospects: [
-      { value: prospectFryers, label: "Fryers" },
-      { value: Math.round(prospectCapacity).toLocaleString(), label: "Capacity" },
-    ],
-    events: [
-      { value: formatAttendance(eventAttendanceTotal), label: "Attendance" },
-      { value: eventNext7Days, label: "Next 7 Days" },
-    ],
-  };
+
+  const telemetryCoverage = useMemo(() => {
+    const populated = opportunities.filter((row) => row.fryerCount !== null && row.totalCapacityLbs !== null);
+    return {
+      populated: populated.length,
+      total: opportunities.length,
+    };
+  }, [opportunities]);
+
+  const leadDataSourceSummary = useMemo(() => {
+    const trustedFillProspects = prospects.filter((row) => sourceLabel(row) === "trusted-fill-pipeline").length;
+    const glideCustomers = customers.filter((row) => sourceLabel(row) === "glide").length;
+    return { trustedFillProspects, glideCustomers };
+  }, [customers, prospects]);
 
   const opportunityHeading =
-    segment === "customers"
-      ? `Customers (${displayedOpportunities.length})`
-      : segment === "prospects"
-        ? `Prospects (${displayedOpportunities.length})`
-        : `All Accounts (${displayedOpportunities.length})`;
+    segment === "prospects"
+      ? `Lead Opportunities (${displayedOpportunities.length})`
+      : segment === "customers"
+        ? `Customer Coverage (${displayedOpportunities.length})`
+        : segment === "events"
+          ? `Event-Linked Accounts (${displayedOpportunities.length})`
+          : `Sales Universe (${displayedOpportunities.length})`;
 
   return (
     <BackendShell>
-      <div className="w-full min-h-screen bg-[#0a0a0a] text-slate-200 px-3 md:px-6 pb-20">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <Building2 className="w-8 h-8" />
-              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white">Vegas Intel</h1>
-            </div>
-            <p className="text-slate-400 text-sm font-mono">
-              Sales strategy, event intelligence, and account recommendations for Las Vegas restaurant operations
-            </p>
-          </div>
-        </header>
+      <div className="min-h-screen w-full bg-[#05070b] px-3 pb-20 text-slate-200 md:px-6">
+        <div className="mx-auto flex w-full max-w-none flex-col gap-8 py-6">
+          <header className="rounded-[20px] border border-white/10 bg-[radial-gradient(circle_at_top_left,_rgba(168,85,247,0.18),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.16),_transparent_25%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-6 md:p-8">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-4xl">
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <Building2 className="h-7 w-7 text-cyan-300" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.35em] text-cyan-300/80">
+                      Vegas Sales Workspace
+                    </div>
+                    <h1 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+                      Vegas Intel
+                    </h1>
+                  </div>
+                </div>
+                <p className="max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
+                  Event-driven lead generation, customer coverage, and fryer-service readiness for Kevin&apos;s Las Vegas account book.
+                  The lead queue now prioritizes unserviced rows with live event impact instead of burying them behind customer records.
+                </p>
+              </div>
 
-        <section className="mb-12">
-          <div
-            className="vegas-segment-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: "12px",
-              marginBottom: "48px",
-            }}
-          >
+              <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[480px]">
+                <HeroMetric
+                  label="Active events"
+                  value={snapshot?.activeEvents ?? events.length}
+                  tone="violet"
+                  detail={`${events.filter((event) => event.daysUntil <= 14).length} inside 14 days`}
+                />
+                <HeroMetric
+                  label="Lead opportunities"
+                  value={prospects.length}
+                  tone="red"
+                  detail={`${highPriorityLeads.length} score >= 65`}
+                />
+                <HeroMetric
+                  label="Customer accounts"
+                  value={customers.length}
+                  tone="teal"
+                  detail={`telemetry ${telemetryCoverage.populated}/${telemetryCoverage.total}`}
+                />
+              </div>
+            </div>
+          </header>
+
+          <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr_1fr]">
+            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+              <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-red-300/80">
+                <Flame className="h-4 w-4" />
+                Lead View
+              </div>
+              <div className="mb-4 text-3xl font-semibold text-white">
+                {highPriorityLeads.length > 0 ? `${highPriorityLeads.length} live leads ready for outreach` : "Lead queue needs rebuild"}
+              </div>
+              <p className="text-sm leading-6 text-slate-300">
+                {cards?.aiSalesStrategy?.body ??
+                  "Hard stop: AI sales strategy card is unavailable."}
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <MiniStat
+                  label="Avg lead score"
+                  value={leadScoreAverage === null ? "n/a" : leadScoreAverage.toFixed(1)}
+                />
+                <MiniStat
+                  label="Trusted-fill prospects"
+                  value={leadDataSourceSummary.trustedFillProspects}
+                />
+                <MiniStat
+                  label="Event-linked leads"
+                  value={prospects.filter((row) => row.eventDate !== null).length}
+                />
+              </div>
+            </div>
+
+            <InfoPanel
+              icon={<CalendarDays className="h-4 w-4 text-violet-300" />}
+              title="Event Pressure"
+              body={cards?.upcomingEvents?.body ?? "Hard stop: upcoming events card unavailable."}
+            />
+            <InfoPanel
+              icon={<Wrench className="h-4 w-4 text-cyan-300" />}
+              title="Service Gaps"
+              body={cards?.fryerTracking?.body ?? "Hard stop: fryer tracking card unavailable."}
+            />
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AiBriefCard title={cards?.upcomingEvents?.title ?? "Upcoming Events"} body={cards?.upcomingEvents?.body} />
+            <AiBriefCard title={cards?.aiSalesStrategy?.title ?? "AI Sales Strategy"} body={cards?.aiSalesStrategy?.body} />
+            <AiBriefCard title={cards?.restaurantAccounts?.title ?? "Restaurant Accounts"} body={cards?.restaurantAccounts?.body} />
+            <AiBriefCard title={cards?.fryerTracking?.title ?? "Fryer Tracking"} body={cards?.fryerTracking?.body} />
+          </section>
+
+          <section className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+            <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-300/80">
+              <Building2 className="h-4 w-4" />
+              Glide Table Coverage
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-8">
+              <GlideTableCard label="restaurants" value={glideTables?.restaurants} />
+              <GlideTableCard label="casinos" value={glideTables?.casinos} />
+              <GlideTableCard label="fryers" value={glideTables?.fryers} />
+              <GlideTableCard label="export_list" value={glideTables?.exportList} />
+              <GlideTableCard label="scheduled_reports" value={glideTables?.scheduledReports} />
+              <GlideTableCard label="shifts" value={glideTables?.shifts} />
+              <GlideTableCard label="shift_casinos" value={glideTables?.shiftCasinos} />
+              <GlideTableCard label="shift_restaurants" value={glideTables?.shiftRestaurants} />
+            </div>
+          </section>
+
+          <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             {SEGMENTS.map((item) => {
               const active = segment === item.id;
-              const mainValue = segmentValues[item.id];
-              const valueColor = active ? item.accent : "rgba(255,255,255,0.9)";
-              const labelColor = active ? item.accent : "rgba(255,255,255,0.5)";
               return (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setSegment(item.id)}
-                  className="text-left min-h-[140px] px-4 py-5 flex flex-col justify-between rounded-none"
+                  className="rounded-[18px] border p-5 text-left transition hover:-translate-y-0.5"
                   style={{
-                    background: active ? `${item.accent}15` : "rgba(255,255,255,0.02)",
-                    border: active
-                      ? `2px solid ${item.accent}`
-                      : "1px solid rgba(255,255,255,0.08)",
-                    borderLeft: `4px solid ${item.accent}`,
-                    transition: "all 0.2s ease",
+                    borderColor: active ? item.accent : "rgba(255,255,255,0.10)",
+                    background: active ? `${item.accent}14` : "rgba(255,255,255,0.03)",
+                    boxShadow: active ? `inset 0 0 0 1px ${item.accent}40` : "none",
                   }}
                 >
-                  <div>
-                    <div
-                      className="text-[36px] font-bold leading-none mb-1.5"
-                      style={{ color: valueColor }}
-                    >
-                      {mainValue}
-                    </div>
-                    <div
-                      className="text-[11px] uppercase tracking-[0.5px] font-semibold"
-                      style={{ color: labelColor }}
-                    >
-                      {item.label}
-                    </div>
+                  <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/45">
+                    {item.label}
                   </div>
-                  <div
-                    className="flex gap-4 mt-4 pt-3"
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
-                  >
-                    {segmentStats[item.id].map((stat) => (
-                      <div key={stat.label}>
-                        <div className="text-sm font-semibold text-white/80">{stat.value}</div>
-                        <div className="text-[9px] uppercase tracking-[0.5px] text-white/40">
-                          {stat.label}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="mb-2 text-4xl font-semibold text-white">{segmentValues[item.id]}</div>
+                  <div className="text-sm text-slate-300">
+                    {item.id === "prospects"
+                      ? `${highPriorityLeads.length} qualified by score, ${leadDataSourceSummary.trustedFillProspects} currently from trusted-fill lead rows.`
+                      : item.id === "customers"
+                        ? `${leadDataSourceSummary.glideCustomers} Glide service accounts in current response.`
+                        : item.id === "events"
+                          ? `${events.filter((event) => event.daysUntil <= 14).length} events inside 14 days.`
+                          : `${eventLinked.length} event-linked rows across the current sales universe.`}
                   </div>
                 </button>
               );
             })}
-          </div>
-        </section>
+          </section>
 
-        <section className="mb-12">
-          <h2 className="text-xs font-semibold uppercase tracking-[1px] opacity-60 mb-4">
-            Upcoming Events ({events.length})
-          </h2>
-          <div className="flex flex-col gap-0.5">
-            {loading ? (
-              <LoadingRow message="Loading..." />
-            ) : events.length === 0 ? (
-              <div
-                className="p-10 text-center opacity-50"
-                style={{
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                {cards?.upcomingEvents?.body ?? "Hard stop: upcoming-event card has no verified data."}
-              </div>
-            ) : (
-              events.map((event) => (
-                <div
-                  key={event.id}
-                  className="vegas-event-row"
-                  style={{
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    padding: "20px 24px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "24px",
-                  }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-base font-semibold text-white/95 mb-1.5">{event.name}</div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[13px] text-white/50">{event.venue ?? "Venue unavailable"}</span>
-                      <span
-                        className="text-[10px] font-semibold uppercase px-2 py-0.5"
-                        style={{
-                          background: `${event.color}20`,
-                          color: event.color,
-                          borderRadius: "2px",
-                        }}
-                      >
-                        {event.category}
-                      </span>
-                    </div>
-                    <div className="text-xs text-white/40">{formatDate(event.startDate)}</div>
+          <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80">
+                    Event Windows
                   </div>
+                  <h2 className="mt-1 text-2xl font-semibold text-white">What is driving the next demand wave</h2>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-300">
+                  {formatAttendance(eventAttendanceTotal)} projected attendance across visible events
+                </div>
+              </div>
 
-                  <div
-                    className="vegas-event-stats"
-                    style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}
-                  >
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-white/90">{formatAttendance(event.attendance)}</div>
-                      <div className="text-[10px] uppercase text-white/40">Attendance</div>
-                    </div>
-
-                    <div
-                      className="w-[52px] h-[52px] rounded-full border-[3px] flex flex-col items-center justify-center"
-                      style={{ borderColor: urgencyColor(event.daysUntil) }}
+              {loading ? (
+                <LoadingCard message="Loading event windows..." />
+              ) : events.length === 0 ? (
+                <LoadingCard
+                  message={cards?.upcomingEvents?.body ?? "Hard stop: upcoming events card has no verified data."}
+                />
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {events.map((event) => (
+                    <article
+                      key={event.id}
+                      className="rounded-[18px] border border-white/10 bg-[#0b0f16] p-5"
                     >
-                      <div className="text-base font-bold text-white/90 leading-none">{event.daysUntil}</div>
-                      <div className="text-[8px] uppercase text-white/50">Days</div>
-                    </div>
-
-                    <div
-                      className="w-[52px] h-[52px] rounded-full border-[3px] flex flex-col items-center justify-center"
-                      style={{ borderColor: "#06b6d4" }}
-                    >
-                      <div className="text-base font-bold text-white/90 leading-none">
-                        {event.durationDays}
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div>
+                          <div className="mb-2 flex items-center gap-2">
+                            <span
+                              className="rounded-[4px] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]"
+                              style={{ background: `${event.color}20`, color: event.color }}
+                            >
+                              {event.category}
+                            </span>
+                            <span className="text-xs text-slate-400">{event.venue ?? "Venue unavailable"}</span>
+                          </div>
+                          <h3 className="text-lg font-semibold text-white">{event.name}</h3>
+                        </div>
+                        <div
+                          className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-full border-[3px]"
+                          style={{ borderColor: urgencyColor(event.daysUntil) }}
+                        >
+                          <div className="text-xl font-semibold text-white">{event.daysUntil}</div>
+                          <div className="text-[9px] uppercase tracking-[0.24em] text-white/55">days</div>
+                        </div>
                       </div>
-                      <div className="text-[8px] uppercase text-white/50">Days</div>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <MiniStat label="Start" value={formatShortDate(event.startDate)} />
+                        <MiniStat label="Duration" value={`${event.durationDays}d`} />
+                        <MiniStat label="Attendance" value={formatAttendance(event.attendance)} />
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-4">
+              <SideMetricCard
+                icon={<Clock3 className="h-4 w-4 text-amber-300" />}
+                title="Timing posture"
+                body={cards?.upcomingEvents?.body ?? "Upcoming timing brief unavailable."}
+              />
+              <SideMetricCard
+                icon={<TriangleAlert className="h-4 w-4 text-red-300" />}
+                title="Lead source truth"
+                body={`Current response contains ${leadDataSourceSummary.trustedFillProspects} trusted-fill prospect rows with live event-impact scoring, while Glide contributes ${leadDataSourceSummary.glideCustomers} current service accounts.`}
+              />
+              <SideMetricCard
+                icon={<Sparkles className="h-4 w-4 text-cyan-300" />}
+                title="Telemetry coverage"
+                body={`${telemetryCoverage.populated} of ${telemetryCoverage.total} visible rows currently have both fryer and capacity telemetry populated.`}
+              />
+            </div>
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-red-300/80">
+                    Account Workspace
+                  </div>
+                  <h2 className="mt-1 text-2xl font-semibold text-white">{opportunityHeading}</h2>
+                </div>
+                <div className="text-sm text-slate-400">
+                  {segment === "prospects"
+                    ? "Unserviced rows first"
+                    : segment === "customers"
+                      ? "Coverage and service context"
+                      : segment === "events"
+                        ? "Rows with event linkage"
+                        : "Full ranked universe"}
+                </div>
+              </div>
+
+              {loading ? (
+                <LoadingCard message="Loading opportunity workspace..." />
+              ) : displayedOpportunities.length === 0 ? (
+                <LoadingCard
+                  message={
+                    cards?.restaurantAccounts?.body ??
+                    "Hard stop: restaurant-accounts card has no verified account data."
+                  }
+                />
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {displayedOpportunities.map((row) => (
+                    <OpportunityCard
+                      key={row.id}
+                      row={row}
+                      intelDraft={intelDraftByRow[row.id]}
+                      intelError={intelErrorByRow[row.id]}
+                      isLoadingIntel={intelLoadingId === row.id}
+                      onIntel={() => void requestIntelDraft(row)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="grid gap-4">
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+                <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-300/80">
+                  Service Gaps
+                </div>
+                <div className="space-y-3">
+                  {serviceGaps.length === 0 ? (
+                    <div className="rounded-[16px] border border-white/8 bg-white/[0.02] p-4 text-sm text-slate-300">
+                      No service-gap rows in the current response.
                     </div>
+                  ) : (
+                    serviceGaps.map(({ row, gaps }) => (
+                      <div
+                        key={row.id}
+                        className="rounded-[16px] border border-white/8 bg-[#0b0f16] p-4"
+                      >
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <div className="text-sm font-semibold text-white">{row.name}</div>
+                          <div className="text-[10px] uppercase tracking-[0.24em] text-slate-400">
+                            {row.customerStatus}
+                          </div>
+                        </div>
+                        <div className="text-xs text-slate-300">
+                          Missing: {gaps.join(", ")}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+                <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-300/80">
+                  Coverage Notes
+                </div>
+                <div className="space-y-3 text-sm leading-6 text-slate-300">
+                  <div>
+                    Customer rows are real service accounts because they carry service cadence from Glide.
+                  </div>
+                  <div>
+                    Prospect rows are the current lead set because they have no service cadence but do carry event-impact scoring.
+                  </div>
+                  <div>
+                    The current dataset still lacks venue and restaurant geometry, so this page cannot yet compute true distance-to-event routing.
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section className="mb-12">
-          <h2 className="text-xs font-semibold uppercase tracking-[1px] opacity-60 mb-4">
-            {opportunityHeading}
-          </h2>
-          <div className="flex flex-col gap-2">
-            {loading ? (
-              <LoadingRow message="Loading..." />
-            ) : displayedOpportunities.length === 0 ? (
-              <div
-                className="p-10 text-center opacity-50"
-                style={{
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                {cards?.restaurantAccounts?.body ??
-                  "Hard stop: restaurant-accounts card has no verified account-score data."}
               </div>
-            ) : (
-              displayedOpportunities.map((row) => {
-                const accent = row.customerStatus === "customer" ? "#2dd4bf" : "#b91c1c";
-                const fryerLabel = row.fryerCount === null ? "Missing fryer telemetry" : String(row.fryerCount);
-                const capacityLabel =
-                  row.totalCapacityLbs !== null
-                    ? `${Math.round(row.totalCapacityLbs).toLocaleString()} lbs`
-                    : "Missing capacity telemetry";
-                const scheduleLabel =
-                  row.serviceFrequency ??
-                  (row.shiftCount !== null || row.scheduledReportCount !== null
-                    ? `Shifts ${row.shiftCount ?? 0} | Reports ${row.scheduledReportCount ?? 0}`
-                    : "No schedule");
-                const fallbackEvent = events[0];
-                const eventLabel =
-                  row.eventName && row.eventDate
-                    ? `${row.eventName} (${formatDate(row.eventDate)})`
-                    : fallbackEvent && fallbackEvent.startDate
-                      ? `${fallbackEvent.name} (${formatDate(fallbackEvent.startDate)})`
-                      : "No linked event window";
-                const intelDraft = intelDraftByRow[row.id];
-                const intelError = intelErrorByRow[row.id];
-                const isLoadingIntel = intelLoadingId === row.id;
-                return (
-                  <div
-                    key={row.id}
-                    className="vegas-opp-row"
-                    style={{
-                      display: "flex",
-                      alignItems: "stretch",
-                      background: "rgba(255,255,255,0.02)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div className="w-1 shrink-0" style={{ background: accent }} />
-                    <div
-                      className="flex-1"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "16px",
-                          padding: "16px 24px",
-                          width: "100%",
-                        }}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-1">
-                            <div className="text-[15px] font-semibold text-white">
-                              {(row.casino ?? "Casino unavailable") + " - " + row.name}
-                            </div>
-                            {row.customerStatus === "prospect" ? (
-                              <span
-                                className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.5px]"
-                                style={{
-                                  background: "rgba(185, 28, 28, 0.2)",
-                                  color: "#f87171",
-                                  borderRadius: "2px",
-                                }}
-                              >
-                                Prospect
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="text-xs text-white/50">
-                            {`${fryerLabel} fryers (${capacityLabel}) | ${scheduleLabel}`}
-                          </div>
-                          <div className="text-xs text-white/35 mt-1">
-                            {(row.oilType ?? "Oil type missing") +
-                              " | " +
-                              (row.contactPerson ?? "Contact missing") +
-                              " | " +
-                              eventLabel}
-                          </div>
-                      </div>
-
-                        <button
-                          type="button"
-                          onClick={() => void requestIntelDraft(row)}
-                          disabled={isLoadingIntel}
-                          className="px-4 py-2 text-xs font-semibold bg-transparent border border-white/20 text-white/80 shrink-0 disabled:opacity-50"
-                          style={{ borderRadius: "2px" }}
-                        >
-                          {isLoadingIntel ? "Loading..." : "Intel"}
-                        </button>
-                      </div>
-                      {intelError ? (
-                        <div
-                          className="text-xs text-red-300"
-                          style={{
-                            width: "100%",
-                            padding: "12px 24px",
-                            borderTop: "1px solid rgba(255,255,255,0.08)",
-                            background: "rgba(127, 29, 29, 0.20)",
-                          }}
-                        >
-                          {intelError}
-                        </div>
-                      ) : null}
-                      {intelDraft ? (
-                        <div
-                          className="text-xs text-white/80"
-                          style={{
-                            width: "100%",
-                            padding: "12px 24px",
-                            borderTop: "1px solid rgba(255,255,255,0.08)",
-                            background: "rgba(255,255,255,0.02)",
-                          }}
-                        >
-                          <div className="font-semibold text-white/90 mb-1">
-                            {intelDraft.pitchAngle ?? "Draft Intel"}
-                          </div>
-                          <div className="text-white/55 mb-2">
-                            {intelDraft.eventName ?? "No linked event"}
-                            {intelDraft.daysUntil !== undefined && intelDraft.daysUntil !== null
-                              ? ` | ${intelDraft.daysUntil} days out`
-                              : ""}
-                            {intelDraft.cuisineType ? ` | Cuisine: ${intelDraft.cuisineType}` : ""}
-                            {intelDraft.cuisineAffinityScore !== undefined && intelDraft.cuisineAffinityScore !== null
-                              ? ` | Affinity: ${intelDraft.cuisineAffinityScore}/100`
-                              : ""}
-                          </div>
-                          <div className="text-white/75">{intelDraft.salesScript ?? "Draft unavailable."}</div>
-                          <div className="text-white/50 mt-1">{intelDraft.nextAction}</div>
-                          {intelDraft.evidenceBullets && intelDraft.evidenceBullets.length > 0 ? (
-                            <ul className="mt-2 space-y-1 text-white/60 list-disc pl-4">
-                              {intelDraft.evidenceBullets.map((bullet) => (
-                                <li key={bullet}>{bullet}</li>
-                              ))}
-                            </ul>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </section>
-
-        {stats?.lastSync ? (
-          <div className="space-y-1">
-            <div className="text-xs text-slate-500 font-mono">Last sync: {formatDate(stats.lastSync)}</div>
-            <div className="text-xs text-slate-500 font-mono">
-              Glide groups - export list: {formatCount(stats.exportList)}, shifts: {formatCount(stats.shifts)},
-              scheduled reports: {formatCount(stats.scheduledReports)}
             </div>
-          </div>
-        ) : null}
+          </section>
+
+          {stats?.lastSync ? (
+            <footer className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 text-xs text-slate-400">
+              Last sync {formatDate(stats.lastSync)}. Glide groups: export list {formatCompactNumber(stats.exportList)},
+              shifts {formatCompactNumber(stats.shifts)}, scheduled reports {formatCompactNumber(stats.scheduledReports)}.
+            </footer>
+          ) : null}
+        </div>
       </div>
     </BackendShell>
   );
 }
 
-function LoadingRow({ message }: { message: string }) {
+function HeroMetric({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: number;
+  detail: string;
+  tone: "violet" | "red" | "teal";
+}) {
+  const palette =
+    tone === "violet"
+      ? { text: "text-violet-300", bg: "bg-violet-500/10" }
+      : tone === "red"
+        ? { text: "text-red-300", bg: "bg-red-500/10" }
+        : { text: "text-teal-300", bg: "bg-teal-500/10" };
+
   return (
-    <div
-      className="p-10 text-center opacity-50"
-      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)" }}
+    <div className={`rounded-[18px] border border-white/10 ${palette.bg} p-4`}>
+      <div className="text-[11px] uppercase tracking-[0.24em] text-white/45">{label}</div>
+      <div className={`mt-2 text-3xl font-semibold ${palette.text}`}>{value}</div>
+      <div className="mt-1 text-xs text-slate-300">{detail}</div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-[14px] border border-white/8 bg-white/[0.03] p-3">
+      <div className="text-[10px] uppercase tracking-[0.24em] text-white/45">{label}</div>
+      <div className="mt-1 text-lg font-semibold text-white">{value}</div>
+    </div>
+  );
+}
+
+function GlideTableCard({ label, value }: { label: string; value: number | null | undefined }) {
+  return (
+    <div className="rounded-[14px] border border-white/8 bg-[#0b0f16] p-4">
+      <div className="text-[10px] uppercase tracking-[0.18em] text-white/45">{label}</div>
+      <div className="mt-2 text-2xl font-semibold text-white">
+        {value === null || value === undefined ? "n/a" : value.toLocaleString()}
+      </div>
+    </div>
+  );
+}
+
+function InfoPanel({
+  icon,
+  title,
+  body,
+}: {
+  icon: ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-6">
+      <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60">
+        {icon}
+        {title}
+      </div>
+      <p className="text-sm leading-6 text-slate-300">{body}</p>
+    </div>
+  );
+}
+
+function AiBriefCard({ title, body }: { title: string; body?: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/10 bg-[#0b0f16] p-5">
+      <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/45">
+        AI Brief
+      </div>
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <p className="mt-3 text-sm leading-6 text-slate-300">{body ?? "Card unavailable."}</p>
+    </div>
+  );
+}
+
+function SideMetricCard({
+  icon,
+  title,
+  body,
+}: {
+  icon: ReactNode;
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="rounded-[18px] border border-white/10 bg-[#0b0f16] p-5">
+      <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60">
+        {icon}
+        {title}
+      </div>
+      <div className="text-sm leading-6 text-slate-300">{body}</div>
+    </div>
+  );
+}
+
+function OpportunityCard({
+  row,
+  intelDraft,
+  intelError,
+  isLoadingIntel,
+  onIntel,
+}: {
+  row: VegasOpportunityRow;
+  intelDraft?: VegasIntelDraft;
+  intelError?: string;
+  isLoadingIntel: boolean;
+  onIntel: () => void;
+}) {
+  const tone = cardTone(row.customerStatus);
+  const gaps = missingFields(row);
+
+  return (
+    <article
+      className="overflow-hidden rounded-[18px] border border-white/10 bg-[#0b0f16]"
+      style={{ boxShadow: `inset 0 0 0 1px ${tone.accent}18` }}
     >
+      <div className="border-b border-white/8 p-5" style={{ borderLeft: `4px solid ${tone.accent}` }}>
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span
+                className="rounded-[4px] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em]"
+                style={{ background: tone.badgeBg, color: tone.badgeText }}
+              >
+                {row.customerStatus}
+              </span>
+              {row.opportunityScore !== null && row.opportunityScore >= 65 ? (
+                <span className="rounded-[4px] bg-amber-500/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-200">
+                  qualified
+                </span>
+              ) : null}
+              <span className="rounded-[4px] bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/50">
+                {sourceLabel(row)}
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold text-white">{row.name}</h3>
+            <div className="mt-1 text-sm text-slate-400">{row.casino ?? "Casino unavailable"}</div>
+          </div>
+          <button
+            type="button"
+            onClick={onIntel}
+            disabled={isLoadingIntel}
+            className="rounded-[8px] border border-white/15 px-3 py-2 text-xs font-semibold text-white/80 transition hover:border-white/30 disabled:opacity-50"
+          >
+            {isLoadingIntel ? "Loading..." : "Intel"}
+          </button>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <MiniStat label="Lead score" value={formatScore(row.opportunityScore)} />
+          <MiniStat label="Event pressure" value={formatScore(row.eventPressure)} />
+          <MiniStat label="Fryers" value={row.fryerCount ?? "n/a"} />
+          <MiniStat
+            label="Capacity"
+            value={row.totalCapacityLbs === null ? "n/a" : `${Math.round(row.totalCapacityLbs).toLocaleString()} lbs`}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4 p-5">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <DetailRow icon={<CalendarDays className="h-4 w-4 text-violet-300" />} label="Event">
+            {row.eventName ? `${row.eventName} • ${formatDate(row.eventDate)}` : "No linked event"}
+          </DetailRow>
+          <DetailRow icon={<MapPin className="h-4 w-4 text-cyan-300" />} label="Schedule">
+            {row.serviceFrequency ?? "No service cadence"}
+          </DetailRow>
+          <DetailRow icon={<PhoneCall className="h-4 w-4 text-emerald-300" />} label="Contact">
+            {row.contactPerson ?? "Contact missing"}
+          </DetailRow>
+          <DetailRow icon={<Wrench className="h-4 w-4 text-amber-300" />} label="Oil">
+            {row.oilType ?? "Oil type missing"}
+          </DetailRow>
+        </div>
+
+        <div className="rounded-[14px] border border-white/8 bg-white/[0.03] p-4 text-sm leading-6 text-slate-300">
+          {opportunitySummary(row)}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          {gaps.length > 0 ? (
+            <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-red-200">
+              Missing: {gaps.join(", ")}
+            </span>
+          ) : (
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+              Operational fields populated
+            </span>
+          )}
+          {row.exportListed !== null ? (
+            <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-slate-300">
+              Export list {row.exportListed ? "yes" : "no"}
+            </span>
+          ) : null}
+        </div>
+
+        {intelError ? (
+          <div className="rounded-[14px] border border-red-500/20 bg-red-950/30 p-4 text-sm text-red-200">
+            {intelError}
+          </div>
+        ) : null}
+
+        {intelDraft ? (
+          <div className="rounded-[14px] border border-cyan-500/20 bg-cyan-500/5 p-4">
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200/80">
+              <Sparkles className="h-4 w-4" />
+              Draft Intel
+            </div>
+            <div className="text-sm font-semibold text-white">
+              {intelDraft.pitchAngle ?? "Draft pitch"}
+            </div>
+            <div className="mt-1 text-xs text-slate-400">
+              {intelDraft.aiGenerated
+                ? `OpenRouter ${intelDraft.model ?? ""}`.trim()
+                : intelDraft.provider ?? "Structured verification"}
+            </div>
+            {intelDraft.aiWarning ? (
+              <div className="mt-3 rounded-[10px] border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-100">
+                {intelDraft.aiWarning}
+              </div>
+            ) : null}
+            {intelDraft.executiveBrief ? (
+              <div className="mt-3 text-sm leading-6 text-slate-300">{intelDraft.executiveBrief}</div>
+            ) : null}
+            <div className="mt-3 text-sm leading-6 text-slate-200">
+              {intelDraft.salesScript ?? "Draft unavailable."}
+            </div>
+            {intelDraft.callPlan && intelDraft.callPlan.length > 0 ? (
+              <ReportList title="Call Plan" items={intelDraft.callPlan} />
+            ) : null}
+            {intelDraft.objectionHandling && intelDraft.objectionHandling.length > 0 ? (
+              <ReportList title="Objections" items={intelDraft.objectionHandling} />
+            ) : null}
+            {intelDraft.riskFlags && intelDraft.riskFlags.length > 0 ? (
+              <ReportList title="Risk Flags" items={intelDraft.riskFlags} />
+            ) : null}
+            {intelDraft.nextAction ? (
+              <div className="mt-3 text-sm text-slate-300">{intelDraft.nextAction}</div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function DetailRow({
+  icon,
+  label,
+  children,
+}: {
+  icon: ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[14px] border border-white/8 bg-white/[0.03] p-3">
+      <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-white/45">
+        {icon}
+        {label}
+      </div>
+      <div className="text-sm text-slate-300">{children}</div>
+    </div>
+  );
+}
+
+function ReportList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="mt-3">
+      <div className="mb-1 text-[10px] uppercase tracking-[0.24em] text-white/45">{title}</div>
+      <ul className="space-y-1 pl-4 text-sm text-slate-300">
+        {items.map((item) => (
+          <li key={item} className="list-disc">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function LoadingCard({ message }: { message: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-slate-400">
       {message}
     </div>
   );

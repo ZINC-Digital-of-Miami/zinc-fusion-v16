@@ -295,4 +295,4 @@ After a successful commit and push, run a condensed re-audit:
 - **Never edit any file without a written change plan explicitly approved by the user first**
 - **Never fix more than what was approved — no scope creep during fixing**
 - **Silence is not approval. Proceed only on explicit "yes, proceed" or equivalent**
-- Architecture decisions go through the Ralph Loop — surface findings only
+- Architecture decisions go through checkpoint decision docs — surface findings only

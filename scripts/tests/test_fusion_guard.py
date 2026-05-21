@@ -20,23 +20,21 @@ def load_fusion_guard_module():
 
 
 class FusionGuardContractTest(unittest.TestCase):
-    def test_zl_daily_route_uses_canonical_hourly_before_legacy_intraday_tables(self):
+    def test_zl_daily_route_uses_hourly_only_for_latest_daily_fill(self):
         source = (ROOT / "app/api/zl/price-1d/route.ts").read_text(encoding="utf-8")
 
-        hourly = source.index('{ table: "price_1h"')
-        fifteen_minute = source.index('{ table: "price_15m"')
-        one_minute = source.index('{ table: "price_1m"')
+        self.assertIn('.from("price_1h")', source)
+        self.assertNotIn("price_15m", source)
+        self.assertNotIn("price_1m", source)
 
-        self.assertLess(hourly, fifteen_minute)
-        self.assertLess(hourly, one_minute)
-
-    def test_zl_intraday_route_falls_back_to_hourly_latest_window(self):
+    def test_zl_intraday_route_reads_hourly_window_only(self):
         source = (ROOT / "app/api/zl/intraday/route.ts").read_text(encoding="utf-8")
 
-        self.assertIn('"price_15m" | "price_1m" | "price_1h"', source)
-        self.assertIn('await fetchBars("price_1h")', source)
+        self.assertIn('.from("price_1h")', source)
         self.assertIn('.order("bucket_ts", { ascending: false })', source)
         self.assertIn('.limit(', source)
+        self.assertNotIn("price_15m", source)
+        self.assertNotIn("price_1m", source)
 
     def test_zl_price_1h_route_reads_latest_limited_window(self):
         source = (ROOT / "app/api/zl/price-1h/route.ts").read_text(encoding="utf-8")

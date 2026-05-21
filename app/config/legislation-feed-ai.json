@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-19T07:08:09-04:00",
+  "generatedAt": "2026-05-20T07:03:30-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -31,7 +31,7 @@
       },
       "provenance": {
         "asOf": "2026-05-19",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -96,7 +96,7 @@
       },
       "provenance": {
         "asOf": "2026-05-19",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -148,7 +148,7 @@
       },
       "provenance": {
         "asOf": "2026-05-19",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",

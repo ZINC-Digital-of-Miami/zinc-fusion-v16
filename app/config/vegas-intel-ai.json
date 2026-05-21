@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-19T07:08:09-04:00",
+  "generatedAt": "2026-05-20T07:03:30-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,36 +7,36 @@
   "snapshot": {
     "activeEvents": 12,
     "highPriorityAccounts": 0,
-    "updatedAt": "2026-05-19T07:08:09-04:00"
+    "updatedAt": "2026-05-20T07:03:30-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "The current Vegas event stack holds 1 event inside 14 days and 3 inside 30 days, out of 12 active future event rows. The near-term anchor is the final EDC Week day on May 19, followed by an 18-day gap until June 6 fireworks, so Kevin should shift from surge-response outreach to cleanup now and June reload next.",
+      "body": "EDC Week cleared on May 19, so the Vegas demand curve has rolled from live surge coverage into a reload gap. The stack still matters because the next named handoff is June 6 fireworks, which gives Kevin a short cleanup window now: close post-EDC follow-up first, then rebuild outreach around the next demand pulse instead of pretending the calendar is still compressed.",
       "strategicSpecialInstructions": {
-        "cardTopic": "Event-Driven Demand Window Risk",
-        "strategicObjective": "Map short-window event compression into immediate sales and service timing priorities.",
-        "neuralConnectionThesis": "When a meaningful share of the future event book is compressed into the next two weeks, Kevin's edge comes from sequence and timing rather than broader prospecting.",
+        "cardTopic": "Event-Window Compression and Reload Timing",
+        "strategicObjective": "Translate the handoff between a just-finished event spike and the next named Vegas demand window into the right outreach and service cadence.",
+        "neuralConnectionThesis": "Once a major event cluster clears, Kevin gains more by exploiting the reload gap correctly than by continuing surge-mode behavior after the traffic wave has already passed.",
         "quantResearchProtocol": [
-          "Count events in 14-day and 30-day windows.",
-          "Compare those counts with the full active future-event inventory.",
-          "Identify the named near-term anchor events.",
-          "Translate the concentration into outreach urgency and service sequencing."
+          "Count named events inside the next 14-day and 30-day windows and compare them with the full active future-event book.",
+          "Separate live surge coverage from post-event cleanup and next-window reload work.",
+          "Name the current handoff event that just cleared and the next event that can rebuild account urgency.",
+          "Turn the calendar math into immediate outreach sequencing and service-readiness priorities."
         ],
         "inferenceConstraints": [
-          "Do not treat the calendar as evenly distributed when the near-term window is compressed.",
-          "Do not separate event concentration from outreach timing.",
-          "Do not issue urgency without explicit count math."
+          "Do not describe the calendar as compressed if the main spike has already cleared.",
+          "Do not skip count math when recommending urgency or patience.",
+          "Do not detach event timing from the actual outreach order Kevin should run today."
         ],
         "outputRequirements": [
-          "State the 14-day and 30-day event counts.",
-          "Name the current anchor event window.",
-          "Provide a concrete outreach timing instruction."
+          "State whether the event book is in surge, cleanup, or reload mode.",
+          "Name the just-cleared anchor window and the next named demand pulse.",
+          "Give Kevin a concrete sequence for follow-up versus next-window prospecting."
         ]
       },
       "provenance": {
         "asOf": "2026-05-19T07:08:09-04:00",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.events",
@@ -64,38 +64,38 @@
           }
         ],
         "notes": [
-          "Upcoming-events math is based on live vegas.events counts plus current public event timing references.",
-          "Operational focus shifts from immediate surge coverage to the next named demand window once EDC Week clears."
+          "This card now treats May 20 as a post-EDC cleanup and June-reload handoff, not as an active same-day surge window.",
+          "Operational timing stays tied to named Vegas event windows rather than generic seasonal commentary."
         ]
       }
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "No currently scored accounts clear the >=65 priority threshold, and the average account score is 61.26 with mean event-impact score 36.01. That means Kevin should stop treating the book like a saturated urgency list and instead sequence outreach by immediate event adjacency first, June fireworks second, and policy-cost narrative third.",
+      "body": "No scored account clears the >=65 priority threshold, while the average account score is 61.26 and mean event-impact score is 36.01. That means Kevin does not have a true hot list this morning. The right move is to work the near-miss book in order: post-EDC follow-up first, June fireworks reload second, and policy-cost-control messaging only as a support angle after timing and service readiness are clear.",
       "strategicSpecialInstructions": {
-        "cardTopic": "Account-Level Sales Execution Strategy",
-        "strategicObjective": "Convert account score saturation and event timing into a usable outreach order for Kevin.",
-        "neuralConnectionThesis": "When all tracked accounts qualify as high priority, the problem shifts from filtering to sequencing by demand timing and conversion probability.",
+        "cardTopic": "Threshold-Aware Sales Sequencing",
+        "strategicObjective": "Convert a no-hot-list morning into a disciplined outreach order instead of forcing urgency where the scores do not support it.",
+        "neuralConnectionThesis": "When zero accounts clear the priority threshold, Kevin wins by sequencing near-miss accounts around event timing and service readiness rather than pretending a saturated close-now list exists.",
         "quantResearchProtocol": [
-          "Count high-priority accounts and compare that count with total scored accounts.",
-          "Use average score and event-impact metrics to characterize list quality.",
-          "Prioritize by event adjacency first and impact second.",
-          "Use energy-led market pressure only to sharpen pitch urgency, not to replace account ordering."
+          "Count threshold-qualified accounts and explicitly compare that count with the full scored-account set.",
+          "Use average account score and average event-impact score to describe whether the book is hot, warm, or monitor-only.",
+          "Rank near-miss accounts by event adjacency and service readiness before using policy-cost language as a secondary closer.",
+          "Express the outreach plan as an ordered cadence Kevin can run immediately."
         ],
         "inferenceConstraints": [
-          "Do not dilute focus by treating all accounts as equally urgent.",
-          "Do not detach the sales sequence from service readiness and event timing.",
-          "Do not hide the threshold logic behind generic AI language."
+          "Do not imply list saturation when the >=65 qualified count is zero.",
+          "Do not hide the threshold miss behind generic AI-sales wording.",
+          "Do not let market narrative replace account timing and readiness in the sequencing logic."
         ],
         "outputRequirements": [
-          "State the threshold-qualified account count.",
-          "Quote the average score and event-impact math.",
-          "Explain the recommended outreach order."
+          "State the qualified-count math and the average-score math explicitly.",
+          "Classify the book as hot, warm, or monitor-only.",
+          "Provide the concrete outreach order Kevin should execute next."
         ]
       },
       "provenance": {
         "asOf": "2026-05-18",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.customer_scores",
@@ -123,8 +123,8 @@
           }
         ],
         "notes": [
-          "Sales sequencing is threshold-aware and event-aware.",
-          "Policy context sharpens timing language but does not replace account ordering."
+          "This strategy card is threshold-aware: zero >=65 accounts means sequencing the near-miss book, not inventing urgency.",
+          "Market-risk language is kept subordinate to account timing and service readiness."
         ]
       }
     },
@@ -132,29 +132,29 @@
       "title": "Restaurant Accounts",
       "body": "There are 10 active tracked accounts, 10 scored accounts in the latest window, and 0 accounts above the high-priority threshold. That is a 0.0% qualified rate on the scored set, so the book is a broad monitor list right now, not a saturated close-now list.",
       "strategicSpecialInstructions": {
-        "cardTopic": "Account Priority and Opportunity Concentration",
-        "strategicObjective": "Identify whether the current account book is selective or saturated, then set the right field-execution focus.",
-        "neuralConnectionThesis": "A saturated high-priority book means field performance depends on sequencing discipline, not on discovering more targets.",
+        "cardTopic": "Opportunity Concentration Versus False Urgency",
+        "strategicObjective": "Determine whether the account book deserves saturation language or disciplined monitor-list language based on actual qualification math.",
+        "neuralConnectionThesis": "A 0.0% threshold-qualified book means the edge is in monitoring and sequencing near-miss accounts, not in claiming the opportunity set is already concentrated and urgent.",
         "quantResearchProtocol": [
-          "Compare active-account count, scored-account count, and high-priority count.",
-          "Compute the qualification rate on the scored set.",
-          "Classify the book as selective or saturated.",
-          "Translate the classification into the next operational focus."
+          "Compare active-account count, scored-account count, and threshold-qualified count in the same refresh.",
+          "Compute the qualification rate and classify the book as concentrated, warming, or monitor-only.",
+          "Separate book size from actual opportunity density so count volume does not masquerade as urgency.",
+          "Translate the classification into the next field-execution focus."
         ],
         "inferenceConstraints": [
-          "Do not pretend the list is selective when qualification rate is 100%.",
-          "Do not use one-dimensional priority talk once the opportunity set is saturated.",
-          "Do not omit the need for sequencing discipline."
+          "Do not call the book saturated when the qualification rate is 0.0%.",
+          "Do not confuse total account coverage with immediate conversion pressure.",
+          "Do not describe the list as selective without stating the threshold math."
         ],
         "outputRequirements": [
-          "State active, scored, and high-priority counts.",
-          "Explain whether the book is selective or saturated.",
-          "Provide the next operational focus."
+          "State active, scored, and threshold-qualified counts explicitly.",
+          "Give the qualification rate and regime label.",
+          "Explain the next operational focus for Kevin and the field team."
         ]
       },
       "provenance": {
         "asOf": "2026-05-18",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -175,8 +175,8 @@
           }
         ],
         "notes": [
-          "Opportunity-set interpretation is count-based and explicit.",
-          "Field focus shifts to sequencing and proof of event adjacency when the book is not yet high-priority dense."
+          "Opportunity-set interpretation is tied to threshold math, not just raw account count.",
+          "A 0.0% qualified rate keeps the book in monitor-and-sequence mode rather than close-now mode."
         ]
       }
     },
@@ -206,7 +206,7 @@
       },
       "provenance": {
         "asOf": "2026-05-19T07:08:09-04:00",
-        "generatedAt": "2026-05-19T07:08:09-04:00",
+        "generatedAt": "2026-05-20T07:03:30-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.fryers",
@@ -227,8 +227,8 @@
           }
         ],
         "notes": [
-          "Coverage completeness and telemetry completeness are intentionally treated as different states.",
-          "This card preserves the current precision limit instead of masking it."
+          "Coverage completeness and telemetry completeness remain separate states; full account coverage does not mean fryer-readiness precision exists.",
+          "The zero-populated fryer-count condition is preserved explicitly so service planning does not overstate certainty."
         ]
       }
     }

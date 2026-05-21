@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
 import { requireAuthenticatedApiRequest } from "@/lib/server/auth-guards";
+import {
+  fallbackVegasIntelReport,
+  generateVegasIntelReport,
+  type VegasIntelReportInput,
+} from "@/lib/server/openrouter";
 import { createClient } from "@/lib/supabase/server";
 
 type RestaurantRow = {
@@ -259,6 +264,13 @@ export async function GET(request: Request) {
       selectedEvent = (eventRaw as EventRow | null) ?? null;
     }
 
+    if (requestedEventId !== null && !selectedEvent) {
+      return NextResponse.json(
+        { ok: false, error: "Requested event was not found." },
+        { status: 404 },
+      );
+    }
+
     if (!selectedEvent) {
       const todayText = new Date().toISOString().slice(0, 10);
       const { data: fallbackEventRaw, error: fallbackEventError } = await supabase
@@ -364,21 +376,32 @@ export async function GET(request: Request) {
       `Hospitality impact: ${hospitalityImpact !== null ? Number(hospitalityImpact).toFixed(2) : "missing"}`,
     ];
 
-    const salesScript = [
-      `${restaurant.restaurant_name}${casinoName ? ` at ${casinoName}` : ""}:`,
-      `Anchor outreach around ${eventName}${eventDate ? ` on ${eventDate}` : ""}.`,
-      `Lead with ${pitchAngle}`,
-      `Current service cadence is ${serviceFrequency ?? "not populated"}, oil profile is ${oilType ?? "not populated"}, and cuisine alignment is ${cuisineAffinity.reason.toLowerCase()}`,
-      totalCapacityLbs > 0
-        ? `Fryer capacity currently reflects about ${Math.round(totalCapacityLbs)} lbs; use uptime continuity as the operational proof point.`
-        : "Fryer capacity telemetry is missing, so avoid equipment-specific guarantees until telemetry is verified.",
-    ].join(" ");
-
-    const nextAction =
-      missingEvidence.length > 0
-        ? `Collect missing fields before final send: ${missingEvidence.join(", ")}.`
-        : "Generate the Kevin pitch sheet, prep a same-day outreach email, and queue follow-up call inside the current event-demand window.";
-
+    const reportInput: VegasIntelReportInput = {
+      restaurantName: restaurant.restaurant_name,
+      casinoName,
+      customerStatus,
+      eventName,
+      eventCategory,
+      eventDate,
+      daysUntil,
+      attendance,
+      oilType,
+      oilForm,
+      cuisineType,
+      cuisineAffinityScore: cuisineAffinity.score,
+      cuisineAffinityReason: cuisineAffinity.reason,
+      serviceFrequency,
+      fryerCount: fryerCount > 0 ? fryerCount : null,
+      totalCapacityLbs: totalCapacityLbs > 0 ? totalCapacityLbs : null,
+      opportunityScore,
+      hospitalityImpact,
+      pitchAngle,
+      evidenceBullets,
+      missingEvidence,
+    };
+    const fallbackReport = fallbackVegasIntelReport(reportInput);
+    const aiReport = await generateVegasIntelReport(reportInput);
+    const finalReport = aiReport.ok ? aiReport.report : fallbackReport;
 
     return NextResponse.json({
       ok: true,
@@ -406,11 +429,31 @@ export async function GET(request: Request) {
         customerStatus,
         opportunityScore,
         pitchAngle,
-        salesScript,
+        aiGenerated: aiReport.ok,
+        provider: aiReport.ok ? aiReport.provider : "structured-verification",
+        model: aiReport.model,
+        executiveBrief: finalReport.executiveBrief,
+        salesScript: finalReport.salesScript,
+        emailDraft: finalReport.emailDraft,
+        callPlan: finalReport.callPlan,
+        objectionHandling: finalReport.objectionHandling,
+        riskFlags: finalReport.riskFlags,
+        evidenceSummary: finalReport.evidenceSummary,
         evidenceBullets,
-        nextAction,
+        nextAction: finalReport.nextAction,
+        aiWarning: aiReport.ok
+          ? null
+          : "Direct OpenRouter API is not configured or did not return a valid report; showing verified structured draft.",
         provenance: {
-          sourceFeeds: ["vegas.restaurants", "vegas.fryers", "vegas.events", "vegas.event_impact", "vegas.customer_scores"],
+          sourceFeeds: [
+            "vegas.restaurants",
+            "vegas.fryers",
+            "vegas.events",
+            "vegas.event_impact",
+            "vegas.customer_scores",
+          ],
+          aiProvider: aiReport.ok ? "openrouter" : "none",
+          aiModel: aiReport.model,
         },
       },
     });

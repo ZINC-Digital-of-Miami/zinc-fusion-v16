@@ -41,6 +41,7 @@
 ## Sentiment and Legislation Contracts
 - Sentiment and Legislation page content is GPT-driven from approved news/policy sources.
 - Generated summaries/scores must remain attributable to source records and run timestamps.
+- Runtime AI provider calls must bypass Vercel AI Gateway. Direct provider APIs are allowed only from server-side code using private account keys; OpenRouter is an approved direct provider path for Gemini/OpenAI-class models.
 
 ## Vegas Intel Turnover Contract (Body Scope)
 - `/api/vegas/intel` must return DB-backed `events`, `opportunities`, and `stats` payloads used by the Vegas body sections.
@@ -55,6 +56,7 @@
 - `stats` must include actual row counts for currently wired `vegas.*` serving tables and set not-yet-wired Glide groups to `null` until promoted data exists.
 - The route may include AI card narratives, but body rendering must remain grounded in verified DB rows and include hard-stop language when required source rows are missing.
 - If Intel buttons are enabled in the body, `/api/vegas/intel/draft` must provide a server-side draft payload keyed by verified `restaurantId` (optional `eventId`) and return draft-only pitch output without Glide writes.
+- Intel draft generation must call OpenRouter directly when `OPENROUTER_API_KEY` is configured, using `OPENROUTER_INTEL_MODEL` when present and `google/gemini-2.5-flash` as the default direct model. If OpenRouter is unavailable or unconfigured, the route must return a verified structured draft with an explicit provider warning rather than inventing AI output.
 
 ## Dashboard AI Card Instruction Contract
 - `/api/dashboard/risk-factors` must provide per-card `strategicSpecialInstructions` for each driver card and the AI Market Intelligence card.
@@ -71,6 +73,7 @@
 
 ## AI Daily Card Pull Contract (All Pages)
 - Daily AI pull is the default source for card content on all primary pages.
+- AI pulls must use direct provider account paths (`chatgpt-pro-subscription-refresh`, `ai-daily-refresh`, or `openrouter-daily-refresh`) and must not use Vercel AI Gateway, Vercel OIDC model routing, or `AI_GATEWAY_API_KEY`.
 - Snapshot files are committed in-repo under `app/config/` and must be refreshed daily:
   - `dashboard-risk-factors-ai.json`
   - `strategy-posture-ai.json`

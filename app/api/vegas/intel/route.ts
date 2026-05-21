@@ -539,11 +539,7 @@ export async function GET() {
     const scoreRows = (scoreRowsRaw ?? []) as CustomerScoreRow[];
     const impactRows = (impactRowsRaw ?? []) as EventImpactRow[];
 
-    const glideRestaurantRows = restaurantRows.filter((row) => {
-      const meta = asObject(row.metadata);
-      return pickString(meta, ["source"]) === "glide";
-    });
-    const activeRestaurantRows = glideRestaurantRows;
+    const activeRestaurantRows = restaurantRows;
     const activeRestaurantIds = new Set(activeRestaurantRows.map((row) => row.id));
     const activeFryerRows = fryerRows.filter(
       (row) => row.restaurant_id !== null && activeRestaurantIds.has(row.restaurant_id),
@@ -791,6 +787,18 @@ export async function GET() {
         } satisfies VegasOpportunityRow;
       })
       .sort((a, b) => {
+        const priorityA =
+          (a.customerStatus === "prospect" ? 1000 : 0) +
+          (a.opportunityScore ?? 0) * 10 +
+          (a.eventPressure ?? 0) +
+          (a.zfusionScore ?? 0);
+        const priorityB =
+          (b.customerStatus === "prospect" ? 1000 : 0) +
+          (b.opportunityScore ?? 0) * 10 +
+          (b.eventPressure ?? 0) +
+          (b.zfusionScore ?? 0);
+        if (priorityA !== priorityB) return priorityB - priorityA;
+
         const completenessScoreA =
           Number(a.serviceFrequency !== null) +
           Number(a.oilType !== null) +
@@ -805,15 +813,13 @@ export async function GET() {
           Number(b.eventDate !== null);
         if (completenessScoreA !== completenessScoreB) return completenessScoreB - completenessScoreA;
 
-        const zfusionA = a.zfusionScore ?? Number.NEGATIVE_INFINITY;
-        const zfusionB = b.zfusionScore ?? Number.NEGATIVE_INFINITY;
-        if (zfusionA !== zfusionB) return zfusionB - zfusionA;
-        const scoreA = a.opportunityScore ?? Number.NEGATIVE_INFINITY;
-        const scoreB = b.opportunityScore ?? Number.NEGATIVE_INFINITY;
-        if (scoreA !== scoreB) return scoreB - scoreA;
         const pressureA = a.eventPressure ?? Number.NEGATIVE_INFINITY;
         const pressureB = b.eventPressure ?? Number.NEGATIVE_INFINITY;
-        return pressureB - pressureA;
+        if (pressureA !== pressureB) return pressureB - pressureA;
+
+        const scoreA = a.opportunityScore ?? Number.NEGATIVE_INFINITY;
+        const scoreB = b.opportunityScore ?? Number.NEGATIVE_INFINITY;
+        return scoreB - scoreA;
       });
 
     const events14d = events.filter((row) => row.daysUntil <= 14).length;
@@ -870,12 +876,12 @@ export async function GET() {
 
     const highPriorityCount = opportunities.filter((row) => {
       if (row.opportunityScore === null) return false;
-      return row.opportunityScore >= 70;
+      return row.customerStatus === "prospect" && row.opportunityScore >= 65;
     }).length;
 
     const dbSnapshot: VegasIntelSnapshot = {
       activeEvents: events.length,
-      highPriorityAccounts: highPriorityCount > 0 ? highPriorityCount : opportunities.length,
+      highPriorityAccounts: highPriorityCount,
       updatedAt: lastSync ?? new Date().toISOString(),
     };
 
