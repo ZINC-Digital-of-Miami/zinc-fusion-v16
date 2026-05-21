@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import type { AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import { readAiSnapshot, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
+import { withAudienceInstructionGuardrails } from "@/lib/server/ai-instruction-guardrails";
 import { createServerDataClient } from "@/lib/server/server-data-client";
 
 type DriverKey =
@@ -177,9 +178,9 @@ function colorFromScore(score: number): string {
 
 function headlineFor(driverName: string, score: number | null): string {
   if (score === null) return `Hard stop: ${driverName} lacks verified promoted data`;
-  if (score >= 70) return `${driverName}: elevated pressure`;
-  if (score >= 45) return `${driverName}: moderate risk`;
-  return `${driverName}: stable`;
+  if (score >= 70) return `${driverName}: pressure elevated`;
+  if (score >= 45) return `${driverName}: watch the tape`;
+  return `${driverName}: stable read`;
 }
 
 function getMetric(metrics: Map<string, number | null>, keys: string[]): number | null {
@@ -194,14 +195,14 @@ const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialI
   vix_stress: {
     cardTopic: "Volatility Transmission",
     strategicObjective:
-      "Identify whether implied volatility is transitioning from noise to procurement-disruptive stress before price shocks fully print into ZL.",
+      "Identify whether implied volatility is transitioning from noise to procurement-disruptive stress before price shocks fully print into soybean-oil costs.",
     neuralConnectionThesis:
-      "VIX and OVX co-expansion combined with unstable correlation regimes precedes defensive positioning, liquidity withdrawal, and wider execution slippage in procurement windows.",
+      "Co-expansion of the broad volatility gauge and oil-volatility gauge, combined with unstable correlation regimes, precedes defensive positioning, liquidity withdrawal, and wider execution slippage in procurement windows.",
     quantResearchProtocol: [
-      "Track VIX absolute level, 5-day acceleration, and percentile regime versus recent history.",
-      "Measure OVX-VIX spread behavior to separate broad risk-off from energy-led volatility.",
+      "Track broad-volatility-gauge level, five-day acceleration, and percentile regime versus recent history.",
+      "Measure the spread between oil-volatility and broad-volatility gauges to separate broad risk-off from energy-led volatility.",
       "Validate implied-realized divergence before assigning persistent stress classification.",
-      "Require cross-check against correlation persistence between volatility complex and ZL directionality.",
+      "Require cross-check against correlation persistence between the volatility complex and soybean-oil directionality.",
     ],
     inferenceConstraints: [
       "Do not call this a fear regime without citing at least two confirming volatility metrics.",
@@ -242,9 +243,9 @@ const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialI
     strategicObjective:
       "Detect demand-flow rerouting or escalation risk from China-linked macro channels before it manifests as persistent ZL repricing.",
     neuralConnectionThesis:
-      "CNY stress, shipping/trade-flow narrative pressure, and China-soy headline clustering can alter marginal demand assumptions and induce asymmetric price response in oil contracts.",
+      "Chinese-currency stress, shipping/trade-flow narrative pressure, and China-soy headline clustering can alter marginal demand assumptions and induce asymmetric price response in oil contracts.",
     quantResearchProtocol: [
-      "Track CNY level and directional pressure relative to recent trade windows.",
+      "Track Chinese-currency level and directional pressure relative to recent trade windows.",
       "Measure China/soy headline density and persistence, not one-off spikes.",
       "Evaluate whether flow-tension signals align with broader risk complex or remain isolated.",
       "Classify regime only after confirming currency and narrative channels are directionally coherent.",
@@ -256,7 +257,7 @@ const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialI
     ],
     outputRequirements: [
       "State explicit flow-risk state: stable, watch, diversion, or conflict.",
-      "Cite CNY and headline evidence with timing context.",
+      "Cite Chinese-currency and headline evidence with timing context.",
       "Translate into procurement decision latency guidance.",
     ],
   },
@@ -290,8 +291,8 @@ const DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS: Record<DriverKey, StrategicSpecialI
     neuralConnectionThesis:
       "Crude direction, velocity, and energy-volatility coupling drive pass-through pressure; persistent co-movement raises the probability of accelerated cost repricing in ZL-related procurement.",
     quantResearchProtocol: [
-      "Track CL absolute level with 5-day and 20-day directional context.",
-      "Measure OVX alignment to distinguish stable trend from unstable stress expansion.",
+      "Track crude-oil benchmark level with five-day and twenty-day directional context.",
+      "Measure oil-volatility-gauge alignment to distinguish stable trend from unstable stress expansion.",
       "Use energy-headline density as catalyst context rather than primary quantitative proof.",
       "Require multi-signal coherence before assigning crisis-class regime.",
     ],
@@ -346,6 +347,36 @@ function scoreState(score: number | null): string {
   if (score >= 70) return "elevated pressure";
   if (score >= 45) return "watch zone";
   return "calm zone";
+}
+
+function conciseIntelligenceHeadline(topName: string, topScore: number): string {
+  if (topName === "No Data") return "Mr. Stacy: risk stack unavailable";
+  if (topScore >= 70) return `Mr. Stacy: ${topName} is pressing costs`;
+  if (topScore >= 55) return `Mr. Stacy: ${topName} is in watch mode`;
+  return "Mr. Stacy: pressure stack is contained";
+}
+
+function conciseIntelligenceSummary(topName: string, topScore: number, averagePressure: number): string {
+  if (topName === "No Data") {
+    return "Hard stop: no verified driver rows, so procurement synthesis is blocked.";
+  }
+  if (topScore >= 70) {
+    return `${topName} leads at ${Math.round(topScore)} with average pressure ${averagePressure.toFixed(1)}. Calm is currently theoretical.`;
+  }
+  if (topScore >= 55) {
+    return `${topName} leads at ${Math.round(topScore)}; network average is ${averagePressure.toFixed(1)}. Keep cadence disciplined, not sleepy.`;
+  }
+  return `${topName} leads at ${Math.round(topScore)}; average pressure is ${averagePressure.toFixed(1)}. Schedule buys stay valid with active checks.`;
+}
+
+function conciseTradingImplication(topScore: number): string {
+  if (topScore >= 70) {
+    return "Tighten buying windows, stage contracts, and keep hedge optionality open.";
+  }
+  if (topScore >= 55) {
+    return "Buy in tranches and re-check drivers before each commitment block.";
+  }
+  return "Stay schedule-based, but keep weekly refresh reviews hard-gated.";
 }
 
 function mergeDriverComponents(
@@ -404,7 +435,24 @@ function driverFocus(driver: DriverKey): string {
   if (driver === "crush_pressure") return "processor margin pressure and oil-share economics";
   if (driver === "china_tension") return "China demand and trade-flow displacement";
   if (driver === "tariff_threat") return "policy shocks and geopolitical tariff channels";
-  return "energy complex pass-through into ZL";
+  return "energy complex pass-through into soybean-oil procurement cost";
+}
+
+function conciseDriverHeadline(driver: DriverKey, payload: DriverData): string {
+  const c = payload.components;
+  if (driver === "vix_stress") {
+    return `Broad volatility gauge ${formatMetric(c.vix_value ?? null, "fixed1")} and oil-volatility gauge ${formatMetric(c.ovx_value ?? null, "fixed1")} keep execution risk ${scoreState(payload.score)}.`;
+  }
+  if (driver === "crush_pressure") {
+    return `Crush ${formatMetric(c.board_crush_value ?? null, "usd2")} with oil share ${formatMetric(c.oil_share_value ?? null, "fixed1")} keeps processor pressure ${scoreState(payload.score)}.`;
+  }
+  if (driver === "china_tension") {
+    return `Chinese-currency level ${formatMetric(c.cny_rate ?? null, "fixed2")} plus ${formatMetric(c.soy_china_news_count ?? null, "int")} China-trade headlines keeps this lane ${scoreState(payload.score)}.`;
+  }
+  if (driver === "tariff_threat") {
+    return `Uncertainty ${formatMetric(c.uncertainty_value ?? null, "int")} with crude 5D ${formatMetric(c.oil_change_5d ?? null, "pct")} leaves policy risk ${scoreState(payload.score)}.`;
+  }
+  return `Crude-oil benchmark ${formatMetric(c.cl_price ?? null, "usd2")} and oil-volatility gauge ${formatMetric(c.ovx_value ?? null, "fixed1")} keep energy pass-through ${scoreState(payload.score)}.`;
 }
 
 function buildDriverProvenance(
@@ -474,55 +522,61 @@ function buildDriverWhatsHappening(
   aggregateSummary: string,
   topDriverName: string,
   averagePressure: number,
-  instructions: StrategicSpecialInstructions,
 ): WhatsHappening {
   const scoreText = payload.score === null ? "No scored signal yet" : `Score ${Math.round(payload.score)}`;
   const commonState = scoreState(payload.score);
   const focus = driverFocus(driver);
 
   const c = payload.components;
-  let supplyDemand = "Underlying supply/demand metrics are waiting on the next promoted dataset."
-  let geopolitical = "No explicit geopolitical pulse is dominating this driver in the current snapshot."
-  let sentiment = `Market posture is ${commonState}; regime tag is ${payload.regime}.`
+  let supplyDemand = "Supply signal is waiting on the next promoted dataset.";
+  let geopolitical = "No dominant geopolitical pulse is confirmed in this lane.";
+  let sentiment = `Market posture is ${commonState}; regime is ${payload.regime}.`;
 
   if (driver === "vix_stress") {
-    supplyDemand = `VIX ${formatMetric(c.vix_value ?? null, "fixed1")} and OVX ${formatMetric(c.ovx_value ?? null, "fixed1")} define the current volatility envelope.`
-    geopolitical = "Cross-asset stress is being monitored as an early warning for procurement-cost spikes."
-    sentiment = `Volatility regime is ${commonState}; defensive hedging usually increases as this score rises.`
+    supplyDemand = `Broad volatility gauge ${formatMetric(c.vix_value ?? null, "fixed1")} and oil-volatility gauge ${formatMetric(c.ovx_value ?? null, "fixed1")} set the volatility lane.`;
+    geopolitical = "Cross-asset stress can still spill into soybean-oil timing without warning.";
+    sentiment = `Volatility is ${commonState}; calm behavior is still optional.`;
   } else if (driver === "crush_pressure") {
-    supplyDemand = `Crush margin ${formatMetric(c.board_crush_value ?? null, "usd2")} and oil share ${formatMetric(c.oil_share_value ?? null, "fixed1")} describe processing economics.`
-    geopolitical = "Crush behavior is primarily a microstructure signal unless macro shocks force abrupt repricing."
-    sentiment = `Crush pressure is ${commonState}; buyers should watch processing spreads for timing risk.`
+    supplyDemand = `Crush margin ${formatMetric(c.board_crush_value ?? null, "usd2")} and oil share ${formatMetric(c.oil_share_value ?? null, "fixed1")} anchor processor economics.`;
+    geopolitical = "Macro shocks can still flip this lane faster than fundamentals prefer.";
+    sentiment = `Crush pressure is ${commonState}; watch spread drift before pacing buys.`;
   } else if (driver === "china_tension") {
-    supplyDemand = `CNY ${formatMetric(c.cny_rate ?? null, "fixed2")} with ${formatMetric(c.soy_china_news_count ?? null, "int")} China/soy headlines tracks demand-flow tension.`
-    geopolitical = "Trade-friction headlines and import-flow shifts remain the key geopolitical amplifier here."
-    sentiment = `China-linked risk is ${commonState}; abrupt headline shifts can reprice demand assumptions quickly.`
+    supplyDemand = `Chinese-currency level ${formatMetric(c.cny_rate ?? null, "fixed2")} with ${formatMetric(c.soy_china_news_count ?? null, "int")} China/soy headlines tracks flow tension.`;
+    geopolitical = "Trade friction remains the amplifier when this lane wakes up.";
+    sentiment = `China-linked risk is ${commonState}; headlines can move faster than logic.`;
   } else if (driver === "tariff_threat") {
-    supplyDemand = `Uncertainty index ${formatMetric(c.uncertainty_value ?? null, "int")} and crude 5D ${formatMetric(c.oil_change_5d ?? null, "pct")} frame policy-to-price transmission.`
-    geopolitical = `${formatMetric(c.iran_war_news_count ?? null, "int")} Iran/war headlines and ${formatMetric(c.macro_news_count ?? null, "int")} macro headlines are feeding this channel.`
-    sentiment = `Policy risk is ${commonState}; this is the macro/geopolitical lane most likely to force schedule adjustments.`
+    supplyDemand = `Uncertainty ${formatMetric(c.uncertainty_value ?? null, "int")} and crude 5D ${formatMetric(c.oil_change_5d ?? null, "pct")} frame policy transmission.`;
+    geopolitical = `${formatMetric(c.iran_war_news_count ?? null, "int")} Iran/war and ${formatMetric(c.macro_news_count ?? null, "int")} macro headlines are feeding this lane.`;
+    sentiment = `Policy risk is ${commonState}; this is where schedules usually lose arguments.`;
   } else {
-    supplyDemand = `CL ${formatMetric(c.cl_price ?? null, "usd2")}, 5D change ${formatMetric(c.cl_change_5d ?? null, "pct")}, and OVX ${formatMetric(c.ovx_value ?? null, "fixed1")} define energy stress.`
-    geopolitical = `Energy headline count is ${formatMetric(c.energy_news_count ?? null, "int")}; supply-shock sensitivity remains active.`
-    sentiment = `Energy pass-through is ${commonState}; sustained pressure can lift procurement urgency.`
+    supplyDemand = `Crude-oil benchmark ${formatMetric(c.cl_price ?? null, "usd2")}, five-day move ${formatMetric(c.cl_change_5d ?? null, "pct")}, and oil-volatility gauge ${formatMetric(c.ovx_value ?? null, "fixed1")} define energy stress.`;
+    geopolitical = `Energy headlines: ${formatMetric(c.energy_news_count ?? null, "int")}; supply-shock sensitivity is still live.`;
+    sentiment = `Energy pass-through is ${commonState}; freight rarely sends thank-you notes.`;
   }
 
   const zlImplication =
     payload.score === null
-      ? "Keep standard buying cadence while waiting for fresh promoted metrics."
+      ? "Keep standard cadence until verified data returns."
       : payload.score >= 70
-        ? "Increase execution vigilance, shorten decision windows, and preserve optionality on contract timing."
+        ? "Shorten decision windows and keep optionality; this lane can tax complacency quickly."
         : payload.score >= 45
-          ? "Maintain normal execution with tighter monitoring around upcoming refresh windows."
-          : "Pressure is contained; continue schedule-based procurement unless another driver escalates."
+          ? "Maintain normal execution with tighter refresh checks."
+          : "Pressure is contained; schedule buying stays valid unless another lane escalates.";
 
   return {
-    whatsHappening: `${payload.name} is currently ${commonState}. ${scoreText} with level ${payload.level} keeps focus on ${focus}. Strategic frame: ${instructions.cardTopic}.`,
-    macroContext: `${aggregateSummary} Top pressure is ${topDriverName} and average pressure is ${averagePressure.toFixed(1)}.`,
+    whatsHappening: `${payload.name} is ${commonState}. ${scoreText}. Focus: ${focus}.`,
+    macroContext: `${aggregateSummary} Top pressure: ${topDriverName}. Average: ${averagePressure.toFixed(1)}.`,
     supplyDemand,
     geopolitical,
     investorSentiment: sentiment,
-    nearTermOutlook: payload.score === null ? "Hard stop: near-term outlook blocked until verified signal fields are populated." : payload.score >= 70 ? "High-risk posture likely to persist near term." : payload.score >= 45 ? "Mixed posture with event-driven volatility risk." : "Low-pressure posture unless headline regime changes.",
+    nearTermOutlook:
+      payload.score === null
+        ? "Hard stop: near-term outlook blocked until verified fields populate."
+        : payload.score >= 70
+          ? "High-risk posture likely to persist near term."
+          : payload.score >= 45
+            ? "Mixed posture with event-driven volatility risk."
+            : "Low-pressure posture unless headline regime changes.",
     zlImplication,
   };
 }
@@ -634,7 +688,7 @@ export async function GET() {
 
     const drivers: Record<DriverKey, DriverData> = {
       vix_stress: {
-        name: "VIX Stress",
+        name: "Volatility Stress",
         score: scoreCandidates.vix_stress,
         level: levelFor("vix_stress", scoreCandidates.vix_stress),
         regime: regimeFor(scoreCandidates.vix_stress),
@@ -738,7 +792,10 @@ export async function GET() {
         headline: ai?.headline ?? headlineFor(defaultHeadlineName, mergedScore),
         components: mergedComponents,
         strategicSpecialInstructions:
-          ai?.strategicSpecialInstructions ?? defaultInstructions,
+          withAudienceInstructionGuardrails(
+            ai?.strategicSpecialInstructions ?? defaultInstructions,
+            "chris",
+          ),
         provenance:
           ai?.provenance ??
           buildDriverProvenance(
@@ -797,9 +854,7 @@ export async function GET() {
 
     for (const key of Object.keys(mergedDrivers) as DriverKey[]) {
       const driver = mergedDrivers[key];
-      if (driver.whatsHappening) continue;
-      const instructions =
-        driver.strategicSpecialInstructions ?? DRIVER_STRATEGIC_SPECIAL_INSTRUCTIONS[key];
+      driver.headline = conciseDriverHeadline(key, driver);
       driver.whatsHappening = buildDriverWhatsHappening(
         key,
         driver,
@@ -808,7 +863,6 @@ export async function GET() {
           : `Top concern is ${mergedTopName} at ${Math.round(mergedTopScore)}.`,
         mergedTopName,
         mergedAverage,
-        instructions,
       );
     }
 
@@ -824,32 +878,30 @@ export async function GET() {
         alert_count: mergedAlertCount,
       },
       intelligence: {
-        headline:
-          aiSnapshot?.intelligence?.headline ??
-          (mergedTopScore >= 65 ? "ELEVATED MARKET - Watch Procurement Risk" : "NORMAL MARKET - Buy On Schedule"),
-        summary:
-          aiSnapshot?.intelligence?.summary ??
-          (mergedTopName === "No Data"
-            ? "Hard stop: promoted analytics rows are missing for cross-driver synthesis."
-            : `Top concern is ${mergedTopName} at ${Math.round(mergedTopScore)}. Average risk is ${mergedAverage}.`),
-        drivers: aiSnapshot?.intelligence?.drivers ?? (Object.values(mergedDrivers) as DriverData[])
+        headline: conciseIntelligenceHeadline(mergedTopName, mergedTopScore),
+        summary: conciseIntelligenceSummary(mergedTopName, mergedTopScore, mergedAverage),
+        drivers: (Object.values(mergedDrivers) as DriverData[])
           .filter((d) => d.score !== null)
           .map((d) => ({
             label: d.name,
-            outlook: d.score !== null && d.score >= 65 ? "PRESSURE" : d.score !== null && d.score <= 35 ? "SUPPORTIVE" : "MIXED",
+            outlook:
+              d.score !== null && d.score >= 65
+                ? "PRESSURE"
+                : d.score !== null && d.score <= 35
+                  ? "SUPPORTIVE"
+                  : "MIXED",
             detail: d.headline,
           })),
-        zlOutlook: aiSnapshot?.intelligence?.zlOutlook ?? outlookFromScore(mergedAverage),
-        zlColor: aiSnapshot?.intelligence?.zlColor ?? colorFromScore(mergedAverage),
-        tradingImplication:
-          aiSnapshot?.intelligence?.tradingImplication ??
-          (mergedTopScore >= 65
-            ? "Risk elevated. Keep procurement flexible and monitor next refresh."
-            : "No major pressure signal yet. Continue normal buying schedule."),
+        zlOutlook: outlookFromScore(mergedAverage),
+        zlColor: colorFromScore(mergedAverage),
+        tradingImplication: conciseTradingImplication(mergedTopScore),
         aiPowered: Boolean(aiSnapshot?.intelligence),
         strategicSpecialInstructions:
-          aiSnapshot?.intelligence?.strategicSpecialInstructions ??
-          MARKET_INTELLIGENCE_STRATEGIC_SPECIAL_INSTRUCTIONS,
+          withAudienceInstructionGuardrails(
+            aiSnapshot?.intelligence?.strategicSpecialInstructions ??
+              MARKET_INTELLIGENCE_STRATEGIC_SPECIAL_INSTRUCTIONS,
+            "chris",
+          ),
         provenance:
           aiSnapshot?.intelligence?.provenance ??
           buildIntelligenceProvenance(

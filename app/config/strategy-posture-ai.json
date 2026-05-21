@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-21T07:39:35-04:00",
+  "generatedAt": "2026-05-21T07:28:58-05:00",
   "model": "nvidia/nemotron-3-super-120b-a12b:free",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -10,28 +10,83 @@
     "updatedAt": "2026-05-21T07:05:03-04:00"
   },
   "cards": {
+    "marketPosture": {
+      "title": "Market Posture",
+      "body": "ACCUMULATE remains active. Delay risk is still more expensive than disciplined staged coverage. Not a friendly tape, just a manageable one.",
+      "strategicSpecialInstructions": {
+        "cardTopic": "Buyer Operating Stance",
+        "strategicObjective": "State the procurement stance decisively so execution remains disciplined under volatility.",
+        "neuralConnectionThesis": "A clear stance reduces hesitation penalties when market conditions are noisy and timing-sensitive.",
+        "quantResearchProtocol": [
+          "Validate posture strictly as ACCUMULATE, WAIT, or DEFER.",
+          "Anchor commentary to buyer timing pressure and coverage risk.",
+          "Keep output to one to three sharp sentences.",
+          "Use controlled dry humor only when it improves calm and clarity."
+        ],
+        "inferenceConstraints": [
+          "Do not use trader-centric language or directional trade jargon.",
+          "Do not write paragraph walls or broad macro essays.",
+          "Do not overstate certainty when evidence is weakening."
+        ],
+        "outputRequirements": [
+          "State the current stance directly.",
+          "Explain the operational reason in procurement language.",
+          "Include at most one short dry line that stays professional when stress context warrants it."
+        ]
+      },
+      "provenance": {
+        "asOf": "2026-05-21",
+        "generatedAt": "2026-05-21T07:28:58-05:00",
+        "method": "ai-daily-refresh",
+        "sourceFeeds": [
+          "analytics.market_posture",
+          "app/config/dashboard-risk-factors-ai.json"
+        ],
+        "sourceRecords": [
+          {
+            "source": "analytics.market_posture",
+            "recordHint": "latest buyer posture enum and rationale",
+            "observedAt": "2026-05-21",
+            "table": "analytics.market_posture"
+          },
+          {
+            "source": "app/config/dashboard-risk-factors-ai.json",
+            "recordHint": "network pressure context supporting stance choice",
+            "observedAt": "2026-05-19T07:08:09-04:00",
+            "table": "app/config/dashboard-risk-factors-ai.json"
+          }
+        ],
+        "notes": [
+          "This card is the operating stance anchor for the full strategy surface.",
+          "Stance language remains procurement-first and execution-focused."
+        ]
+      }
+    },
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Current contract math still favors staged execution. Average pressure is 36.7, tariff/policy leads at 51.5, volatility sits at 46.4, and ZL is 74.53; that keeps tranche spacing superior to either one-shot buying or an idle wait posture.",
+      "body": "Staged coverage still wins. Average pressure is 36.7 with tariff/policy at 51.5 and volatility at 46.4, so single-window execution is still paying too much for false urgency. Crude eased a touch; procurement chaos downgraded from panic to cardiovascular concern.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
-        "strategicObjective": "Quantify whether current market structure supports staged, one-shot, or defer-and-watch soybean-oil contracting.",
-        "neuralConnectionThesis": "When one risk channel stays clearly above the network average, spreading execution windows lowers timing regret more effectively than chasing the perfect fill.",
+        "strategicObjective": "Quantify whether current conditions favor staged coverage, single-window execution, or defensive patience for soybean-oil procurement.",
+        "neuralConnectionThesis": "When pressure remains concentrated in key channels, staged execution reduces timing asymmetry and buyer regret more effectively than forced one-shot coverage.",
         "quantResearchProtocol": [
           "Use average pressure, lead-driver score, and lead-driver spread as the core structure inputs.",
           "Separate staged execution from one-shot execution by comparing latency risk with over-coverage risk.",
           "Keep the recommendation buyer-side and replacement-cost focused.",
-          "Define explicit invalidation triggers tied to energy and volatility moderation."
+          "Define explicit invalidation triggers tied to energy and volatility moderation.",
+          "Keep output to one to three executive-readable sentences."
         ],
         "inferenceConstraints": [
           "Do not recommend one-shot execution while energy remains the lead channel.",
           "Do not describe staging without quantifying why staging is superior.",
-          "Do not present procurement guidance as a trade idea."
+          "Do not present procurement guidance as a trade idea.",
+          "Do not drift into hype, meme, or newsletter tone."
         ],
         "outputRequirements": [
           "State the preferred contract structure.",
           "Quote the score math behind the recommendation.",
-          "List the conditions that would justify changing the structure."
+          "List the conditions that would justify changing the structure.",
+          "Include at most one short dry line that reduces tension without diluting clarity."
         ]
       },
       "provenance": {
@@ -52,7 +107,7 @@
           },
           {
             "source": "Yahoo Finance",
-            "recordHint": "ZL daily close used for current buyer cost framing",
+            "recordHint": "soybean-oil futures daily close used for current buyer cost framing",
             "observedAt": "2026-05-19T04:00:00+00:00",
             "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo"
           },
@@ -71,26 +126,29 @@
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Current procurement pressure order is tariff threat (51.5), volatility transmission (46.4), China flow risk (38.6), energy pass-through (26.1), then crush pressure (21.0). The stack matters because the lead channel is watch-grade, not crisis-grade, so posture stays concentrated but not defensive.",
+      "body": "Pressure stack remains tariff threat (51.5), volatility transmission (46.4), China flow risk (38.6), energy pass-through (26.1), then crush pressure (21.0). Lead pressure is still concentrated, so monitoring priority stays narrow. Export noise keeps trying to climb like it has rent due.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
-        "strategicObjective": "Rank the active drivers by marginal buyer impact so monitoring time stays on the right channels.",
+        "strategicObjective": "Rank active drivers by marginal buyer impact so monitoring effort stays on the channels that can move replacement cost fastest.",
         "neuralConnectionThesis": "Procurement risk is shaped by channel ordering and spread, not just by the average level of stress.",
         "quantResearchProtocol": [
           "Order each driver by current score and note the spread from the network average.",
           "Separate dominant drivers from background channels.",
           "Call out whether the stack is broad or concentrated.",
-          "Translate the stack into concrete monitoring priority."
+          "Translate the stack into concrete monitoring priority.",
+          "Keep commentary concise and supportive of the chart/card visuals."
         ],
         "inferenceConstraints": [
           "Do not collapse the waterfall into an undifferentiated summary.",
           "Do not hide conflict or concentration inside the stack.",
-          "Do not assign confidence without freshness context."
+          "Do not assign confidence without freshness context.",
+          "Do not restate obvious movement that the graphic already shows."
         ],
         "outputRequirements": [
           "Provide the ordered stack.",
           "State whether the stack is broad or concentrated.",
-          "Explain the monitoring consequence for a buyer."
+          "Explain the monitoring consequence for a buyer.",
+          "Include at most one cynical but professional line acknowledging market absurdity."
         ]
       },
       "provenance": {
@@ -116,26 +174,29 @@
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Buyer downside asymmetry is still elevated enough to justify discipline, not panic: average pressure is 36.7, policy uncertainty is 439.64, and managed money remains net long 158,102 contracts or 22.45% of open interest. That says latency risk is real, but controlled tranche execution is still safer than rush coverage.",
+      "body": "Buyer timing asymmetry remains elevated. Average pressure is 36.7, policy uncertainty is 439.64, and managed money stays net long 158,102 contracts (22.45% of open interest), so waiting risk still outweighs over-coverage risk. Volatility is still high enough to make forecasting feel like weather prediction with emotional damage.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term soybean-oil procurement risk in explicit asymmetry and latency-risk terms.",
         "neuralConnectionThesis": "For buyers, moderate average pressure can still justify action if one live channel remains strong enough to reprice costs faster than the physical market is moving.",
         "quantResearchProtocol": [
-          "Compare ZL movement with crude movement and the network average.",
+          "Compare soybean-oil futures movement with crude movement and the network average.",
           "Measure the premium of the lead channel over the stack average.",
           "Classify whether timing risk or over-hedge risk is larger.",
-          "Tie the answer to cadence and monitoring rules."
+          "Tie the answer to cadence and monitoring rules.",
+          "Keep output concise and mathematically grounded."
         ],
         "inferenceConstraints": [
           "Do not call risk neutral when one channel is still materially elevated.",
           "Do not omit latency implications from the math.",
-          "Do not hide cross-market divergence."
+          "Do not hide cross-market divergence.",
+          "Do not imply guaranteed cost outcomes."
         ],
         "outputRequirements": [
           "State the risk regime in buyer language.",
           "Explain latency risk versus over-coverage risk.",
-          "Provide a specific cadence recommendation."
+          "Provide a specific cadence recommendation.",
+          "Include at most one short dry line that keeps urgency controlled."
         ]
       },
       "provenance": {

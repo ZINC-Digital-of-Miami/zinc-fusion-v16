@@ -9,6 +9,7 @@ import type {
   VegasOpportunityRow,
 } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
+import { withAudienceInstructionGuardrails } from "@/lib/server/ai-instruction-guardrails";
 import { createServerDataClient } from "@/lib/server/server-data-client";
 import {
   fetchTrustedMarketSnapshot,
@@ -78,12 +79,12 @@ type EventImpactRow = {
   metadata: unknown;
 };
 
-type OptionalCountQuery = {
+type CoverageCountQuery = {
   schema: "vegas" | "ops";
   table: string;
 };
 
-type GlideOptionalCounts = {
+type GlideCoverageCounts = {
   exportList: number | null;
   shifts: number | null;
   scheduledReports: number | null;
@@ -108,7 +109,7 @@ const EVENT_COLOR_MAP: Record<string, string> = {
   fallback: "#6b7280",
 };
 
-const GLIDE_OPTIONAL_COUNT_QUERIES: Record<keyof GlideOptionalCounts, OptionalCountQuery[]> = {
+const GLIDE_COVERAGE_COUNT_QUERIES: Record<keyof GlideCoverageCounts, CoverageCountQuery[]> = {
   exportList: [
     { schema: "vegas", table: "export_list" },
     { schema: "ops", table: "glide_vegas_export_list" },
@@ -376,9 +377,9 @@ function isMissingRelationError(error: unknown): boolean {
   return maybeCode === "PGRST205" || maybeMessage.toLowerCase().includes("does not exist");
 }
 
-async function readOptionalCount(
+async function readCoverageCount(
   supabase: Awaited<ReturnType<typeof createServerDataClient>>,
-  candidates: OptionalCountQuery[],
+  candidates: CoverageCountQuery[],
 ): Promise<number | null> {
   for (const candidate of candidates) {
     const { count, error } = await supabase
@@ -392,22 +393,22 @@ async function readOptionalCount(
   return null;
 }
 
-async function readGlideOptionalCounts(
+async function readGlideCoverageCounts(
   supabase: Awaited<ReturnType<typeof createServerDataClient>>,
-): Promise<GlideOptionalCounts> {
-  const exportList = await readOptionalCount(supabase, GLIDE_OPTIONAL_COUNT_QUERIES.exportList);
-  const shifts = await readOptionalCount(supabase, GLIDE_OPTIONAL_COUNT_QUERIES.shifts);
-  const scheduledReports = await readOptionalCount(
+): Promise<GlideCoverageCounts> {
+  const exportList = await readCoverageCount(supabase, GLIDE_COVERAGE_COUNT_QUERIES.exportList);
+  const shifts = await readCoverageCount(supabase, GLIDE_COVERAGE_COUNT_QUERIES.shifts);
+  const scheduledReports = await readCoverageCount(
     supabase,
-    GLIDE_OPTIONAL_COUNT_QUERIES.scheduledReports,
+    GLIDE_COVERAGE_COUNT_QUERIES.scheduledReports,
   );
-  const shiftCasinos = await readOptionalCount(
+  const shiftCasinos = await readCoverageCount(
     supabase,
-    GLIDE_OPTIONAL_COUNT_QUERIES.shiftCasinos,
+    GLIDE_COVERAGE_COUNT_QUERIES.shiftCasinos,
   );
-  const shiftRestaurants = await readOptionalCount(
+  const shiftRestaurants = await readCoverageCount(
     supabase,
-    GLIDE_OPTIONAL_COUNT_QUERIES.shiftRestaurants,
+    GLIDE_COVERAGE_COUNT_QUERIES.shiftRestaurants,
   );
   return { exportList, shifts, scheduledReports, shiftCasinos, shiftRestaurants };
 }
@@ -452,6 +453,59 @@ function buildProvenance(
   };
 }
 
+function kevinUpcomingEventsBody(params: {
+  nextEvent: VegasEventRow | null;
+  events14d: number;
+  events30d: number;
+}): string {
+  if (!params.nextEvent) {
+    return "Hard stop: no verified future-event rows are available for demand-window planning.";
+  }
+  return `${params.events14d} events inside 14 days (${params.events30d} inside 30). Next pulse: ${params.nextEvent.name} on ${params.nextEvent.startDate}. Show up with talking points, not hotel caffeine.`;
+}
+
+function kevinSalesStrategyBody(params: {
+  opportunitiesCount: number;
+  eventsCount: number;
+  highPriorityCount: number;
+  avgImpact: number | null;
+  cl: number | null;
+  cl5dText: string;
+  vix: number | null;
+}): string {
+  if (params.opportunitiesCount === 0 || params.eventsCount === 0) {
+    return "Hard stop: strategy is blocked because verified event or account rows are missing.";
+  }
+  if (params.highPriorityCount === 0) {
+    return `No accounts clear the hot threshold today. Work near-miss accounts by event timing and service readiness; average event impact is ${params.avgImpact?.toFixed(2) ?? "n/a"}.`;
+  }
+  return `${params.highPriorityCount} accounts clear priority threshold. Sequence outreach by event date first, then service fit. Cost backdrop: crude-oil benchmark ${params.cl?.toFixed(2) ?? "n/a"}, five-day move ${params.cl5dText}, and broad volatility gauge ${params.vix?.toFixed(2) ?? "n/a"}.`;
+}
+
+function kevinRestaurantAccountsBody(params: {
+  opportunitiesCount: number;
+  scoredCount: number;
+  avgScore: number | null;
+  highPriorityCount: number;
+}): string {
+  if (params.scoredCount === 0) {
+    return "Hard stop: no verified customer-score rows are available for account ranking.";
+  }
+  const qualifiedRate = params.scoredCount > 0 ? (params.highPriorityCount / params.scoredCount) * 100 : 0;
+  return `${params.opportunitiesCount} tracked accounts, ${params.scoredCount} scored, ${params.highPriorityCount} priority. Qualified rate ${qualifiedRate.toFixed(1)}%. If this gets thinner, the carpet may out-network the booth.`;
+}
+
+function kevinFryerTrackingBody(params: {
+  activeFryerRowsCount: number;
+  telemetryCapacityCount: number;
+  nextEventName: string | null;
+}): string {
+  if (params.activeFryerRowsCount === 0) {
+    return "Hard stop: fryer guidance is blocked because verified fryer rows are missing.";
+  }
+  return `Verified fryer rows: ${params.activeFryerRowsCount}; populated capacity rows: ${params.telemetryCapacityCount}. Close telemetry gaps before ${params.nextEventName ?? "the next demand window"} so service calls are planned, not heroic.`;
+}
+
 export async function GET() {
   try {
     const supabase = await createServerDataClient();
@@ -464,7 +518,7 @@ export async function GET() {
     const todayText = now.toISOString().slice(0, 10);
 
     const [
-      glideOptionalCounts,
+      glideCoverageCounts,
       { data: eventRowsRaw, error: eventError },
       { data: venueRowsRaw, error: venueError },
       { data: restaurantRowsRaw, error: restaurantError },
@@ -473,7 +527,7 @@ export async function GET() {
       { data: scoreRowsRaw, error: scoreError },
       { data: impactRowsRaw, error: impactError },
     ] = await Promise.all([
-      readGlideOptionalCounts(supabase),
+      readGlideCoverageCounts(supabase),
       supabase
         .schema("vegas")
         .from("events")
@@ -863,11 +917,11 @@ export async function GET() {
       restaurants: activeRestaurantRows.length,
       casinos: casinoRows.length,
       fryers: activeFryerRows.length,
-      exportList: glideOptionalCounts.exportList,
-      shifts: glideOptionalCounts.shifts,
-      scheduledReports: glideOptionalCounts.scheduledReports,
-      shiftCasinos: glideOptionalCounts.shiftCasinos,
-      shiftRestaurants: glideOptionalCounts.shiftRestaurants,
+      exportList: glideCoverageCounts.exportList,
+      shifts: glideCoverageCounts.shifts,
+      scheduledReports: glideCoverageCounts.scheduledReports,
+      shiftCasinos: glideCoverageCounts.shiftCasinos,
+      shiftRestaurants: glideCoverageCounts.shiftRestaurants,
       lastSync,
     };
 
@@ -875,11 +929,11 @@ export async function GET() {
       restaurants: activeRestaurantRows.length,
       casinos: casinoRows.length,
       fryers: activeFryerRows.length,
-      exportList: glideOptionalCounts.exportList,
-      scheduledReports: glideOptionalCounts.scheduledReports,
-      shifts: glideOptionalCounts.shifts,
-      shiftCasinos: glideOptionalCounts.shiftCasinos,
-      shiftRestaurants: glideOptionalCounts.shiftRestaurants,
+      exportList: glideCoverageCounts.exportList,
+      scheduledReports: glideCoverageCounts.scheduledReports,
+      shifts: glideCoverageCounts.shifts,
+      shiftCasinos: glideCoverageCounts.shiftCasinos,
+      shiftRestaurants: glideCoverageCounts.shiftRestaurants,
     };
 
     const highPriorityCount = opportunities.filter((row) => {
@@ -911,36 +965,46 @@ export async function GET() {
     const fallbackCards: VegasCards = {
       upcomingEvents: {
         title: "Upcoming Events",
-        body: nextEvent
-          ? `${events14d} events are scheduled over the next 14 days (${events30d} over 30 days). Next demand catalyst is ${nextEvent.name} on ${nextEvent.startDate}.`
-          : "Hard stop: no verified vegas.events rows are available for upcoming demand-window analysis.",
+        body: kevinUpcomingEventsBody({
+          nextEvent,
+          events14d,
+          events30d,
+        }),
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.upcomingEvents,
         provenance: buildProvenance(generatedAt, asOf, "upcomingEvents", trustedUrls),
       },
       aiSalesStrategy: {
         title: "AI Sales Strategy",
-        body:
-          opportunities.length === 0 || events.length === 0
-            ? "Hard stop: account-targeted strategy is blocked because verified event or account rows are missing."
-            : `Prioritize high-volume customer accounts before the next event cluster. Average modeled event pressure is ${avgImpact?.toFixed(2) ?? "n/a"}. Current oil-cost backdrop is CL ${cl?.toFixed(2) ?? "n/a"} with 5-day ${cl5dText} and VIX ${vix?.toFixed(2) ?? "n/a"}, so cost-certainty messaging should be sequenced by urgency.`,
+        body: kevinSalesStrategyBody({
+          opportunitiesCount: opportunities.length,
+          eventsCount: events.length,
+          highPriorityCount,
+          avgImpact,
+          cl,
+          cl5dText,
+          vix,
+        }),
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.aiSalesStrategy,
         provenance: buildProvenance(generatedAt, asOf, "aiSalesStrategy", trustedUrls),
       },
       restaurantAccounts: {
         title: "Restaurant Accounts",
-        body:
-          scoredValues.length === 0
-            ? "Hard stop: no verified vegas.customer_scores rows are available for account-priority ranking."
-            : `Current account set has ${opportunities.length} rows with average opportunity score ${avgScore?.toFixed(2) ?? "n/a"}. Sequence outreach from highest opportunity tier first, then roll down by event-window overlap.`,
+        body: kevinRestaurantAccountsBody({
+          opportunitiesCount: opportunities.length,
+          scoredCount: scoredValues.length,
+          avgScore,
+          highPriorityCount,
+        }),
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.restaurantAccounts,
         provenance: buildProvenance(generatedAt, asOf, "restaurantAccounts", trustedUrls),
       },
       fryerTracking: {
         title: "Fryer Equipment Tracking",
-        body:
-          activeFryerRows.length === 0
-            ? "Hard stop: fryer lifecycle guidance is blocked because no verified vegas.fryers rows are available."
-            : `Verified fryer rows: ${activeFryerRows.length}. Sites with capacity telemetry: ${Array.from(capacityByRestaurant.values()).length}. Missing capacity data must be surfaced explicitly before equipment-specific pitch claims.`,
+        body: kevinFryerTrackingBody({
+          activeFryerRowsCount: activeFryerRows.length,
+          telemetryCapacityCount: Array.from(capacityByRestaurant.values()).length,
+          nextEventName: nextEvent?.name ?? null,
+        }),
         strategicSpecialInstructions: VEGAS_INSTRUCTIONS.fryerTracking,
         provenance: buildProvenance(generatedAt, asOf, "fryerTracking", trustedUrls),
       },
@@ -952,24 +1016,33 @@ export async function GET() {
         ...fallbackCards.upcomingEvents,
         ...rawCards.upcomingEvents,
         strategicSpecialInstructions:
-          rawCards.upcomingEvents?.strategicSpecialInstructions ??
-          fallbackCards.upcomingEvents.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.upcomingEvents?.strategicSpecialInstructions ??
+              fallbackCards.upcomingEvents.strategicSpecialInstructions,
+            "kevin",
+          ),
         provenance: rawCards.upcomingEvents?.provenance ?? fallbackCards.upcomingEvents.provenance,
       },
       aiSalesStrategy: {
         ...fallbackCards.aiSalesStrategy,
         ...rawCards.aiSalesStrategy,
         strategicSpecialInstructions:
-          rawCards.aiSalesStrategy?.strategicSpecialInstructions ??
-          fallbackCards.aiSalesStrategy.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.aiSalesStrategy?.strategicSpecialInstructions ??
+              fallbackCards.aiSalesStrategy.strategicSpecialInstructions,
+            "kevin",
+          ),
         provenance: rawCards.aiSalesStrategy?.provenance ?? fallbackCards.aiSalesStrategy.provenance,
       },
       restaurantAccounts: {
         ...fallbackCards.restaurantAccounts,
         ...rawCards.restaurantAccounts,
         strategicSpecialInstructions:
-          rawCards.restaurantAccounts?.strategicSpecialInstructions ??
-          fallbackCards.restaurantAccounts.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.restaurantAccounts?.strategicSpecialInstructions ??
+              fallbackCards.restaurantAccounts.strategicSpecialInstructions,
+            "kevin",
+          ),
         provenance:
           rawCards.restaurantAccounts?.provenance ?? fallbackCards.restaurantAccounts.provenance,
       },
@@ -977,9 +1050,52 @@ export async function GET() {
         ...fallbackCards.fryerTracking,
         ...rawCards.fryerTracking,
         strategicSpecialInstructions:
-          rawCards.fryerTracking?.strategicSpecialInstructions ??
-          fallbackCards.fryerTracking.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.fryerTracking?.strategicSpecialInstructions ??
+              fallbackCards.fryerTracking.strategicSpecialInstructions,
+            "kevin",
+          ),
         provenance: rawCards.fryerTracking?.provenance ?? fallbackCards.fryerTracking.provenance,
+      },
+    };
+
+    const voicedCards: VegasCards = {
+      upcomingEvents: {
+        ...cards.upcomingEvents,
+        body: kevinUpcomingEventsBody({
+          nextEvent,
+          events14d,
+          events30d,
+        }),
+      },
+      aiSalesStrategy: {
+        ...cards.aiSalesStrategy,
+        body: kevinSalesStrategyBody({
+          opportunitiesCount: opportunities.length,
+          eventsCount: events.length,
+          highPriorityCount,
+          avgImpact,
+          cl,
+          cl5dText,
+          vix,
+        }),
+      },
+      restaurantAccounts: {
+        ...cards.restaurantAccounts,
+        body: kevinRestaurantAccountsBody({
+          opportunitiesCount: opportunities.length,
+          scoredCount: scoredValues.length,
+          avgScore,
+          highPriorityCount,
+        }),
+      },
+      fryerTracking: {
+        ...cards.fryerTracking,
+        body: kevinFryerTrackingBody({
+          activeFryerRowsCount: activeFryerRows.length,
+          telemetryCapacityCount: Array.from(capacityByRestaurant.values()).length,
+          nextEventName: nextEvent?.name ?? null,
+        }),
       },
     };
 
@@ -1005,7 +1121,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...envelope,
-      cards,
+      cards: voicedCards,
       stats,
       glideTables,
       events,

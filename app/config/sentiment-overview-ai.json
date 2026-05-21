@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-21T07:39:35-04:00",
+  "generatedAt": "2026-05-21T07:28:58-05:00",
   "model": "nvidia/nemotron-3-super-120b-a12b:free",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -14,26 +14,26 @@
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Macro-policy sentiment remains watchful rather than shock-grade. The Economic Policy Uncertainty Index cooled to 439.64 as of 2026-05-19, which still keeps policy relevant, but the active seven-day tape has thinned enough to pull the regime back from outright macro-panic language.",
+        "body": "Macro sentiment remains mixed-to-supportive, but conviction quality still depends on volatility behavior and positioning follow-through. Treat this regime as actionable only with persistence, not single-session enthusiasm.",
         "strategicSpecialInstructions": {
-          "cardTopic": "Macro Policy Sentiment Transmission",
-          "strategicObjective": "Classify whether macro-policy narrative pressure is actively changing soybean-oil procurement timing.",
-          "neuralConnectionThesis": "Macro narrative only becomes procurement-relevant when policy fear stays persistent enough to reinforce physical or energy-market stress.",
+          "cardTopic": "Macro Sentiment Regime",
+          "strategicObjective": "Classify macro sentiment pressure so buyers can judge timing risk before conviction appears in price structure.",
+          "neuralConnectionThesis": "Narrative pressure becomes operationally relevant when volatility and positioning align with it.",
           "quantResearchProtocol": [
-            "Track policy-uncertainty level and short-window trend.",
-            "Compare narrative pressure with the live lead driver.",
-            "Classify the regime as shock-watch or monitor-only.",
-            "Translate the regime into buyer urgency language."
+            "Track narrative persistence and pressure concentration across recent windows.",
+            "Classify regime as stable, mixed, stretched, or unstable.",
+            "Cross-check regime against volatility context and positioning state.",
+            "Translate regime into buyer timing implications."
           ],
           "inferenceConstraints": [
-            "Do not call a regime shift from one headline pulse.",
-            "Do not ignore conflicting cross-channel evidence.",
-            "Do not emit generic sentiment language without buyer impact."
+            "Do not infer regime shifts from isolated stories.",
+            "Do not use hype language or trader slang.",
+            "Do not omit confidence caveats when evidence is thin."
           ],
           "outputRequirements": [
-            "State the macro sentiment regime.",
-            "Quote the uncertainty level.",
-            "Provide the procurement timing consequence."
+            "Keep output to 1-3 concise sentences.",
+            "State sentiment regime and persistence horizon.",
+            "Report procurement timing implication with uncertainty clarity."
           ]
         },
         "provenance": {
@@ -66,26 +66,26 @@
       },
       {
         "title": "Flow Narrative",
-        "body": "The active seven-day tape now holds 5 high-signal rows, with policy tags on 2, energy tags on 2, macro context on 1, and China tags on 0. That means the narrative regime is still concentrated and policy-led, but it is thinner and less self-confirming than yesterday.",
+        "body": "Participation flow remains concentrated rather than broad, which raises fragility risk if conviction thins further. Keep monitoring cadence tight and evidence-led.",
         "strategicSpecialInstructions": {
-          "cardTopic": "Positioning and Participation Flow Sentiment",
-          "strategicObjective": "Determine whether the current headline mix supports stable price discovery or a fragile narrative regime.",
-          "neuralConnectionThesis": "Headline flow becomes dangerous for buyers when thematic density and persistence reinforce each other; sparse mixed headlines mostly raise monitoring needs, not panic action.",
+          "cardTopic": "Narrative Flow and Participation Pressure",
+          "strategicObjective": "Determine whether current participation flow is stable, crowded, or fragile for procurement timing decisions.",
+          "neuralConnectionThesis": "Crowded or unstable flow increases reversal risk and decision-latency cost for buyers.",
           "quantResearchProtocol": [
-            "Count active rows and tag density over the last seven days.",
-            "Separate total velocity from soy-relevant density.",
-            "Classify the tape as sparse, balanced, or crowded.",
-            "Tie the result to monitoring frequency."
+            "Measure flow persistence versus burstiness in recent sessions.",
+            "Map flow state to sentiment drift and volatility context.",
+            "Flag conviction fragility when channels conflict.",
+            "Express impact in buyer execution-risk language."
           ],
           "inferenceConstraints": [
-            "Do not equate headline count with regime certainty.",
-            "Do not overfit one thematic cluster without density confirmation.",
-            "Do not suppress uncertainty when the tape is sparse."
+            "Do not infer conviction from one-day flow bursts.",
+            "Do not overfit flow to direction without regime context.",
+            "Do not suppress uncertainty when flow signals conflict."
           ],
           "outputRequirements": [
-            "State row count and key tag counts.",
-            "Explain whether the tape is sparse or crowded.",
-            "Provide the monitoring implication."
+            "Keep output to 1-3 concise sentences.",
+            "Classify flow state with confidence qualifier.",
+            "Explain likely impact on buyer timing and slippage risk."
           ]
         },
         "provenance": {
@@ -111,26 +111,26 @@
       },
       {
         "title": "Procurement Narrative",
-        "body": "CFTC remains bullish with managed-money net length of 158,102 contracts, or 22.45% of open interest, while the broad risk network cooled to 36.7 and policy alone still leads at 51.5. That combination still favors disciplined accumulation with faster re-checks instead of one-shot urgency or passive waiting.",
+        "body": "Current sentiment conditions still favor disciplined staged execution over reactive timing. Buyer hesitation risk rises when volatility expands and narrative conviction destabilizes.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
-          "strategicObjective": "Convert sentiment, positioning, and risk-network conditions into a buyer-ready pacing posture.",
-          "neuralConnectionThesis": "Buyer outcomes improve when bullish positioning is translated into pacing rules instead of emotional urgency.",
+          "strategicObjective": "Convert sentiment and positioning conditions into buyer-ready pacing guidance under uncertainty.",
+          "neuralConnectionThesis": "Explicit pacing rules reduce emotional overreaction and timing regret during unstable sentiment regimes.",
           "quantResearchProtocol": [
-            "Use CoT bias and managed-money ratio as the positioning anchor.",
-            "Cross-check the position signal against the average risk network.",
-            "Classify buyer psychology as calm, disciplined, or urgent.",
-            "State the pacing rule that follows from the classification."
+            "Combine sentiment score, flow state, and macro regime into a buyer posture.",
+            "Score decision-latency risk versus over-hedge risk under current regime.",
+            "Align guidance to staged-execution logic when channel correlation is high.",
+            "State invalidation conditions for posture changes."
           ],
           "inferenceConstraints": [
-            "Do not issue binary buy-or-wait language without uncertainty framing.",
-            "Do not ignore asymmetric upside reflex risk when the market is net long.",
-            "Do not recommend static cadence in mixed-risk conditions."
+            "Do not recommend static cadence in elevated mixed-risk states.",
+            "Do not issue binary buy-or-wait calls without uncertainty framing.",
+            "Do not ignore asymmetric downside scenarios."
           ],
           "outputRequirements": [
+            "Keep output to 1-3 concise sentences.",
             "Provide concrete pacing guidance.",
-            "Quote the CoT math.",
-            "State the trigger that would force a posture change."
+            "Include explicit reassessment triggers."
           ]
         },
         "provenance": {
@@ -164,26 +164,26 @@
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "The latest soybean-oil CoT print (2026-05-12) still shows bullish managed-money bias with net length 158,102 contracts and a 22.45% open-interest share. That keeps upside reflex risk alive, but it remains a weekly positioning signal rather than a real-time panic trigger.",
+      "body": "Managed-money bias remains context, not certainty. Treat weekly positioning as a pressure indicator and confirm with current volatility and headline coherence before changing pace.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
         "strategicObjective": "Determine whether managed-money positioning is stabilizing or destabilizing soybean-oil procurement expectations.",
-        "neuralConnectionThesis": "Large bullish net length can amplify price reflexes even when the broader network is not in crisis.",
+        "neuralConnectionThesis": "Positioning concentration can amplify reflex moves before fundamentals fully confirm.",
         "quantResearchProtocol": [
-          "Read the latest managed-money net and ratio to open interest.",
-          "Classify the bias with a confidence caveat because CoT is weekly.",
-          "Cross-map the bias against current volatility and energy conditions.",
-          "Translate the result into buyer caution level."
+          "Read latest managed-money net and ratio to open interest.",
+          "Classify bias with freshness caveat because managed-money positioning updates weekly.",
+          "Cross-map bias against current volatility and headline pressure.",
+          "Translate result into buyer caution level."
         ],
         "inferenceConstraints": [
-          "Do not treat weekly CoT as real-time certainty.",
+          "Do not treat weekly managed-money positioning as real-time certainty.",
           "Do not equate size with durability of conviction.",
           "Do not omit freshness caveats."
         ],
         "outputRequirements": [
-          "State the bias class and math.",
-          "Explain the procurement consequence.",
-          "Say what would change the interpretation."
+          "Keep output to 1-3 concise sentences.",
+          "State bias class with confidence caveat.",
+          "Explain procurement risk implication."
         ]
       },
       "provenance": {
@@ -209,26 +209,26 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "Headline velocity is still policy-led, but the tape is thinner: only 5 current high-signal rows are active, with no China-tagged confirmation and just 2 energy-tagged rows. Treat this as a concentrated watch surface, not a broad narrative cascade.",
+      "body": "Headline velocity is useful when it is persistent and coherent across core themes. Treat short bursts as watch signals, not immediate posture changes.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
-        "strategicObjective": "Assess whether the current headline stream is producing actionable signal or just adding narrative noise.",
-        "neuralConnectionThesis": "Headline velocity only becomes actionable when it is thematically coherent and persistent enough to reinforce live market pressure.",
+        "strategicObjective": "Assess whether headline stream is producing actionable signal or noise for procurement decisions.",
+        "neuralConnectionThesis": "Headline velocity becomes actionable when thematic coherence and persistence reinforce live market pressure.",
         "quantResearchProtocol": [
           "Track 24-hour and seven-day headline density.",
-          "Identify whether the active tape is energy-led, policy-led, or mixed.",
-          "Compare headline concentration with the live market drivers.",
+          "Identify whether tape is energy-led, policy-led, or mixed.",
+          "Compare headline concentration with live market drivers.",
           "Set monitoring cadence from coherence, not count alone."
         ],
         "inferenceConstraints": [
-          "Do not infer a regime shift from headline velocity alone.",
+          "Do not infer regime shift from velocity alone.",
           "Do not ignore low thematic density.",
           "Do not provide cadence advice without coherence checks."
         ],
         "outputRequirements": [
-          "State whether the tape is signal or noise dominant.",
-          "Describe the expected persistence horizon.",
-          "Provide a monitoring cadence recommendation."
+          "Keep output to 1-3 concise sentences.",
+          "State whether velocity is signal or noise.",
+          "Provide monitoring cadence recommendation."
         ]
       },
       "provenance": {

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import type { ApiEnvelope, LegislationItem } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
+import { withAudienceInstructionGuardrails } from "@/lib/server/ai-instruction-guardrails";
 import { createServerDataClient } from "@/lib/server/server-data-client";
 import {
   fetchTrustedMarketSnapshot,
@@ -135,72 +136,72 @@ function dedupeLegislationItems(items: LegislationItem[]): LegislationItem[] {
 
 const LEGISLATION_INSTRUCTIONS: Record<keyof LegislationCards, StrategicSpecialInstructions> = {
   feedSummary: {
-    cardTopic: "Policy Feed Procurement Impact Synthesis",
+    cardTopic: "Policy Feed Operational Impact Briefing",
     strategicObjective:
-      "Prioritize policy items by transmission speed and cost impact relevance so buyer decisions align with actionable legislative risk.",
+      "Translate current legislation flow into procurement, pricing, compliance, and sourcing impact so buyer decisions stay operationally grounded.",
     neuralConnectionThesis:
-      "Policy updates influence soybean oil procurement through compliance, trade, and subsidy pathways; impact depends on implementation horizon and enforcement likelihood.",
+      "Policy only matters to procurement when it changes timing, cost, compliance burden, or supply-chain friction.",
     quantResearchProtocol: [
-      "Rank items by urgency, implementation lag, and likely cost pass-through channel.",
-      "Separate market-moving policy from informational noise.",
-      "Classify each top item by immediate, near-term, or deferred impact horizon.",
-      "Translate item-level impact into buyer execution guidance.",
+      "Rank items by operational transmission speed and enforcement likelihood.",
+      "Separate confirmed action, proposed action, and administrative noise.",
+      "Classify each top item as immediate, near-term, or deferred risk.",
+      "Convert each risk into buyer-facing execution implications.",
     ],
     inferenceConstraints: [
-      "Do not treat all feed items as equal impact.",
+      "Do not provide political, partisan, or ideological commentary.",
+      "Do not use doom language, hype language, or speculative certainty.",
       "Do not issue urgent posture without implementation evidence.",
-      "Do not omit policy-to-procurement transmission explanation.",
     ],
     outputRequirements: [
-      "Identify top policy risks and their impact horizons.",
-      "State likely procurement consequence per top risk.",
-      "Provide monitoring trigger for each high-impact item class.",
+      "Keep output to 1-3 concise sentences.",
+      "State top operational risks and impact horizon.",
+      "Provide one monitoring trigger for escalation.",
     ],
   },
   sourcePressure: {
-    cardTopic: "Source Concentration and Signal Reliability",
+    cardTopic: "Source Reliability and Concentration Risk",
     strategicObjective:
-      "Measure whether current source concentration increases policy-risk uncertainty or supports high-confidence interpretation.",
+      "Assess whether source concentration supports confidence or increases policy-interpretation risk for procurement decisions.",
     neuralConnectionThesis:
-      "When policy flow clusters in a narrow source set, narrative volatility can increase and degrade confidence unless corroborated by independent channels.",
+      "Narrow source breadth increases interpretation error risk unless corroborated by independent channels.",
     quantResearchProtocol: [
-      "Count source concentration and compare with multi-day baseline.",
-      "Detect sudden source dominance shifts and classify reliability risk.",
-      "Cross-check high-pressure sources against corroborating outlets.",
-      "Score confidence based on breadth and consistency of source coverage.",
+      "Measure lead-source share and breadth across active items.",
+      "Detect source-dominance shifts against recent baseline.",
+      "Flag corroboration gaps in high-impact lanes.",
+      "Map source structure into confidence posture.",
     ],
     inferenceConstraints: [
       "Do not overstate confidence when source breadth is narrow.",
-      "Do not ignore corroboration gaps on high-impact claims.",
-      "Do not reduce source analysis to raw count only.",
+      "Do not reduce reliability analysis to raw counts alone.",
+      "Do not blur confirmed evidence with unconfirmed narrative.",
     ],
     outputRequirements: [
-      "State concentration regime and confidence impact.",
-      "Highlight top active sources by relevance.",
-      "Explain how source structure affects buyer decision certainty.",
+      "Keep output to 1-3 concise sentences.",
+      "State concentration regime and confidence effect.",
+      "Explain operational consequence of low corroboration.",
     ],
   },
   tagPressure: {
     cardTopic: "Policy Theme Pressure Ranking",
     strategicObjective:
-      "Identify which policy themes (tariff, biofuel, exports, logistics) carry the highest procurement risk contribution in the current window.",
+      "Identify which policy themes are most likely to propagate into procurement pressure and compliance workload.",
     neuralConnectionThesis:
-      "Theme pressure predicts where policy risk is likely to propagate first; concentrated tag clusters can front-run contract-cost repricing.",
+      "Theme concentration is useful only when linked to concrete operational transmission channels.",
     quantResearchProtocol: [
-      "Rank tags by frequency, persistence, and historical transmission relevance.",
-      "Group related tags into coherent risk themes.",
-      "Differentiate structural themes from transient bursts.",
-      "Map top themes to buyer-facing procurement actions.",
+      "Rank tags by frequency, persistence, and transmission relevance.",
+      "Separate trade, compliance, energy, and agriculture theme lanes.",
+      "Differentiate structural pressure from temporary bursts.",
+      "Map top themes to watch priorities for buyers.",
     ],
     inferenceConstraints: [
       "Do not equate high frequency with high impact without context.",
       "Do not collapse distinct theme channels into one generic category.",
-      "Do not provide posture without horizon classification.",
+      "Do not claim certainty without implementation detail.",
     ],
     outputRequirements: [
-      "Report top pressure themes with impact horizon.",
-      "Explain transmission pathway to procurement cost/timing.",
-      "Provide concrete watchlist priorities.",
+      "Keep output to 1-3 concise sentences.",
+      "Report top themes with impact horizon.",
+      "Provide concrete watchlist priorities tied to operations.",
     ],
   },
 };
@@ -247,6 +248,35 @@ function buildProvenance(
       },
     ],
   };
+}
+
+function stacyFeedSummaryBody(params: {
+  latestItem: LegislationItem | null;
+  topTagSet: string;
+}): string {
+  if (!params.latestItem) {
+    return "Hard stop: no verified agriculture/soy policy rows are available across active feeds.";
+  }
+  const themes = params.topTagSet || "no ranked tags yet";
+  return `Lead policy item: "${params.latestItem.title}" (${params.latestItem.source}). Active themes: ${themes}. Operational takeaway: treat this as active watch-risk until implementation language is confirmed.`;
+}
+
+function stacySourcePressureBody(params: {
+  topSource: [string, number] | undefined;
+  topSourceShare: number | null;
+  concentrationClass: string;
+}): string {
+  if (!params.topSource) {
+    return "Hard stop: source-pressure read is blocked because verified feed records are missing.";
+  }
+  return `Source mix is ${params.concentrationClass}; ${params.topSource[0]} carries ${params.topSourceShare?.toFixed(1) ?? "n/a"}% of current flow. Confidence should stay moderated until corroborating agencies confirm the same risk lane.`;
+}
+
+function stacyTagPressureBody(params: { sortedTags: Array<[string, number]>; topTagSet: string }): string {
+  if (params.sortedTags.length === 0) {
+    return "Hard stop: no verified policy tags are present, so tag-pressure ranking is blocked.";
+  }
+  return `Top pressure tags: ${params.topTagSet}. Keep watch priority on these lanes for import/export friction, compliance workload, and procurement timing pressure.`;
 }
 
 export async function GET() {
@@ -342,25 +372,29 @@ export async function GET() {
     const fallbackCards: LegislationCards = {
       feedSummary: {
         title: "Live Policy Feed",
-        body: latestItem
-          ? `Most recent verified agriculture/soy policy item: "${latestItem.title}" from ${latestItem.source}. Primary watch themes are ${topTagSet || "not yet tagged"} with procurement impact evaluated on implementation timing and enforcement likelihood.`
-          : "Hard stop: no verified agriculture/soy policy rows are available across legislation, executive, or congressional feeds.",
+        body: stacyFeedSummaryBody({
+          latestItem,
+          topTagSet,
+        }),
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.feedSummary,
         provenance: buildProvenance(generatedAt, asOf, "feedSummary", trustedUrls),
       },
       sourcePressure: {
         title: "Source Activity",
-        body: topSource
-          ? `Source structure is ${concentrationClass}; ${topSource[0]} currently leads policy flow coverage at ${topSourceShare?.toFixed(1)}%. Confidence should be discounted when concentration remains high without corroboration breadth.`
-          : "Hard stop: source-activity interpretation is blocked because no verified feed records are available.",
+        body: stacySourcePressureBody({
+          topSource,
+          topSourceShare,
+          concentrationClass,
+        }),
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.sourcePressure,
         provenance: buildProvenance(generatedAt, asOf, "sourcePressure", trustedUrls),
       },
       tagPressure: {
         title: "Policy Tag Pressure",
-        body: sortedTags.length > 0
-          ? `Top verified policy pressure themes: ${topTagSet}. These tags should drive watchlist priority in that order until persistence weakens.`
-          : "Hard stop: no verified policy tags are present, so tag-pressure ranking is blocked.",
+        body: stacyTagPressureBody({
+          sortedTags,
+          topTagSet,
+        }),
         strategicSpecialInstructions: LEGISLATION_INSTRUCTIONS.tagPressure,
         provenance: buildProvenance(generatedAt, asOf, "tagPressure", trustedUrls),
       },
@@ -372,25 +406,59 @@ export async function GET() {
         ...fallbackCards.feedSummary,
         ...rawCards.feedSummary,
         strategicSpecialInstructions:
-          rawCards.feedSummary?.strategicSpecialInstructions ??
-          fallbackCards.feedSummary.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.feedSummary?.strategicSpecialInstructions ??
+              fallbackCards.feedSummary.strategicSpecialInstructions,
+            "chris",
+          ),
         provenance: rawCards.feedSummary?.provenance ?? fallbackCards.feedSummary.provenance,
       },
       sourcePressure: {
         ...fallbackCards.sourcePressure,
         ...rawCards.sourcePressure,
         strategicSpecialInstructions:
-          rawCards.sourcePressure?.strategicSpecialInstructions ??
-          fallbackCards.sourcePressure.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.sourcePressure?.strategicSpecialInstructions ??
+              fallbackCards.sourcePressure.strategicSpecialInstructions,
+            "chris",
+          ),
         provenance: rawCards.sourcePressure?.provenance ?? fallbackCards.sourcePressure.provenance,
       },
       tagPressure: {
         ...fallbackCards.tagPressure,
         ...rawCards.tagPressure,
         strategicSpecialInstructions:
-          rawCards.tagPressure?.strategicSpecialInstructions ??
-          fallbackCards.tagPressure.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.tagPressure?.strategicSpecialInstructions ??
+              fallbackCards.tagPressure.strategicSpecialInstructions,
+            "chris",
+          ),
         provenance: rawCards.tagPressure?.provenance ?? fallbackCards.tagPressure.provenance,
+      },
+    };
+
+    const voicedCards: LegislationCards = {
+      feedSummary: {
+        ...cards.feedSummary,
+        body: stacyFeedSummaryBody({
+          latestItem,
+          topTagSet,
+        }),
+      },
+      sourcePressure: {
+        ...cards.sourcePressure,
+        body: stacySourcePressureBody({
+          topSource,
+          topSourceShare,
+          concentrationClass,
+        }),
+      },
+      tagPressure: {
+        ...cards.tagPressure,
+        body: stacyTagPressureBody({
+          sortedTags,
+          topTagSet,
+        }),
       },
     };
 
@@ -403,7 +471,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...envelope,
-      cards,
+      cards: voicedCards,
       ai: toAiEnvelopeMeta(aiSnapshot),
     });
   } catch (err) {

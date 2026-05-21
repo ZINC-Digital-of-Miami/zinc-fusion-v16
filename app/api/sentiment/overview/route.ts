@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import type { ApiEnvelope, SentimentOverview } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
+import { withAudienceInstructionGuardrails } from "@/lib/server/ai-instruction-guardrails";
 import { createServerDataClient } from "@/lib/server/server-data-client";
 import {
   fetchTrustedMarketSnapshot,
@@ -23,57 +24,63 @@ type SentimentAiSnapshot = {
 
 const SENTIMENT_INSTRUCTIONS = {
   macroNarrative: {
-    cardTopic: "Macro Policy Sentiment Transmission",
+    cardTopic: "Macro Sentiment Regime",
     strategicObjective:
-      "Classify macro and policy narrative pressure regimes that can change soybean oil procurement timing risk before hard price confirmation.",
+      "Classify macro sentiment pressure so buyers can judge timing risk before conviction appears in price structure.",
     neuralConnectionThesis:
-      "Macro-policy narrative clusters alter risk-premium expectations and can accelerate commodity repricing when volatility and energy channels confirm.",
+      "Narrative pressure becomes operationally relevant when volatility and positioning align with it.",
     quantResearchProtocol: [
-      "Track macro-policy narrative density and persistence over rolling windows.",
-      "Segment narrative shocks into transient versus regime-shift classes.",
-      "Cross-check narrative regime against volatility and energy coherence.",
-      "Translate narrative class into buyer-side procurement urgency levels.",
+      "Track narrative persistence and pressure concentration across recent windows.",
+      "Classify regime as stable, mixed, stretched, or unstable.",
+      "Cross-check regime against volatility context and positioning state.",
+      "Translate regime into buyer timing implications.",
     ],
     inferenceConstraints: [
-      "Do not classify regime shifts from isolated stories.",
-      "Do not ignore conflicting channel evidence.",
-      "Do not emit generic sentiment language without buyer impact.",
+      "Do not infer regime shifts from isolated stories.",
+      "Do not use hype language or trader slang.",
+      "Do not omit confidence caveats when evidence is thin.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
-      "State macro sentiment regime and persistence horizon.",
-      "Report risk implication for procurement timing.",
-      "Provide confirm/deconfirm triggers for escalation.",
+      "Keep output to 1-3 concise sentences.",
+      "State sentiment regime and persistence horizon.",
+      "Report procurement timing implication with uncertainty clarity.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   } satisfies StrategicSpecialInstructions,
   flowNarrative: {
-    cardTopic: "Positioning and Participation Flow Sentiment",
+    cardTopic: "Narrative Flow and Participation Pressure",
     strategicObjective:
-      "Interpret whether current positioning flow supports stable price discovery or increases fragility for procurement execution windows.",
+      "Determine whether current participation flow is stable, crowded, or fragile for procurement timing decisions.",
     neuralConnectionThesis:
-      "When managed-money and participation flow become conditional, markets exhibit lower follow-through and higher reversal risk, increasing decision-latency cost for buyers.",
+      "Crowded or unstable flow increases reversal risk and decision-latency cost for buyers.",
     quantResearchProtocol: [
-      "Evaluate flow persistence versus burstiness in recent sessions.",
-      "Map flow state to sentiment score drift and volatility context.",
-      "Detect conviction fragility under mixed channel alignment.",
-      "Express flow implications in buyer execution-risk language.",
+      "Measure flow persistence versus burstiness in recent sessions.",
+      "Map flow state to sentiment drift and volatility context.",
+      "Flag conviction fragility when channels conflict.",
+      "Express impact in buyer execution-risk language.",
     ],
     inferenceConstraints: [
       "Do not infer conviction from one-day flow bursts.",
       "Do not overfit flow to direction without regime context.",
       "Do not suppress uncertainty when flow signals conflict.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
+      "Keep output to 1-3 concise sentences.",
       "Classify flow state with confidence qualifier.",
-      "Explain likely impact on execution slippage risk.",
-      "Provide near-term monitoring focus.",
+      "Explain likely impact on buyer timing and slippage risk.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   } satisfies StrategicSpecialInstructions,
   procurementNarrative: {
     cardTopic: "Buyer Procurement Psychology",
     strategicObjective:
-      "Convert sentiment and flow conditions into buyer-ready pacing guidance that minimizes timing regret under uncertainty.",
+      "Convert sentiment and positioning conditions into buyer-ready pacing guidance under uncertainty.",
     neuralConnectionThesis:
-      "Procurement outcomes improve when psychological regime cues are converted into explicit pacing and reassessment cadence rules rather than ad-hoc reaction.",
+      "Explicit pacing rules reduce emotional overreaction and timing regret during unstable sentiment regimes.",
     quantResearchProtocol: [
       "Combine sentiment score, flow state, and macro regime into a buyer posture.",
       "Score decision-latency risk versus over-hedge risk under current regime.",
@@ -84,11 +91,14 @@ const SENTIMENT_INSTRUCTIONS = {
       "Do not recommend static cadence in elevated mixed-risk states.",
       "Do not issue binary buy/wait calls without uncertainty framing.",
       "Do not ignore asymmetric downside scenarios.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
+      "Keep output to 1-3 concise sentences.",
       "Provide concrete pacing guidance.",
-      "State why buyer psychology risk is elevated or contained.",
       "Include explicit reassessment triggers.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   } satisfies StrategicSpecialInstructions,
   positioningFlow: {
@@ -98,20 +108,23 @@ const SENTIMENT_INSTRUCTIONS = {
     neuralConnectionThesis:
       "Managed-money bias influences the persistence of commodity moves and can widen procurement timing error when conviction is fragile and volatility is elevated.",
     quantResearchProtocol: [
-      "Read latest CoT-linked bias state and classify confidence.",
+      "Read the latest managed-money positioning report and classify confidence.",
       "Cross-map bias state to sentiment score and volatility regime.",
       "Differentiate supportive participation from reflexive positioning risk.",
       "Translate bias regime into buyer-facing caution level.",
     ],
     inferenceConstraints: [
       "Do not equate position size with conviction durability.",
-      "Do not treat stale CoT inputs as real-time certainty.",
+      "Do not treat stale managed-money positioning data as real-time certainty.",
       "Do not omit confidence caveats.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
-      "State bias class and confidence.",
+      "Keep output to 1-3 concise sentences.",
+      "State bias class with confidence caveat.",
       "Explain procurement risk implication.",
-      "Specify what would change the bias interpretation.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   } satisfies StrategicSpecialInstructions,
   headlineFlow: {
@@ -130,11 +143,14 @@ const SENTIMENT_INSTRUCTIONS = {
       "Do not infer regime shifts from velocity alone.",
       "Do not ignore channel concentration effects.",
       "Do not provide cadence advice without coherence check.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
+      "Keep output to 1-3 concise sentences.",
       "State whether velocity is signal or noise.",
-      "Describe expected persistence horizon.",
       "Provide monitoring cadence recommendation.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   } satisfies StrategicSpecialInstructions,
 } as const;
@@ -160,7 +176,7 @@ function buildProvenance(
       {
         source: "mkt.cftc_1w",
         table: "mkt.cftc_1w",
-        recordHint: "symbol=ZL latest observation",
+        recordHint: "latest soybean-oil managed-money positioning observation",
         observedAt: updatedAt,
       },
       {
@@ -174,6 +190,79 @@ function buildProvenance(
       "Hard stop language is required when market or flow evidence is missing.",
     ],
   };
+}
+
+function stacyMacroNarrativeBody(params: {
+  macroTrustedMissing: boolean;
+  sentimentScore: number;
+  cotBiasLabel: string;
+  vix: number | null;
+  ovx: number | null;
+  cl5dText: string;
+}): string {
+  if (params.macroTrustedMissing) {
+    return "Hard stop: trusted market context is missing, so macro sentiment classification is blocked.";
+  }
+  const regime =
+    params.sentimentScore <= -25 ? "defensive" : params.sentimentScore >= 25 ? "supportive" : "mixed";
+  const extremeVol =
+    (params.vix !== null && params.vix >= 35) || (params.ovx !== null && params.ovx >= 45);
+  const dryLine = extremeVol
+    ? "Volatility remains unstable enough to degrade conviction quality."
+    : "";
+  return `Macro regime is ${regime} with ${params.cotBiasLabel}. The broad volatility gauge is ${params.vix?.toFixed(2) ?? "n/a"}, the oil-volatility gauge is ${params.ovx?.toFixed(2) ?? "n/a"}, and crude oil moved ${params.cl5dText} over five days. ${dryLine}`.trim();
+}
+
+function stacyFlowNarrativeBody(params: {
+  headlineCount: number;
+  flowState: string;
+  sourceCount: number;
+  tagPhrase: string;
+  pulseRatio: number;
+}): string {
+  if (params.headlineCount === 0) {
+    return "Hard stop: no verified sentiment rows in the 7-day window, so flow read is blocked.";
+  }
+  const coherence =
+    params.pulseRatio >= 1.5 ? "noisy and jumpy" : params.pulseRatio >= 1 ? "mixed but tradable" : "thin";
+  return `Flow is ${params.flowState} with ${params.sourceCount} active sources; lead clusters: ${params.tagPhrase}. Tape coherence is ${coherence}, so keep execution cadence disciplined.`;
+}
+
+function stacyProcurementNarrativeBody(params: {
+  macroTrustedMissing: boolean;
+  hasCot: boolean;
+  sentimentScore: number;
+  cotBiasLabel: string;
+  vix: number | null;
+}): string {
+  if (params.macroTrustedMissing || !params.hasCot) {
+    return "Hard stop: missing managed-money positioning or trusted-market context blocks procurement pacing guidance.";
+  }
+  const posture =
+    params.sentimentScore <= -25
+      ? "defensive with short reassessment windows"
+      : params.sentimentScore >= 25
+        ? "staged accumulation with discipline"
+        : "balanced pacing with coverage flexibility";
+  const volState = params.vix !== null && params.vix >= 25 ? "elevated" : "contained";
+  return `Buyer posture: ${posture}. Managed-money positioning is ${params.cotBiasLabel}, and volatility transmission is ${volState}. Timing discipline remains more important than reactive urgency.`;
+}
+
+function stacyPositioningBody(params: { hasCot: boolean; cotBiasLabel: string; observationDate: string | null }): string {
+  if (!params.hasCot) return "Hard stop: no verified managed-money positioning observation is available.";
+  return `Managed-money posture is ${params.cotBiasLabel} (observation ${params.observationDate ?? "missing"}). Treat this as context, not a solo trigger.`;
+}
+
+function stacyHeadlineFlowBody(params: {
+  headlineCount: number;
+  flowState: string;
+  sourceCount: number;
+  tagPhrase: string;
+}): string {
+  if (params.headlineCount === 0) {
+    return "Hard stop: headline-flow guidance is blocked because the verified 7-day feed is empty.";
+  }
+  return `Headline velocity is ${params.flowState}; source breadth is ${params.sourceCount}; active clusters: ${params.tagPhrase}. Monitor persistence before changing pace.`;
 }
 
 export async function GET() {
@@ -190,7 +279,7 @@ export async function GET() {
     const oneDayAgo = new Date();
     oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-    const [{ data: newsRows, error: newsError }, { data: cftcRow }] = await Promise.all([
+    const [{ data: newsRows, error: newsError }, { data: cftcRow }, { data: metricRows }] = await Promise.all([
       supabase
         .schema("alt")
         .from("news_events")
@@ -206,6 +295,12 @@ export async function GET() {
         .order("observation_date", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      supabase
+        .schema("analytics")
+        .from("dashboard_metrics")
+        .select("trade_date, metric_key, metric_value")
+        .order("trade_date", { ascending: false })
+        .limit(300),
     ]);
 
     if (newsError) {
@@ -245,9 +340,23 @@ export async function GET() {
       cotBiasNorm.includes("bull") ? "bullish bias" : cotBiasNorm.includes("bear") ? "bearish bias" : "neutral bias";
     const cotBiasScore = cotBiasNorm.includes("bull") ? 20 : cotBiasNorm.includes("bear") ? -20 : 0;
 
-    const vix = trustedMarket.vix.value;
-    const ovx = trustedMarket.ovx.value;
-    const cl5d = trustedMarket.cl.change5d;
+    const latestMetricDate = metricRows?.[0]?.trade_date ?? null;
+    const latestMetrics = (metricRows ?? []).filter((row) => row.trade_date === latestMetricDate);
+    const metricMap = new Map<string, number>();
+    for (const metric of latestMetrics) {
+      const parsed = Number(metric.metric_value);
+      if (Number.isFinite(parsed)) {
+        metricMap.set(String(metric.metric_key).toLowerCase(), parsed);
+      }
+    }
+
+    const dbVix = metricMap.get("vix_value") ?? null;
+    const dbOvx = metricMap.get("ovx_value") ?? null;
+    const dbCl5d = metricMap.get("cl_change_5d") ?? metricMap.get("crude_oil_change_5d") ?? null;
+
+    const vix = trustedMarket.vix.value ?? dbVix;
+    const ovx = trustedMarket.ovx.value ?? dbOvx;
+    const cl5d = trustedMarket.cl.change5d ?? dbCl5d;
     const cl5dText =
       cl5d === null ? "n/a" : `${cl5d * 100 >= 0 ? "+" : ""}${(cl5d * 100).toFixed(2)}%`;
     const macroTrustedMissing = vix === null && ovx === null && cl5d === null;
@@ -279,42 +388,60 @@ export async function GET() {
       narratives: [
         {
           title: "Macro Narrative",
-          body: macroTrustedMissing
-            ? "Hard stop: trusted Yahoo/FRED market context is unavailable; macro narrative classification is blocked."
-            : `Macro pressure is ${sentimentScore <= -25 ? "defensive" : sentimentScore >= 25 ? "supportive" : "mixed"} with ${cotBiasLabel}. VIX ${vix?.toFixed(2) ?? "n/a"}, OVX ${ovx?.toFixed(2) ?? "n/a"}, and CL 5-day ${cl5dText} frame near-term narrative risk.`,
+          body: stacyMacroNarrativeBody({
+            macroTrustedMissing,
+            sentimentScore,
+            cotBiasLabel,
+            vix,
+            ovx,
+            cl5dText,
+          }),
           strategicSpecialInstructions: SENTIMENT_INSTRUCTIONS.macroNarrative,
           provenance: buildProvenance(generatedAt, overview.updatedAt, "macroNarrative", trustedUrls),
         },
         {
           title: "Flow Narrative",
-          body: headlineCount === 0
-            ? "Hard stop: no verified alt.news_events rows in the last 7 days; flow narrative is blocked."
-            : `Flow regime is ${flowState} with ${sourceSet.size} active sources and dominant specialist cluster: ${tagPhrase}. Velocity coherence is ${pulseRatio >= 1.5 ? "high-risk noisy" : pulseRatio >= 1 ? "tradable but mixed" : "low-intensity"} for buyer timing decisions.`,
+          body: stacyFlowNarrativeBody({
+            headlineCount,
+            flowState,
+            sourceCount: sourceSet.size,
+            tagPhrase,
+            pulseRatio,
+          }),
           strategicSpecialInstructions: SENTIMENT_INSTRUCTIONS.flowNarrative,
           provenance: buildProvenance(generatedAt, overview.updatedAt, "flowNarrative", trustedUrls),
         },
         {
           title: "Procurement Narrative",
-          body: macroTrustedMissing || !cftcRow
-            ? "Hard stop: missing verified CoT or trusted market context prevents buyer-facing procurement narrative."
-            : `Buyer pacing should remain ${sentimentScore <= -25 ? "defensive with tighter reassessment windows" : sentimentScore >= 25 ? "opportunistic staged accumulation" : "balanced with optionality preserved"}. CoT is ${cotBiasLabel} and volatility transmission remains ${vix !== null && vix >= 25 ? "elevated" : "contained"} at current read.`,
+          body: stacyProcurementNarrativeBody({
+            macroTrustedMissing,
+            hasCot: Boolean(cftcRow),
+            sentimentScore,
+            cotBiasLabel,
+            vix,
+          }),
           strategicSpecialInstructions: SENTIMENT_INSTRUCTIONS.procurementNarrative,
           provenance: buildProvenance(generatedAt, overview.updatedAt, "procurementNarrative", trustedUrls),
         },
       ],
       positioningFlow: {
         title: "Managed Money Positioning",
-        body: !cftcRow
-          ? "Hard stop: no verified mkt.cftc_1w observation for ZL is available."
-          : `Latest CoT posture is ${cotBiasLabel} (observation ${cftcRow.observation_date}). Use this as directional conviction context, not a standalone execution trigger.`,
+        body: stacyPositioningBody({
+          hasCot: Boolean(cftcRow),
+          cotBiasLabel,
+          observationDate: cftcRow?.observation_date ?? null,
+        }),
         strategicSpecialInstructions: SENTIMENT_INSTRUCTIONS.positioningFlow,
         provenance: buildProvenance(generatedAt, overview.updatedAt, "positioningFlow", trustedUrls),
       },
       headlineFlow: {
         title: "Headline Flow",
-        body: headlineCount === 0
-          ? "Hard stop: headline-flow narrative is blocked because no verified alt.news_events rows were found in the current 7-day window."
-          : `Headline velocity is ${flowState}. Source breadth is ${sourceSet.size} and the dominant specialist cluster is ${tagPhrase}. Treat this as signal only when persistence remains coherent with volatility and CoT bias.`,
+        body: stacyHeadlineFlowBody({
+          headlineCount,
+          flowState,
+          sourceCount: sourceSet.size,
+          tagPhrase,
+        }),
         strategicSpecialInstructions: SENTIMENT_INSTRUCTIONS.headlineFlow,
         provenance: buildProvenance(generatedAt, overview.updatedAt, "headlineFlow", trustedUrls),
       },
@@ -328,7 +455,10 @@ export async function GET() {
         ...fallback,
         ...raw,
         strategicSpecialInstructions:
-          raw?.strategicSpecialInstructions ?? fallback.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            raw?.strategicSpecialInstructions ?? fallback.strategicSpecialInstructions,
+            "chris",
+          ),
         provenance: raw?.provenance ?? fallback.provenance,
       } as AiCardContent;
     }) as [AiCardContent, AiCardContent, AiCardContent];
@@ -339,8 +469,11 @@ export async function GET() {
         ...fallbackCards.positioningFlow,
         ...rawCards.positioningFlow,
         strategicSpecialInstructions:
-          rawCards.positioningFlow?.strategicSpecialInstructions ??
-          fallbackCards.positioningFlow.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.positioningFlow?.strategicSpecialInstructions ??
+              fallbackCards.positioningFlow.strategicSpecialInstructions,
+            "chris",
+          ),
         provenance:
           rawCards.positioningFlow?.provenance ?? fallbackCards.positioningFlow.provenance,
       },
@@ -348,9 +481,66 @@ export async function GET() {
         ...fallbackCards.headlineFlow,
         ...rawCards.headlineFlow,
         strategicSpecialInstructions:
-          rawCards.headlineFlow?.strategicSpecialInstructions ??
-          fallbackCards.headlineFlow.strategicSpecialInstructions,
+          withAudienceInstructionGuardrails(
+            rawCards.headlineFlow?.strategicSpecialInstructions ??
+              fallbackCards.headlineFlow.strategicSpecialInstructions,
+            "chris",
+          ),
         provenance: rawCards.headlineFlow?.provenance ?? fallbackCards.headlineFlow.provenance,
+      },
+    };
+
+    const voicedCards: SentimentCards = {
+      ...cards,
+      narratives: [
+        {
+          ...cards.narratives[0],
+          body: stacyMacroNarrativeBody({
+            macroTrustedMissing,
+            sentimentScore,
+            cotBiasLabel,
+            vix,
+            ovx,
+            cl5dText,
+          }),
+        },
+        {
+          ...cards.narratives[1],
+          body: stacyFlowNarrativeBody({
+            headlineCount,
+            flowState,
+            sourceCount: sourceSet.size,
+            tagPhrase,
+            pulseRatio,
+          }),
+        },
+        {
+          ...cards.narratives[2],
+          body: stacyProcurementNarrativeBody({
+            macroTrustedMissing,
+            hasCot: Boolean(cftcRow),
+            sentimentScore,
+            cotBiasLabel,
+            vix,
+          }),
+        },
+      ],
+      positioningFlow: {
+        ...cards.positioningFlow,
+        body: stacyPositioningBody({
+          hasCot: Boolean(cftcRow),
+          cotBiasLabel,
+          observationDate: cftcRow?.observation_date ?? null,
+        }),
+      },
+      headlineFlow: {
+        ...cards.headlineFlow,
+        body: stacyHeadlineFlowBody({
+          headlineCount,
+          flowState,
+          sourceCount: sourceSet.size,
+          tagPhrase,
+        }),
       },
     };
 
@@ -363,7 +553,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...envelope,
-      cards,
+      cards: voicedCards,
       ai: toAiEnvelopeMeta(aiSnapshot),
     });
   } catch (err) {

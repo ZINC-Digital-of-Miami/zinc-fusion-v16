@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { AiCardContent, AiCardProvenance, StrategicSpecialInstructions } from "@/lib/contracts/ai-card";
 import type { ApiEnvelope, StrategyPosture } from "@/lib/contracts/api";
 import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
+import { withAudienceInstructionGuardrails } from "@/lib/server/ai-instruction-guardrails";
 import { createServerDataClient } from "@/lib/server/server-data-client";
 import {
   fetchTrustedMarketSnapshot,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/server/trusted-market-sources";
 
 type StrategyCards = {
+  marketPosture: AiCardContent;
   contractImpactCalculator: AiCardContent;
   factorWaterfall: AiCardContent;
   riskMetrics: AiCardContent;
@@ -22,10 +24,36 @@ type StrategyAiSnapshot = {
 } & AiSnapshotMeta;
 
 const STRATEGY_INSTRUCTIONS: Record<keyof StrategyCards, StrategicSpecialInstructions> = {
+  marketPosture: {
+    cardTopic: "Buyer Operating Stance",
+    strategicObjective:
+      "State the current procurement stance decisively for Chris Stacy so buyer execution stays disciplined under volatility.",
+    neuralConnectionThesis:
+      "A clear operating stance reduces decision drift when market headlines and timing pressure become noisy.",
+    quantResearchProtocol: [
+      "Validate posture enum strictly as ACCUMULATE, WAIT, or DEFER.",
+      "Anchor stance language to buyer-side timing and coverage risk.",
+      "Keep the read short enough to scan in seconds.",
+      "Use controlled dry humor only when it clarifies stress, never as filler.",
+    ],
+    inferenceConstraints: [
+      "Do not use trader-centric language or directional trade framing.",
+      "Do not output more than three sentences.",
+      "Do not overstate certainty when evidence freshness is weak.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
+    ],
+    outputRequirements: [
+      "Provide one decisive stance sentence in procurement language.",
+      "Add one evidence-linked sentence on timing pressure.",
+      "Include at most one short dry-humor line when stress context warrants it.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
+    ],
+  },
   contractImpactCalculator: {
     cardTopic: "Buyer-Side Contract Window Impact",
     strategicObjective:
-      "Quantify staged-buy versus single-window contract execution under current volatility, crush, and macro tail conditions for soybean oil procurement.",
+      "Quantify staged-buy versus single-window contract execution for Chris Stacy under current volatility, crush, and macro tail conditions.",
     neuralConnectionThesis:
       "Execution cost dispersion increases non-linearly when volatility transmission and macro-policy stress co-align; tranche-based timing reduces adverse selection probability for buyers.",
     quantResearchProtocol: [
@@ -33,22 +61,28 @@ const STRATEGY_INSTRUCTIONS: Record<keyof StrategyCards, StrategicSpecialInstruc
       "Compare one-shot entry slippage risk versus staged entry variance reduction.",
       "Include downside tail amplification under volatility and macro co-escalation states.",
       "Frame recommendation as buyer-side cost-control, not directional speculation.",
+      "Keep output concise: one to three high-signal sentences.",
     ],
     inferenceConstraints: [
       "Do not recommend one-shot execution when volatility and macro channels remain elevated.",
       "Do not present strategy guidance without explicit downside-tail treatment.",
       "Do not use generic timing language without quantified window tradeoffs.",
+      "Do not use trader slang, hype, or newsroom tone.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
       "State preferred execution structure and why.",
       "Report cost-control logic in buyer terms.",
       "Include trigger conditions that would invalidate the recommendation.",
+      "Use dry humor sparingly and only to reduce tension without diluting clarity.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   },
   factorWaterfall: {
     cardTopic: "Cross-Driver Procurement Pressure Ranking",
     strategicObjective:
-      "Rank the active drivers by marginal procurement impact and explain causal ordering so purchase cadence can prioritize the right risk channels.",
+      "Rank the active drivers by marginal procurement impact for Chris Stacy and explain causal ordering so purchase cadence prioritizes the right channels.",
     neuralConnectionThesis:
       "Procurement risk emerges from driver ordering and interaction effects; ranking volatility, crush, macro, energy, and China channels clarifies which signals should drive immediate action.",
     quantResearchProtocol: [
@@ -56,22 +90,28 @@ const STRATEGY_INSTRUCTIONS: Record<keyof StrategyCards, StrategicSpecialInstruc
       "Test interaction pairs for escalation pathways and conflict states.",
       "Separate dominant drivers from secondary contextual drivers.",
       "Preserve directional uncertainty labels when channels diverge.",
+      "Keep the narrative compact and visually supportive.",
     ],
     inferenceConstraints: [
       "Do not collapse all drivers into a single undifferentiated summary.",
       "Do not hide conflict between top-ranked channels.",
       "Do not assign confidence without data freshness context.",
+      "Do not restate obvious chart movement.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
       "Provide ordered driver stack with concise rationale.",
       "Call out interaction risk explicitly.",
       "Translate ranking into procurement monitoring priorities.",
+      "Use one controlled cynical line at most when pressure concentration is elevated.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   },
   riskMetrics: {
     cardTopic: "Buyer Risk Math and Tail Exposure",
     strategicObjective:
-      "Express near-term procurement risk using explicit asymmetry, latency risk, and exposure math so decision timing is grounded in quantified downside.",
+      "Express near-term procurement risk for Chris Stacy using explicit asymmetry, latency risk, and exposure math so timing stays grounded in quantified downside.",
     neuralConnectionThesis:
       "For buyers, decision latency under elevated risk networks is often more expensive than controlled over-hedging; quantified asymmetry clarifies when faster action is warranted.",
     quantResearchProtocol: [
@@ -79,19 +119,85 @@ const STRATEGY_INSTRUCTIONS: Record<keyof StrategyCards, StrategicSpecialInstruc
       "Measure decision-latency risk versus controlled execution-risk tradeoff.",
       "Classify exposure state as contained, elevated, or escalation-prone.",
       "Tie risk statements to buyer-side cost outcomes and cadence impact.",
+      "Keep commentary concise and mathematically anchored.",
     ],
     inferenceConstraints: [
       "Do not report neutral risk when asymmetry is elevated.",
       "Do not describe risk posture without latency implications.",
       "Do not omit confidence qualifiers when metrics are stale or sparse.",
+      "Do not imply guaranteed outcomes.",
+      "Do not use technical or analyst jargon; write for a CEO audience.",
+      "Do not use ticker symbols or unexplained acronyms in output text.",
     ],
     outputRequirements: [
       "State risk regime and asymmetry in plain buyer terms.",
       "Explain latency risk versus hedge risk comparison.",
       "Provide specific cadence/monitoring recommendation.",
+      "Use one dry-humor line maximum and keep it operationally relevant.",
+      "Use plain executive language that Chris Stacy can scan in seconds.",
     ],
   },
 };
+
+function stacyMarketPostureBody(params: {
+  posture: StrategyPosture | null;
+  volatilityLine: string;
+}): string {
+  if (!params.posture) return "Hard stop: no verified strategy posture data returned.";
+  const stance =
+    params.posture.posture === "ACCUMULATE"
+      ? "ACCUMULATE remains active because delay risk is still more expensive than staged coverage."
+      : params.posture.posture === "WAIT"
+        ? "WAIT remains active because buyers are not being paid to chase unstable prints."
+        : "DEFER remains active because timing instability still outweighs immediate coverage urgency.";
+  return `${stance} ${params.volatilityLine}`;
+}
+
+function stacyContractImpactBody(params: {
+  noTrustedFeeds: boolean;
+  crudeLine: string;
+  liveVix: number | null;
+  liveOvx: number | null;
+  liveCl5d: number | null;
+}): string {
+  if (params.noTrustedFeeds) {
+    return "Hard stop: multi-source market evidence is unavailable, so contract-impact guidance is blocked.";
+  }
+  const extremeChaos =
+    (params.liveVix !== null && params.liveVix >= 35) ||
+    (params.liveOvx !== null && params.liveOvx >= 45) ||
+    (params.liveCl5d !== null && Math.abs(params.liveCl5d) >= 0.06);
+  const dryLine = extremeChaos
+    ? "Volatility is still unruly enough to punish one-window execution."
+    : "";
+  return `Staged coverage remains preferred because single-window timing risk is still elevated. ${params.crudeLine} ${dryLine}`.trim();
+}
+
+function stacyFactorWaterfallBody(params: {
+  topFactors: string[];
+  topContribution: number | null;
+  avgContribution: number | null;
+}): string {
+  if (params.topFactors.length === 0) {
+    return "Hard stop: no verified attribution rows available in analytics.driver_attribution_1d.";
+  }
+  const concentration =
+    params.topContribution !== null && params.avgContribution !== null && params.topContribution >= params.avgContribution * 1.5
+      ? "concentrated"
+      : "mixed";
+  return `Verified pressure stack: ${params.topFactors.join(", ")}. Pressure concentration is ${concentration}, so monitoring priority should stay tight on the lead lanes.`;
+}
+
+function stacyRiskMetricsBody(params: {
+  noTrustedFeeds: boolean;
+  volatilityLine: string;
+  crudeLine: string;
+}): string {
+  if (params.noTrustedFeeds) {
+    return "Hard stop: trusted volatility and crude metrics are unavailable; buyer risk-math output is blocked until verified feeds recover.";
+  }
+  return `${params.volatilityLine} ${params.crudeLine} Waiting risk still outweighs over-coverage risk.`;
+}
 
 function buildProvenance(
   generatedAt: string,
@@ -171,6 +277,12 @@ export async function GET() {
 
     const latestAttrDate = attributionRows?.[0]?.trade_date ?? null;
     const latestAttr = (attributionRows ?? []).filter((r) => r.trade_date === latestAttrDate);
+    const attrContributions = latestAttr.map((r) => Number(r.contribution)).filter((n) => Number.isFinite(n));
+    const topContribution = attrContributions[0] ?? null;
+    const avgContribution =
+      attrContributions.length > 0
+        ? attrContributions.reduce((sum, value) => sum + value, 0) / attrContributions.length
+        : null;
     const topFactors = latestAttr
       .slice(0, 4)
       .map((r) => `${String(r.factor)} (${Number(r.contribution).toFixed(2)})`);
@@ -203,47 +315,56 @@ export async function GET() {
     const posture: StrategyPosture | null = aiSnapshot?.posture ?? dbPosture;
     const generatedAt = aiSnapshot?.generatedAt ?? new Date().toISOString();
     const tradeDate = row?.trade_date ?? posture?.updatedAt ?? null;
-    const stagedExecutionBias =
-      posture?.posture === "ACCUMULATE"
-        ? "Staged accumulation remains favored."
-        : posture?.posture === "WAIT"
-          ? "Hold execution optionality and avoid urgency."
-          : "Defer new exposure until risk compression is visible.";
     const volatilityLine =
       liveVix !== null && liveOvx !== null
-        ? `VIX ${liveVix.toFixed(2)} and OVX ${liveOvx.toFixed(2)} remain active volatility constraints.`
-        : "Hard stop: verified VIX/OVX volatility reads are unavailable.";
+        ? `The broad volatility gauge is ${liveVix.toFixed(2)} and the oil-volatility gauge is ${liveOvx.toFixed(2)}, keeping timing instability elevated.`
+        : "Hard stop: verified volatility readings are unavailable.";
     const crudeLine =
       liveCl5d !== null
-        ? `CL 5-day change is ${(liveCl5d * 100).toFixed(2)}%, informing near-term pass-through risk.`
-        : "Hard stop: verified CL 5-day change is unavailable.";
-    const topFactorLine =
-      topFactors.length > 0
-        ? `Latest verified attribution stack: ${topFactors.join(", ")}.`
-        : "Hard stop: no verified attribution rows available in analytics.driver_attribution_1d.";
+        ? `Crude oil moved ${(liveCl5d * 100).toFixed(2)}% over five days, which keeps cost pass-through risk active.`
+        : "Hard stop: verified crude oil five-day movement is unavailable.";
     const noTrustedFeeds =
       liveVix === null && liveOvx === null && liveCl5d === null;
 
     const fallbackCards: StrategyCards = {
+      marketPosture: {
+        title: "Market Posture",
+        body: stacyMarketPostureBody({
+          posture,
+          volatilityLine,
+        }),
+        strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.marketPosture,
+        provenance: buildProvenance(generatedAt, tradeDate, "marketPosture", trustedUrls),
+      },
       contractImpactCalculator: {
         title: "Contract Impact Calculator",
-        body: noTrustedFeeds
-          ? "Hard stop: trusted market evidence from Yahoo/FRED is unavailable, so contract-impact guidance is blocked."
-          : `${stagedExecutionBias} ${volatilityLine} ${crudeLine}`,
+        body: stacyContractImpactBody({
+          noTrustedFeeds,
+          crudeLine,
+          liveVix,
+          liveOvx,
+          liveCl5d,
+        }),
         strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.contractImpactCalculator,
         provenance: buildProvenance(generatedAt, tradeDate, "contractImpactCalculator", trustedUrls),
       },
       factorWaterfall: {
         title: "Factor Waterfall",
-        body: topFactorLine,
+        body: stacyFactorWaterfallBody({
+          topFactors,
+          topContribution,
+          avgContribution,
+        }),
         strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.factorWaterfall,
         provenance: buildProvenance(generatedAt, tradeDate, "factorWaterfall", trustedUrls),
       },
       riskMetrics: {
         title: "Risk Metrics",
-        body: noTrustedFeeds
-          ? "Hard stop: trusted volatility and crude metrics are unavailable; buyer risk-math output is blocked until verified feeds recover."
-          : `${volatilityLine} ${crudeLine} Decision-latency risk should be prioritized over single-window execution risk when these channels remain elevated.`,
+        body: stacyRiskMetricsBody({
+          noTrustedFeeds,
+          volatilityLine,
+          crudeLine,
+        }),
         strategicSpecialInstructions: STRATEGY_INSTRUCTIONS.riskMetrics,
         provenance: buildProvenance(generatedAt, tradeDate, "riskMetrics", trustedUrls),
       },
@@ -251,12 +372,28 @@ export async function GET() {
 
     const rawCards = aiSnapshot?.cards ?? fallbackCards;
     const cards: StrategyCards = {
+      marketPosture: {
+        ...fallbackCards.marketPosture,
+        ...rawCards.marketPosture,
+        strategicSpecialInstructions:
+          withAudienceInstructionGuardrails(
+            rawCards.marketPosture?.strategicSpecialInstructions ??
+              STRATEGY_INSTRUCTIONS.marketPosture,
+            "chris",
+          ),
+        provenance:
+          rawCards.marketPosture?.provenance ??
+          buildProvenance(generatedAt, tradeDate, "marketPosture", trustedUrls),
+      },
       contractImpactCalculator: {
         ...fallbackCards.contractImpactCalculator,
         ...rawCards.contractImpactCalculator,
         strategicSpecialInstructions:
-          rawCards.contractImpactCalculator?.strategicSpecialInstructions ??
-          STRATEGY_INSTRUCTIONS.contractImpactCalculator,
+          withAudienceInstructionGuardrails(
+            rawCards.contractImpactCalculator?.strategicSpecialInstructions ??
+              STRATEGY_INSTRUCTIONS.contractImpactCalculator,
+            "chris",
+          ),
         provenance:
           rawCards.contractImpactCalculator?.provenance ??
           buildProvenance(generatedAt, tradeDate, "contractImpactCalculator", trustedUrls),
@@ -265,8 +402,11 @@ export async function GET() {
         ...fallbackCards.factorWaterfall,
         ...rawCards.factorWaterfall,
         strategicSpecialInstructions:
-          rawCards.factorWaterfall?.strategicSpecialInstructions ??
-          STRATEGY_INSTRUCTIONS.factorWaterfall,
+          withAudienceInstructionGuardrails(
+            rawCards.factorWaterfall?.strategicSpecialInstructions ??
+              STRATEGY_INSTRUCTIONS.factorWaterfall,
+            "chris",
+          ),
         provenance:
           rawCards.factorWaterfall?.provenance ??
           buildProvenance(generatedAt, tradeDate, "factorWaterfall", trustedUrls),
@@ -275,11 +415,50 @@ export async function GET() {
         ...fallbackCards.riskMetrics,
         ...rawCards.riskMetrics,
         strategicSpecialInstructions:
-          rawCards.riskMetrics?.strategicSpecialInstructions ??
-          STRATEGY_INSTRUCTIONS.riskMetrics,
+          withAudienceInstructionGuardrails(
+            rawCards.riskMetrics?.strategicSpecialInstructions ??
+              STRATEGY_INSTRUCTIONS.riskMetrics,
+            "chris",
+          ),
         provenance:
           rawCards.riskMetrics?.provenance ??
           buildProvenance(generatedAt, tradeDate, "riskMetrics", trustedUrls),
+      },
+    };
+
+    const voicedCards: StrategyCards = {
+      marketPosture: {
+        ...cards.marketPosture,
+        body: stacyMarketPostureBody({
+          posture,
+          volatilityLine,
+        }),
+      },
+      contractImpactCalculator: {
+        ...cards.contractImpactCalculator,
+        body: stacyContractImpactBody({
+          noTrustedFeeds,
+          crudeLine,
+          liveVix,
+          liveOvx,
+          liveCl5d,
+        }),
+      },
+      factorWaterfall: {
+        ...cards.factorWaterfall,
+        body: stacyFactorWaterfallBody({
+          topFactors,
+          topContribution,
+          avgContribution,
+        }),
+      },
+      riskMetrics: {
+        ...cards.riskMetrics,
+        body: stacyRiskMetricsBody({
+          noTrustedFeeds,
+          volatilityLine,
+          crudeLine,
+        }),
       },
     };
 
@@ -292,7 +471,7 @@ export async function GET() {
 
     return NextResponse.json({
       ...envelope,
-      cards,
+      cards: voicedCards,
       ai: toAiEnvelopeMeta(aiSnapshot),
     });
   } catch (err) {
