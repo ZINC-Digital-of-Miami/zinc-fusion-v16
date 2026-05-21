@@ -43,9 +43,9 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
         source = route_path.read_text(encoding="utf-8")
 
         self.assertIn(
-            'const customerStatus = serviceCadence ? "customer" : "prospect";',
+            'const customerStatus = pickString(meta, ["source"]) === "glide"',
             source,
-            "Expected customer/prospect split to come from service cadence presence.",
+            "Expected Glide service accounts to be treated as customers even when cadence fields are sparse.",
         )
 
     def test_route_restores_verified_event_window_fallback(self) -> None:
@@ -73,12 +73,12 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
             "Expected vegas segments to include all/customers/prospects/events.",
         )
         self.assertIn(
-            'if (segment === "events") return opportunities.slice(0, 15);',
+            'if (segment === "events") return eventLinked.slice(0, 12);',
             source,
-            "Expected events segment to keep rendering account rows.",
+            "Expected events segment to render the event-linked account lane.",
         )
         self.assertIn(
-            'if (segment === "prospects") return prospects.slice(0, 15);',
+            'if (segment === "prospects") return prospects.slice(0, 12);',
             source,
             "Expected prospects segment to render prospect-classified rows.",
         )
@@ -88,40 +88,31 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
             "Expected prospect badge/color behavior in opportunity rows.",
         )
 
-    def test_page_preserves_turnover_segment_stats_and_prospect_tokens(self) -> None:
+    def test_page_preserves_glide_truth_and_net_new_fail_closed_copy(self) -> None:
         page_path = Path("app/(protected)/vegas-intel/page.tsx")
         source = page_path.read_text(encoding="utf-8")
 
         self.assertIn(
-            "const segmentStats: Record<VegasSegment, Array<{ value: string | number; label: string }>> =",
+            "Glide service accounts",
             source,
-            "Expected segment cards to compute per-segment turnover stats instead of one shared event metric set.",
+            "Expected page to show live Glide service-account coverage.",
         )
         self.assertIn(
-            "totalFryers",
+            "Net-new lead discovery remains intentionally blank until a verified non-customer restaurant universe is landed.",
             source,
-            "Expected account segment cards to retain fryer-total math from opportunities.",
+            "Expected page to fail closed on net-new lead discovery until the non-customer universe is verified.",
         )
         self.assertIn(
-            "totalCapacity",
+            "Net-new lead lane intentionally blank",
             source,
-            "Expected account segment cards to retain capacity-total math from opportunities.",
+            "Expected lead hero copy to acknowledge the real-data gap instead of inventing prospects.",
         )
         self.assertIn(
-            'const accent = row.customerStatus === "customer" ? "#2dd4bf" : "#b91c1c";',
+            "Glide Table Coverage",
             source,
-            "Expected opportunity prospect accent bar to use the locked V15 dark red.",
+            "Expected compact coverage cards for the eight Glide tables.",
         )
-        self.assertIn(
-            'background: "rgba(185, 28, 28, 0.2)"',
-            source,
-            "Expected prospect badge background to match the turnover token.",
-        )
-        self.assertIn(
-            'color: "#f87171"',
-            source,
-            "Expected prospect badge text color to match the turnover token.",
-        )
+        self.assertNotIn("trusted-fill prospect rows", source)
 
     def test_draft_route_is_verified_glide_only_and_read_only(self) -> None:
         draft_path = Path("app/api/vegas/intel/draft/route.ts")

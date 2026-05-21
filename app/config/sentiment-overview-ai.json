@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-05-20T07:03:30-04:00",
+  "generatedAt": "2026-05-21T07:05:03-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "overview": {
-    "headlineCount": 11,
+    "headlineCount": 5,
     "sentimentScore": 100,
     "cotBias": "bullish",
-    "updatedAt": "2026-05-20T07:03:30-04:00"
+    "updatedAt": "2026-05-21T07:05:03-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Macro-policy sentiment has snapped back into shock-watch. The Economic Policy Uncertainty Index is 685.18 as of 2026-05-17, which is large enough to move policy from secondary monitor to lead narrative even though the item tape itself is still concentrated.",
+        "body": "Macro-policy sentiment remains watchful rather than shock-grade. The Economic Policy Uncertainty Index cooled to 439.64 as of 2026-05-19, which still keeps policy relevant, but the active seven-day tape has thinned enough to pull the regime back from outright macro-panic language.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Policy Sentiment Transmission",
           "strategicObjective": "Classify whether macro-policy narrative pressure is actively changing soybean-oil procurement timing.",
@@ -37,8 +37,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-17",
-          "generatedAt": "2026-05-20T07:03:30-04:00",
+          "asOf": "2026-05-19",
+          "generatedAt": "2026-05-21T07:05:03-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
@@ -66,7 +66,7 @@
       },
       {
         "title": "Flow Narrative",
-        "body": "The active seven-day tape holds 11 rows, with policy tags on 7, macro/fed context on 3, tariff tags on 2, energy tags on 2, and China tags on 0. That means the narrative regime is concentrated and policy-led, not broad and self-confirming.",
+        "body": "The active seven-day tape now holds 5 high-signal rows, with policy tags on 2, energy tags on 2, macro context on 1, and China tags on 0. That means the narrative regime is still concentrated and policy-led, but it is thinner and less self-confirming than yesterday.",
         "strategicSpecialInstructions": {
           "cardTopic": "Positioning and Participation Flow Sentiment",
           "strategicObjective": "Determine whether the current headline mix supports stable price discovery or a fragile narrative regime.",
@@ -89,8 +89,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-19T07:08:09-04:00",
-          "generatedAt": "2026-05-20T07:03:30-04:00",
+          "asOf": "2026-05-21T07:05:03-04:00",
+          "generatedAt": "2026-05-21T07:05:03-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "alt.news_events"
@@ -111,7 +111,7 @@
       },
       {
         "title": "Procurement Narrative",
-        "body": "CFTC is still bullish with managed-money net length of 158,102 contracts, or 22.45% of open interest, while the broad risk network is 41.3 and policy alone is 76.7. That combination says the right buyer psychology is disciplined accumulation with faster re-checks, not one-shot urgency and not passive waiting.",
+        "body": "CFTC remains bullish with managed-money net length of 158,102 contracts, or 22.45% of open interest, while the broad risk network cooled to 36.7 and policy alone still leads at 51.5. That combination still favors disciplined accumulation with faster re-checks instead of one-shot urgency or passive waiting.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
           "strategicObjective": "Convert sentiment, positioning, and risk-network conditions into a buyer-ready pacing posture.",
@@ -134,8 +134,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-12",
-          "generatedAt": "2026-05-20T07:03:30-04:00",
+          "asOf": "2026-05-21",
+          "generatedAt": "2026-05-21T07:05:03-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://publicreporting.cftc.gov",
@@ -188,7 +188,7 @@
       },
       "provenance": {
         "asOf": "2026-05-12",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://publicreporting.cftc.gov"
@@ -209,7 +209,7 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "The visible high-signal tape is policy-led: H.R.7567 remains on watch, USDA's modified-organisms RFI is the freshest agriculture-specific federal item, and Commerce's BASF FTZ filing keeps trade mechanics in view. That is useful context, but the flow is still too concentrated to overrule price, positioning, and policy-series math.",
+      "body": "Headline velocity is still policy-led, but the tape is thinner: only 5 current high-signal rows are active, with no China-tagged confirmation and just 2 energy-tagged rows. Treat this as a concentrated watch surface, not a broad narrative cascade.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
         "strategicObjective": "Assess whether the current headline stream is producing actionable signal or just adding narrative noise.",
@@ -232,8 +232,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-19",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21T07:05:03-04:00",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",

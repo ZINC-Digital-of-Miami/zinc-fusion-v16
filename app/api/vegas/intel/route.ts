@@ -539,7 +539,11 @@ export async function GET() {
     const scoreRows = (scoreRowsRaw ?? []) as CustomerScoreRow[];
     const impactRows = (impactRowsRaw ?? []) as EventImpactRow[];
 
-    const activeRestaurantRows = restaurantRows;
+    const glideRestaurantRows = restaurantRows.filter((row) => {
+      const meta = asObject(row.metadata);
+      return pickString(meta, ["source"]) === "glide";
+    });
+    const activeRestaurantRows = glideRestaurantRows;
     const activeRestaurantIds = new Set(activeRestaurantRows.map((row) => row.id));
     const activeFryerRows = fryerRows.filter(
       (row) => row.restaurant_id !== null && activeRestaurantIds.has(row.restaurant_id),
@@ -684,7 +688,9 @@ export async function GET() {
           pickString(glideData, ["service_days", "serviceDays", "lf0gF"]);
         const serviceFrequencyLabel =
           serviceCadence && serviceDays ? `${serviceCadence} (${serviceDays})` : serviceCadence;
-        const customerStatus = serviceCadence ? "customer" : "prospect";
+        const customerStatus = pickString(meta, ["source"]) === "glide"
+          ? "customer"
+          : serviceCadence ? "customer" : "prospect";
         const casinoLink =
           pickString(meta, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ??
           pickString(glideData, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ??

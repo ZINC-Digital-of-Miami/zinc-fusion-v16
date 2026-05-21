@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-20T07:03:30-04:00",
+  "generatedAt": "2026-05-21T07:05:03-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
-    "activeEvents": 12,
+    "activeEvents": 11,
     "highPriorityAccounts": 0,
-    "updatedAt": "2026-05-20T07:03:30-04:00"
+    "updatedAt": "2026-05-21T07:05:03-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "EDC Week cleared on May 19, so the Vegas demand curve has rolled from live surge coverage into a reload gap. The stack still matters because the next named handoff is June 6 fireworks, which gives Kevin a short cleanup window now: close post-EDC follow-up first, then rebuild outreach around the next demand pulse instead of pretending the calendar is still compressed.",
+      "body": "The EDC window is fully behind the book now, and the trusted future-event pull has rolled down to 11 named rows. The next real operating handoff is still June 6 fireworks, so Kevin has a cleanup-and-reload window now: close post-EDC follow-up first, then rebuild outreach around the June pulse instead of pretending the calendar is still compressed.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Window Compression and Reload Timing",
         "strategicObjective": "Translate the handoff between a just-finished event spike and the next named Vegas demand window into the right outreach and service cadence.",
@@ -35,8 +35,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-19T07:08:09-04:00",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21T07:05:03-04:00",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.events",
@@ -71,7 +71,7 @@
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "No scored account clears the >=65 priority threshold, while the average account score is 61.26 and mean event-impact score is 36.01. That means Kevin does not have a true hot list this morning. The right move is to work the near-miss book in order: post-EDC follow-up first, June fireworks reload second, and policy-cost-control messaging only as a support angle after timing and service readiness are clear.",
+      "body": "No scored account clears the >=65 priority threshold, and the event book has relaxed to 11 future rows with the next named pulse on June 6. That means Kevin still does not have a true hot list this morning. The right move is to work the near-miss book in order: post-EDC follow-up first, fireworks reload second, and policy-cost-control messaging only after timing and service readiness are clear.",
       "strategicSpecialInstructions": {
         "cardTopic": "Threshold-Aware Sales Sequencing",
         "strategicObjective": "Convert a no-hot-list morning into a disciplined outreach order instead of forcing urgency where the scores do not support it.",
@@ -94,8 +94,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-18",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21T07:05:03-04:00",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.customer_scores",
@@ -130,7 +130,7 @@
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "There are 10 active tracked accounts, 10 scored accounts in the latest window, and 0 accounts above the high-priority threshold. That is a 0.0% qualified rate on the scored set, so the book is a broad monitor list right now, not a saturated close-now list.",
+      "body": "There are still 10 active tracked accounts, 10 scored accounts in the latest window, and 0 accounts above the high-priority threshold. That is a 0.0% qualified rate on the scored set, so the book remains a broad monitor list rather than a saturated close-now list.",
       "strategicSpecialInstructions": {
         "cardTopic": "Opportunity Concentration Versus False Urgency",
         "strategicObjective": "Determine whether the account book deserves saturation language or disciplined monitor-list language based on actual qualification math.",
@@ -153,8 +153,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-18",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21T07:05:03-04:00",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -182,7 +182,7 @@
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer coverage exists for all 10 tracked sites, but populated fryer-count telemetry is still 0 of 10 and total known fryer capacity remains 0. Operationally that means service planning knows which accounts are in scope, but it still cannot rank equipment intensity or downtime risk with confidence before the next demand window.",
+      "body": "Fryer coverage still exists for all 10 tracked sites, but populated fryer-count telemetry remains 0 of 10 and total known fryer capacity remains 0. Operationally that means service planning knows which accounts are in scope, but it still cannot rank equipment intensity or downtime risk with confidence before the June demand window.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Separate account-coverage completeness from equipment-telemetry completeness so service teams do not overstate readiness.",
@@ -205,8 +205,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-19T07:08:09-04:00",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21T07:05:03-04:00",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.fryers",

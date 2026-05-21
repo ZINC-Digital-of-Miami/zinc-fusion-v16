@@ -47,13 +47,16 @@
 - `/api/vegas/intel` must return DB-backed `events`, `opportunities`, and `stats` payloads used by the Vegas body sections.
 - `events` rows must remain future-dated and sorted by soonest upcoming date for display.
 - `events` rows must include `durationDays` derived from verified start/end dates (default `1` when end date is missing/invalid).
-- `opportunities` rows represent current Glide restaurant accounts and must preserve customer/prospect classification from verified service cadence fields while surfacing missing oil, fryer, capacity, contact, shift/report cadence, and export-list fields explicitly rather than inventing values.
+- `opportunities` rows represent the live Glide service-account universe only and must preserve customer/prospect classification from verified service cadence fields while surfacing missing oil, fryer, capacity, contact, shift/report cadence, and export-list fields explicitly rather than inventing values.
 - `opportunities` must use only Glide-synced restaurant rows (`metadata.source = glide`) and must not fall back to legacy non-Glide rows.
 - Contact, service cadence, oil type, and schedule fields must resolve from both normalized metadata keys and nested Glide row payload fields when present.
+- `shiftCount` and `exportListed` must come from verified Glide operational joins (`vegas.shift_restaurants`, `vegas.export_list`) or explicit Glide-derived metadata landed during sync. If a field cannot be joined safely, return it as missing rather than inferred.
+- `fryerCount` and `totalCapacityLbs` must come from real Glide fryer telemetry (`vegas.fryers` serving rows rebuilt from Glide fryer records) or explicit missing state.
 - Event opportunities must derive from verified event-impact linkage; rows without linked event data must fall back to the next verified upcoming event window rather than synthetic placeholders.
 - Vegas opportunity scoring must include event-pressure evidence and cuisine-aware reasoning (`zfusionScore`/affinity fields) from verified rows, or explicit missing-state values when required rows are absent.
-- Server output must track all 8 Glide source groups (restaurants, casinos, fryers, export_list, scheduled_reports, shifts, shift_casinos, shift_restaurants) through DB-backed counts; unavailable groups remain `null`.
-- `stats` must include actual row counts for currently wired `vegas.*` serving tables and set not-yet-wired Glide groups to `null` until promoted data exists.
+- Server output must track all 8 Glide source groups (restaurants, casinos, fryers, export_list, scheduled_reports, shifts, shift_casinos, shift_restaurants) through DB-backed counts.
+- Raw Glide operational tables live in `vegas.export_list`, `vegas.scheduled_reports`, `vegas.shifts`, `vegas.shift_casinos`, and `vegas.shift_restaurants`, each storing `glide_row_id`, `source_table_id`, `data`, and `synced_at`.
+- `stats` must include actual row counts for the current Glide-backed `vegas.*` serving and raw tables; do not label missing promoted groups as available.
 - The route may include AI card narratives, but body rendering must remain grounded in verified DB rows and include hard-stop language when required source rows are missing.
 - If Intel buttons are enabled in the body, `/api/vegas/intel/draft` must provide a server-side draft payload keyed by verified `restaurantId` (optional `eventId`) and return draft-only pitch output without Glide writes.
 - Intel draft generation must call OpenRouter directly when `OPENROUTER_API_KEY` is configured, using `OPENROUTER_INTEL_MODEL` when present and `google/gemini-2.5-flash` as the default direct model. If OpenRouter is unavailable or unconfigured, the route must return a verified structured draft with an explicit provider warning rather than inventing AI output.

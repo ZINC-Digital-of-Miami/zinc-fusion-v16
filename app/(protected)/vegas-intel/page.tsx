@@ -291,10 +291,10 @@ export default function VegasIntelPage() {
   }, [opportunities]);
 
   const leadDataSourceSummary = useMemo(() => {
-    const trustedFillProspects = prospects.filter((row) => sourceLabel(row) === "trusted-fill-pipeline").length;
     const glideCustomers = customers.filter((row) => sourceLabel(row) === "glide").length;
-    return { trustedFillProspects, glideCustomers };
-  }, [customers, prospects]);
+    const eventReadyCustomers = customers.filter((row) => row.eventDate !== null).length;
+    return { glideCustomers, eventReadyCustomers };
+  }, [customers]);
 
   const opportunityHeading =
     segment === "prospects"
@@ -326,8 +326,8 @@ export default function VegasIntelPage() {
                   </div>
                 </div>
                 <p className="max-w-3xl text-sm leading-6 text-slate-300 md:text-base">
-                  Event-driven lead generation, customer coverage, and fryer-service readiness for Kevin&apos;s Las Vegas account book.
-                  The lead queue now prioritizes unserviced rows with live event impact instead of burying them behind customer records.
+                  Event-driven customer coverage, service timing, and fryer-readiness for Kevin&apos;s live Las Vegas account book.
+                  Net-new lead discovery remains intentionally blank until a verified non-customer restaurant universe is landed.
                 </p>
               </div>
 
@@ -361,7 +361,7 @@ export default function VegasIntelPage() {
                 Lead View
               </div>
               <div className="mb-4 text-3xl font-semibold text-white">
-                {highPriorityLeads.length > 0 ? `${highPriorityLeads.length} live leads ready for outreach` : "Lead queue needs rebuild"}
+                {highPriorityLeads.length > 0 ? `${highPriorityLeads.length} verified leads ready for outreach` : "Net-new lead lane intentionally blank"}
               </div>
               <p className="text-sm leading-6 text-slate-300">
                 {cards?.aiSalesStrategy?.body ??
@@ -373,12 +373,12 @@ export default function VegasIntelPage() {
                   value={leadScoreAverage === null ? "n/a" : leadScoreAverage.toFixed(1)}
                 />
                 <MiniStat
-                  label="Trusted-fill prospects"
-                  value={leadDataSourceSummary.trustedFillProspects}
+                  label="Glide service accounts"
+                  value={leadDataSourceSummary.glideCustomers}
                 />
                 <MiniStat
-                  label="Event-linked leads"
-                  value={prospects.filter((row) => row.eventDate !== null).length}
+                  label="Event-linked accounts"
+                  value={leadDataSourceSummary.eventReadyCustomers}
                 />
               </div>
             </div>
@@ -440,7 +440,7 @@ export default function VegasIntelPage() {
                   <div className="mb-2 text-4xl font-semibold text-white">{segmentValues[item.id]}</div>
                   <div className="text-sm text-slate-300">
                     {item.id === "prospects"
-                      ? `${highPriorityLeads.length} qualified by score, ${leadDataSourceSummary.trustedFillProspects} currently from trusted-fill lead rows.`
+                      ? `${highPriorityLeads.length} qualified by score in the current real-data lane.`
                       : item.id === "customers"
                         ? `${leadDataSourceSummary.glideCustomers} Glide service accounts in current response.`
                         : item.id === "events"
@@ -520,7 +520,7 @@ export default function VegasIntelPage() {
               <SideMetricCard
                 icon={<TriangleAlert className="h-4 w-4 text-red-300" />}
                 title="Lead source truth"
-                body={`Current response contains ${leadDataSourceSummary.trustedFillProspects} trusted-fill prospect rows with live event-impact scoring, while Glide contributes ${leadDataSourceSummary.glideCustomers} current service accounts.`}
+                body={`Current response is anchored to ${leadDataSourceSummary.glideCustomers} live Glide service accounts, with ${leadDataSourceSummary.eventReadyCustomers} already tied to upcoming event windows. Net-new lead discovery stays blank until a verified non-customer restaurant universe is ingested.`}
               />
               <SideMetricCard
                 icon={<Sparkles className="h-4 w-4 text-cyan-300" />}
@@ -541,7 +541,7 @@ export default function VegasIntelPage() {
                 </div>
                 <div className="text-sm text-slate-400">
                   {segment === "prospects"
-                    ? "Unserviced rows first"
+                    ? "Verified net-new lane only"
                     : segment === "customers"
                       ? "Coverage and service context"
                       : segment === "events"

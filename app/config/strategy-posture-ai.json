@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-20T07:03:30-04:00",
+  "generatedAt": "2026-05-21T07:05:03-04:00",
   "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture remains ACCUMULATE because the average pressure is 41.3, but the 76.7 tariff-threat score means accumulation needs tighter review cadence and tranche discipline rather than passive waiting.",
-    "updatedAt": "2026-05-20T07:03:30-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because average network pressure cooled to 36.7, even though tariff/policy still leads at 51.5 and volatility remains watch-tier at 46.4. That favors staged execution and tighter re-checks rather than passively waiting.",
+    "updatedAt": "2026-05-21T07:05:03-04:00"
   },
   "cards": {
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Current contract math still favors staged execution. Average pressure is 41.3, but tariff threat sits 35.4 points above the stack at 76.7 while VIX/OVX are 18.43/72.35 and ZL is 75.37; that makes tranche spacing superior to a one-shot buy or a hands-off wait posture.",
+      "body": "Current contract math still favors staged execution. Average pressure is 36.7, tariff/policy leads at 51.5, volatility sits at 46.4, and ZL is 74.53; that keeps tranche spacing superior to either one-shot buying or an idle wait posture.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify whether current market structure supports staged, one-shot, or defer-and-watch soybean-oil contracting.",
@@ -35,8 +35,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-19",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",
@@ -71,7 +71,7 @@
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Current procurement pressure order is tariff threat (76.7), volatility transmission (47.1), China flow risk (37.3), energy pass-through (29.6), then crush pressure (15.8). The stack matters because only policy is truly dominant; the rest are watch or context channels.",
+      "body": "Current procurement pressure order is tariff threat (51.5), volatility transmission (46.4), China flow risk (38.6), energy pass-through (26.1), then crush pressure (21.0). The stack matters because the lead channel is watch-grade, not crisis-grade, so posture stays concentrated but not defensive.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank the active drivers by marginal buyer impact so monitoring time stays on the right channels.",
@@ -94,8 +94,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-19",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json"
@@ -116,7 +116,7 @@
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Buyer downside asymmetry is elevated but not crisis-grade: average pressure is 41.3, policy uncertainty is 685.18, and managed money is still net long 158,102 contracts or 22.45% of open interest. That says latency risk is real, but controlled tranche execution is still safer than panic coverage.",
+      "body": "Buyer downside asymmetry is still elevated enough to justify discipline, not panic: average pressure is 36.7, policy uncertainty is 439.64, and managed money remains net long 158,102 contracts or 22.45% of open interest. That says latency risk is real, but controlled tranche execution is still safer than rush coverage.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term soybean-oil procurement risk in explicit asymmetry and latency-risk terms.",
@@ -139,8 +139,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-19",
-        "generatedAt": "2026-05-20T07:03:30-04:00",
+        "asOf": "2026-05-21",
+        "generatedAt": "2026-05-21T07:05:03-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",
