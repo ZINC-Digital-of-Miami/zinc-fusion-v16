@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-21T07:39:35-04:00",
-  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "generatedAt": "2026-05-26T07:02:35-04:00",
+  "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
     "activeEvents": 11,
     "highPriorityAccounts": 0,
-    "updatedAt": "2026-05-21T07:05:03-04:00"
+    "updatedAt": "2026-05-26T07:02:35-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "The EDC window is fully behind the book now, and the trusted future-event pull has rolled down to 11 named rows. The next real operating handoff is still June 6 fireworks, so Kevin has a cleanup-and-reload window now: close post-EDC follow-up first, then rebuild outreach around the June pulse instead of pretending the calendar is still compressed.",
+      "body": "The Vegas calendar is no longer fully dead in the near window: 11 future events remain, 1 sits inside the next 14 days, 3 fall inside the next 30 days, and the next named demand pulse is America250 Summer Fireworks on June 6, 2026. Kevin is in reload mode now, but the runway is short enough that outreach sequencing should already pivot toward that June handoff.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Window Compression and Reload Timing",
         "strategicObjective": "Translate the handoff between a just-finished event spike and the next named Vegas demand window into the right outreach and service cadence.",
@@ -35,43 +35,36 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-21T07:05:03-04:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.events",
-          "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/",
           "https://www.visitlasvegas.com/experience/post/summer-fireworks-in-vegas/"
         ],
         "sourceRecords": [
           {
             "source": "vegas.events",
-            "recordHint": "future event rows used for 14-day and 30-day counts",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "table": "vegas.events"
+            "table": "vegas.events",
+            "recordHint": "11 future event rows, 1 inside 14d, 3 inside 30d, next event America250 Summer Fireworks",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           },
           {
             "source": "Visit Las Vegas",
-            "recordHint": "EDC Week timing reference",
-            "observedAt": "2026-05-19",
-            "url": "https://www.visitlasvegas.com/experience/post/the-ultimate-guide-to-edc-las-vegas/"
-          },
-          {
-            "source": "Visit Las Vegas",
-            "recordHint": "summer fireworks timing reference",
-            "observedAt": "2026-05-19",
+            "recordHint": "America250 Summer Fireworks timing reference",
+            "observedAt": "2026-05-25",
             "url": "https://www.visitlasvegas.com/experience/post/summer-fireworks-in-vegas/"
           }
         ],
         "notes": [
-          "This card now treats May 20 as a post-EDC cleanup and June-reload handoff, not as an active same-day surge window.",
-          "Operational timing stays tied to named Vegas event windows rather than generic seasonal commentary."
+          "Calendar state moved from fully empty near-term window to a visible June reload window.",
+          "Event urgency is now count-backed and anchored to the June 6 fireworks handoff."
         ]
       }
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "No scored account clears the >=65 priority threshold, and the event book has relaxed to 11 future rows with the next named pulse on June 6. That means Kevin still does not have a true hot list this morning. The right move is to work the near-miss book in order: post-EDC follow-up first, fireworks reload second, and policy-cost-control messaging only after timing and service readiness are clear.",
+      "body": "No account clears the >=65 priority threshold today, and the expanded Glide-backed restaurant surface now shows 151 tracked rows with 0 verified customer-score rows available for ranking. That means Kevin should stop pretending there is a hot list and instead run a June 6 reload sequence: service-ready accounts first, event-adjacent accounts second, and cost-control messaging only after timing and fryer capacity are confirmed.",
       "strategicSpecialInstructions": {
         "cardTopic": "Threshold-Aware Sales Sequencing",
         "strategicObjective": "Convert a no-hot-list morning into a disciplined outreach order instead of forcing urgency where the scores do not support it.",
@@ -94,43 +87,50 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-21T07:05:03-04:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
+          "vegas.restaurants",
           "vegas.customer_scores",
-          "vegas.event_impact",
-          "app/config/dashboard-risk-factors-ai.json"
+          "vegas.events",
+          "vegas.fryers"
         ],
         "sourceRecords": [
           {
+            "source": "vegas.restaurants",
+            "table": "vegas.restaurants",
+            "recordHint": "151 Glide-backed restaurant rows in active Vegas opportunity surface",
+            "observedAt": "2026-05-26T07:02:35-04:00"
+          },
+          {
             "source": "vegas.customer_scores",
-            "recordHint": "latest scored-account window and >=65 threshold count = 0",
-            "observedAt": "2026-05-18",
-            "table": "vegas.customer_scores"
+            "table": "vegas.customer_scores",
+            "recordHint": "0 verified customer-score rows available for current ranking pass",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           },
           {
-            "source": "vegas.event_impact",
-            "recordHint": "average event-impact score 36.01 across 360 account-event rows",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "table": "vegas.event_impact"
+            "source": "vegas.events",
+            "table": "vegas.events",
+            "recordHint": "June 6 fireworks becomes next demand-anchor event",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           },
           {
-            "source": "app/config/dashboard-risk-factors-ai.json",
-            "recordHint": "policy-led buyer backdrop used for sales-urgency framing",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "table": "app/config/dashboard-risk-factors-ai.json"
+            "source": "vegas.fryers",
+            "table": "vegas.fryers",
+            "recordHint": "150 capacity-backed fryer rows support service-readiness sequencing",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           }
         ],
         "notes": [
-          "This strategy card is threshold-aware: zero >=65 accounts means sequencing the near-miss book, not inventing urgency.",
-          "Market-risk language is kept subordinate to account timing and service readiness."
+          "Sales strategy is constrained by missing score recency, not by missing account coverage.",
+          "Reload sequencing is anchored to event timing and capacity proof rather than generic urgency language."
         ]
       }
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "There are still 10 active tracked accounts, 10 scored accounts in the latest window, and 0 accounts above the high-priority threshold. That is a 0.0% qualified rate on the scored set, so the book remains a broad monitor list rather than a saturated close-now list.",
+      "body": "The account surface widened materially to 151 Glide-backed restaurant rows, but 0 currently carry verified customer-score rows, so qualification math cannot be computed this morning. Operationally that is coverage without ranking: Kevin can segment by event timing and property context, but not yet by a validated opportunity-score ladder.",
       "strategicSpecialInstructions": {
         "cardTopic": "Opportunity Concentration Versus False Urgency",
         "strategicObjective": "Determine whether the account book deserves saturation language or disciplined monitor-list language based on actual qualification math.",
@@ -153,8 +153,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-21T07:05:03-04:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -163,26 +163,26 @@
         "sourceRecords": [
           {
             "source": "vegas.restaurants",
-            "recordHint": "active tracked-account count",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "table": "vegas.restaurants"
+            "table": "vegas.restaurants",
+            "recordHint": "151 Glide-backed restaurant rows available for segmentation",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           },
           {
             "source": "vegas.customer_scores",
-            "recordHint": "latest scored-account and high-priority counts",
-            "observedAt": "2026-05-18",
-            "table": "vegas.customer_scores"
+            "table": "vegas.customer_scores",
+            "recordHint": "score layer currently returns zero verified ranking rows",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           }
         ],
         "notes": [
-          "Opportunity-set interpretation is tied to threshold math, not just raw account count.",
-          "A 0.0% qualified rate keeps the book in monitor-and-sequence mode rather than close-now mode."
+          "Book size and rankable opportunity density are now explicitly separated.",
+          "The operational gap is ranking freshness, not account-surface coverage."
         ]
       }
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer coverage still exists for all 10 tracked sites, but populated fryer-count telemetry remains 0 of 10 and total known fryer capacity remains 0. Operationally that means service planning knows which accounts are in scope, but it still cannot rank equipment intensity or downtime risk with confidence before the June demand window.",
+      "body": "Fryer telemetry is no longer empty. The live table now carries 150 verified fryer rows with 150 populated capacity rows, which is enough to plan service load against the June 6 demand pulse using real equipment capacity instead of roster-only assumptions. The constraint now is score-layer recency, not fryer visibility.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Separate account-coverage completeness from equipment-telemetry completeness so service teams do not overstate readiness.",
@@ -205,8 +205,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-21T07:05:03-04:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.fryers",
@@ -215,20 +215,20 @@
         "sourceRecords": [
           {
             "source": "vegas.fryers",
-            "recordHint": "fryer-row coverage = 10 and populated fryer_count total = 0",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "table": "vegas.fryers"
+            "table": "vegas.fryers",
+            "recordHint": "150 active fryer rows with 150 populated capacity rows",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           },
           {
             "source": "vegas.events",
-            "recordHint": "near-term event window used to evaluate telemetry urgency",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "table": "vegas.events"
+            "table": "vegas.events",
+            "recordHint": "next named demand pulse is America250 Summer Fireworks on 2026-06-06",
+            "observedAt": "2026-05-26T07:02:35-04:00"
           }
         ],
         "notes": [
-          "Coverage completeness and telemetry completeness remain separate states; full account coverage does not mean fryer-readiness precision exists.",
-          "The zero-populated fryer-count condition is preserved explicitly so service planning does not overstate certainty."
+          "Fryer telemetry is now materially populated instead of empty.",
+          "Current planning risk sits in sequencing and score recency, not equipment invisibility."
         ]
       }
     }

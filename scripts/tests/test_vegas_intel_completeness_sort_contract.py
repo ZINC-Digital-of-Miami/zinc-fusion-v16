@@ -139,8 +139,8 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
         source = route_path.read_text(encoding="utf-8")
         contract_source = Path("lib/contracts/api.ts").read_text(encoding="utf-8")
 
-        self.assertIn("shiftCasinos: glideOptionalCounts.shiftCasinos", source)
-        self.assertIn("shiftRestaurants: glideOptionalCounts.shiftRestaurants", source)
+        self.assertIn("shiftCasinos: glideCoverageCounts.shiftCasinos", source)
+        self.assertIn("shiftRestaurants: glideCoverageCounts.shiftRestaurants", source)
         self.assertIn("shiftCasinos: number | null;", contract_source)
         self.assertIn("shiftRestaurants: number | null;", contract_source)
 
@@ -201,7 +201,7 @@ class VegasIntelCompletenessSortContractTest(unittest.TestCase):
         self.assertIn(
             "nvidia/nemotron-3-super-120b-a12b:free",
             openrouter_source,
-            "Expected the selected free OpenRouter default model.",
+            "Expected the selected OpenRouter default model.",
         )
         self.assertNotIn("@ai-sdk/gateway", package_source + draft_source + openrouter_source)
         self.assertNotIn("AI_GATEWAY_API_KEY", package_source + draft_source + openrouter_source)

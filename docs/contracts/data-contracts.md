@@ -41,7 +41,7 @@
 ## Sentiment and Legislation Contracts
 - Sentiment and Legislation page content is model-driven from approved news/policy sources.
 - Generated summaries/scores must remain attributable to source records and run timestamps.
-- Runtime AI provider calls must bypass Vercel AI Gateway. Direct provider APIs are allowed only from server-side code using private account keys; OpenRouter keys are the selected free-provider path for current daily card work.
+- Runtime AI provider calls must bypass Vercel AI Gateway. Direct provider APIs are allowed only from server-side code using private account keys; OpenRouter keys are the selected provider path for current daily card work.
 - A ChatGPT/OpenAI Pro subscription can be used only for manual local work unless a separate API credential is configured; do not imply that Pro web billing automatically funds backend API calls.
 
 ## Vegas Intel Turnover Contract (Body Scope)
@@ -60,7 +60,7 @@
 - Raw Glide operational tables live in `vegas.export_list`, `vegas.scheduled_reports`, `vegas.shifts`, `vegas.shift_casinos`, and `vegas.shift_restaurants`, each storing `glide_row_id`, `source_table_id`, `data`, and `synced_at`.
 - `stats` must include actual row counts for the current Glide-backed `vegas.*` serving and raw tables; do not label missing promoted groups as available.
 - The route may include AI card narratives, but body rendering must remain grounded in verified DB rows and include hard-stop language when required source rows are missing.
-- If Intel buttons are enabled in the body, `/api/vegas/intel/draft` must provide a server-side draft payload keyed by verified `restaurantId` (optional `eventId`) and return draft-only pitch output without Glide writes.
+- If Intel buttons are enabled in the body, `/api/vegas/intel/draft` must provide a server-side draft payload keyed by verified `restaurantId` (with `eventId` when supplied) and return draft-only pitch output without Glide writes.
 - Intel draft generation may call a direct provider only when a private provider key is configured. If no provider key is available, the route must return a verified structured draft with an explicit provider warning rather than inventing AI output.
 
 ## Dashboard AI Card Instruction Contract
@@ -74,12 +74,12 @@
 - Generic instruction text is not allowed for AI card instruction payloads.
 - AI narrative content is sourced from `app/config/dashboard-risk-factors-ai.json` (no request-time OpenAI API key path).
 - Snapshot metadata must include `model`, `reasoningEffort`, `source`, `generatedAt`, and daily `refreshScheduleEt`.
-- Current locked OpenRouter-free snapshot target: `nvidia/nemotron-3-super-120b-a12b:free` with `high-think`, refreshed daily at `07:00 America/New_York`.
+- Current locked snapshot target: `gpt-5.5-fast` with `high-think`, refreshed daily at `07:00 America/New_York`.
 
 ## AI Daily Card Pull Contract (All Pages)
 - Daily AI pull is the default source for card content on all primary pages.
 - AI pulls must use direct provider account paths (`ai-daily-refresh` or `openrouter-daily-refresh`) and must not use Vercel AI Gateway, Vercel OIDC model routing, or `AI_GATEWAY_API_KEY`.
-- When the OpenRouter path is selected, committed snapshot metadata must identify the model as `nvidia/nemotron-3-super-120b-a12b:free`; runtime server calls still require `OPENROUTER_API_KEY`.
+- When the direct provider path is selected, committed snapshot metadata must identify the model as `gpt-5.5-fast`; runtime server calls still require `OPENROUTER_API_KEY`.
 - Snapshot files are committed in-repo under `app/config/` and must be refreshed daily:
   - `dashboard-risk-factors-ai.json`
   - `strategy-posture-ai.json`

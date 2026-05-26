@@ -69,3 +69,4 @@ The `/vegas-intel` body implementation must preserve these exact turnover-aligne
 ## Source of Truth
 - Product and route scope follows `docs/plans/2026-03-17-v16-migration-plan.md`.
 - Strategic pivot and source-lock decisions follow `docs/CODEX-TURNOVER.md`, `docs/decisions/checkpoint-11-weekly-batch-pivot-and-page-authority.md`, and the 2026-05-18 Vegas/Sentiment turnover document named above.
+- Strategy page card voice and tone follow `docs/contracts/strategy-voice-tone-system.md`.

@@ -167,24 +167,23 @@ export function fallbackVegasIntelReport(input: VegasIntelReportInput): VegasInt
   return {
     executiveBrief:
       `${input.restaurantName}${input.casinoName ? ` at ${input.casinoName}` : ""} is a ${input.customerStatus} opportunity tied to ${eventText}. ` +
-      `The current read is ${input.pitchAngle}`,
+      `Current read: ${input.pitchAngle} Keep the pitch practical and event-timed.`,
     pitchAngle: input.pitchAngle,
     salesScript:
-      `Lead with ${eventText}. Tie the pitch to ${input.cuisineAffinityReason.toLowerCase()} ` +
-      `and use ${fryerText}, ${capacityText}, ${input.oilType ?? "missing oil type"}, and ` +
-      `${input.serviceFrequency ?? "missing service cadence"} as the evidence stack.`,
+      `Lead with ${eventText}. Tie the pitch to ${input.cuisineAffinityReason.toLowerCase()} and anchor to ${fryerText}, ${capacityText}, ` +
+      `${input.oilType ?? "missing oil type"}, and ${input.serviceFrequency ?? "missing service cadence"}. If evidence is thin, say it directly.`,
     emailDraft:
       `Subject: ${input.restaurantName} event-readiness oil plan\n\n` +
       `Quick note on ${eventText}: your current event window lines up with ${input.cuisineAffinityReason.toLowerCase()} ` +
       `I would like to tighten oil continuity and fryer uptime planning before the rush window so the team is not reacting late.`,
     callPlan: [
-      `Open with the ${eventText} demand window.`,
-      `Confirm service cadence, oil profile, and fryer capacity.`,
-      `Position ZINC as the continuity plan for event-driven kitchen pressure.`,
+      `Open with the ${eventText} demand window and expected attendance pressure.`,
+      `Confirm service cadence, oil profile, fryer count, and capacity before making claims.`,
+      `Position ZINC as continuity insurance so operations are proactive instead of improvising.`,
     ],
     objectionHandling: [
       "If timing is challenged, anchor the answer to verified event date and service cadence.",
-      "If price sensitivity appears, keep the focus on continuity, uptime, and missed-rush risk.",
+      "If price sensitivity appears, keep focus on continuity, uptime, and missed-rush cost.",
     ],
     riskFlags: input.missingEvidence.length > 0 ? input.missingEvidence : ["No required gaps detected"],
     evidenceSummary: input.evidenceBullets.slice(0, 6),
@@ -226,16 +225,20 @@ export async function generateVegasIntelReport(
           {
             role: "system",
             content:
-              "You generate premium Las Vegas restaurant sales intelligence reports for Kevin at US Oil Solutions. " +
+              "You generate concise, high-signal Las Vegas restaurant sales intelligence reports for Kevin at US Oil Solutions. " +
+              "Tone: sharp, practical, commercially useful, lightly sarcastic, always professional. " +
+              "Audience is Kevin (sales procurement and meeting development), not a generic executive audience. " +
               "Use only the supplied evidence. Do not invent contacts, prices, events, capacity, or service facts. " +
-              "When evidence is missing, state the missing field as a risk. Return JSON only with keys: " +
+              "When evidence is missing, state the missing field as a risk. Keep sections brief: 1-3 sentences or short bullets. " +
+              "Use subtle dry humor only when it reinforces business utility. Avoid memes, hype, or political commentary. " +
+              "Return JSON only with keys: " +
               "executiveBrief, pitchAngle, salesScript, emailDraft, callPlan, objectionHandling, riskFlags, evidenceSummary, nextAction.",
           },
           {
             role: "user",
             content: JSON.stringify({
               objective:
-                "Create a data-driven Intel sheet for one restaurant account. Make it concise, report-grade, and action-oriented.",
+                "Create a data-driven Intel sheet for one restaurant account. Keep it concise, meeting-ready, and operational.",
               evidence: input,
             }),
           },

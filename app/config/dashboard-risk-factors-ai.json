@@ -1,21 +1,21 @@
 {
-  "generatedAt": "2026-05-21T07:39:35-04:00",
-  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "generatedAt": "2026-05-26T07:02:35-04:00",
+  "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "drivers": {
     "vix_stress": {
-      "headline": "VIX 18.06 versus OVX 72.89 leaves a 54.83-point spread, so broad equity calm still understates commodity-specific execution friction for soybean-oil buyers.",
-      "level": "Elevated",
+      "headline": "VIX 16.76 versus OVX 73.54 leaves a 56.78-point spread, so broad-equity calm still understates commodity-specific fill risk for soybean-oil buyers.",
+      "level": "Calm",
       "whatsHappening": {
-        "whatsHappening": "Volatility pressure sits in the mid-watch tier at 46.4 because VIX stayed sub-20 while OVX remained above 70, keeping commodity execution friction alive without a full broad-risk confirmation.",
-        "macroContext": "That score is 9.7 points above the 36.7 network average, so volatility is not the lead driver, but it still matters more than crush or energy today.",
-        "supplyDemand": "This is an execution-quality issue more than a physical-availability issue. Buyers can source product, but fills stay less forgiving while OVX remains this elevated.",
-        "geopolitical": "Commodity volatility is still more sensitive than the equity fear read, so an energy or policy shock could still widen slippage before recession-style fear appears in the broad tape.",
-        "investorSentiment": "CFTC still shows managed money net long 158,102 contracts, or 22.45% of open interest, so a volatility flare can still accelerate upside cost reflexes.",
-        "nearTermOutlook": "Keep this in the watch column unless VIX pushes above 20 and OVX holds above 70 together; that would upgrade friction into a broader stress confirmation.",
-        "zlImplication": "Chris should keep staged execution discipline. The tape is not panic-grade, but it is still too sticky for one-window complacency."
+        "whatsHappening": "Volatility pressure sits just under the watch threshold at 43.2 because VIX stayed sub-17 while OVX held above 73, leaving commodity execution friction alive without a full macro-fear confirmation.",
+        "macroContext": "That score is 6.2 points above the 37.0 network average, so volatility is not leading the stack, but it is still amplifying buyer timing risk.",
+        "supplyDemand": "This remains a fill-quality problem more than a physical-availability problem. Product can still be sourced, but timing mistakes get punished faster while oil volatility stays detached from equity calm.",
+        "geopolitical": "If energy or policy headlines flare, this spread still gives the oil complex room to reprice before broader markets admit stress.",
+        "investorSentiment": "Managed money is still net long 158,107 contracts, or 22.08% of open interest, so volatility can still accelerate upside buyer pain if crude rebounds.",
+        "nearTermOutlook": "Keep this in the watch column unless VIX pushes through 20 while OVX remains above 70; that pairing would upgrade friction into broader market stress.",
+        "zlImplication": "Chris should keep staged execution discipline. The tape is not panic-grade, but it is still too sticky for complacent one-window buying."
       },
       "strategicSpecialInstructions": {
         "cardTopic": "Volatility Transmission and Execution Slippage",
@@ -38,14 +38,14 @@
           "Give the buyer timing consequence in plain operational language."
         ]
       },
-      "score": 46.4,
+      "score": 43.2,
       "components": {
-        "vix_value": 18.06,
-        "ovx_value": 72.89
+        "vix_value": 16.76,
+        "ovx_value": 73.54
       },
       "provenance": {
-        "asOf": "2026-05-19",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-21",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
@@ -56,19 +56,19 @@
           {
             "source": "FRED",
             "recordHint": "VIX close",
-            "observedAt": "2026-05-15",
+            "observedAt": "2026-05-21",
             "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS"
           },
           {
             "source": "FRED",
             "recordHint": "OVX close",
-            "observedAt": "2026-05-15",
+            "observedAt": "2026-05-21",
             "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
           },
           {
             "source": "CFTC PRE",
             "recordHint": "latest soybean-oil managed-money context",
-            "observedAt": "2026-05-12",
+            "observedAt": "2026-05-19",
             "url": "https://publicreporting.cftc.gov"
           }
         ],
@@ -79,16 +79,16 @@
       }
     },
     "crush_pressure": {
-      "headline": "Board crush is 3.438 and oil share is 53.15%, so processor economics still support throughput even with ZL easing 0.39% over five sessions.",
+      "headline": "Board crush is 3.47 and oil share is 52.71%, with oil share up 0.21 points over five sessions, so processor economics still support throughput rather than scarcity.",
       "level": "Strong",
       "whatsHappening": {
-        "whatsHappening": "Crush pressure is low at 21.0 because positive crush math and a still-majority oil share do not support a nearby processor-margin squeeze.",
-        "macroContext": "This sits 15.7 points below the 36.7 network average, making crush the calmest live channel in the stack.",
-        "supplyDemand": "Oil share dipped only modestly, and the combined bean-meal-oil economics still argue for throughput continuity rather than plant-curtailment risk.",
-        "geopolitical": "Trade or biofuel headlines could still reprice this lane quickly, but the current crush math does not independently support a scarcity narrative.",
-        "investorSentiment": "Because speculative length is still bullish, any future squeeze in processor economics would matter quickly, but the current setup is not there yet.",
-        "nearTermOutlook": "Escalate only if board crush compresses and oil share keeps fading together. Right now the channel is supportive, not restrictive.",
-        "zlImplication": "Chris should monitor the oil leg as an early-warning variable, but current crush math does not justify defensive buying."
+        "whatsHappening": "Crush pressure is low at 14.6 because positive board-crush math and a still-majority oil share do not support a nearby processor-margin squeeze.",
+        "macroContext": "This sits 22.4 points below the 37.0 network average, making crush the calmest live channel in the stack today.",
+        "supplyDemand": "Meal softened, soybean input costs rose, and oil still held enough value share to keep the combined crush economics supportive of throughput continuity.",
+        "geopolitical": "Trade or biofuel headlines could reprice this lane quickly, but current processor math does not independently justify a scarcity narrative.",
+        "investorSentiment": "Speculative length still matters, but the current crush structure is not handing the market a processor-stress excuse.",
+        "nearTermOutlook": "Escalate only if board crush compresses and oil share rolls over together. Right now the lane is supply-supportive, not restrictive.",
+        "zlImplication": "Chris can treat crush as a background stabilizer today rather than a reason to accelerate defensive coverage."
       },
       "strategicSpecialInstructions": {
         "cardTopic": "Crush Margin to Availability Transmission",
@@ -111,15 +111,15 @@
           "Tie the conclusion directly to buyer pacing."
         ]
       },
-      "score": 21,
+      "score": 14.6,
       "components": {
-        "board_crush_value": 3.4378,
-        "oil_share_value": 53.148399,
-        "oil_share_5d_change": -0.2895
+        "board_crush_value": 3.4746,
+        "oil_share_value": 52.707326,
+        "oil_share_5d_change": 0.213365
       },
       "provenance": {
-        "asOf": "2026-05-21T04:00:00+00:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-22T04:00:00+00:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo",
@@ -130,19 +130,19 @@
           {
             "source": "Yahoo Finance",
             "recordHint": "ZL closes used in oil-leg valuation",
-            "observedAt": "2026-05-19T04:00:00+00:00",
+            "observedAt": "2026-05-22T04:00:00+00:00",
             "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo"
           },
           {
             "source": "Yahoo Finance",
             "recordHint": "ZM closes used in meal-leg valuation",
-            "observedAt": "2026-05-19T04:00:00+00:00",
+            "observedAt": "2026-05-22T04:00:00+00:00",
             "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZM=F?interval=1d&range=3mo"
           },
           {
             "source": "Yahoo Finance",
             "recordHint": "ZS closes used in soybean input-cost valuation",
-            "observedAt": "2026-05-19T04:00:00+00:00",
+            "observedAt": "2026-05-22T04:00:00+00:00",
             "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZS=F?interval=1d&range=3mo"
           }
         ],
@@ -153,16 +153,16 @@
       }
     },
     "china_tension": {
-      "headline": "CNY is 6.7979, still 0.2021 away from 7.00, and there are still zero China-tagged soy rows in the active tape, so flow stress remains background watch instead of live rerouting.",
+      "headline": "CNY is 6.7940, still 0.2060 away from 7.00, and the current seven-day headline tape still carries zero China-tagged soy rows, so rerouting stress remains a watch item instead of a live shock.",
       "level": "Brazil Favored",
       "whatsHappening": {
-        "whatsHappening": "The China-flow score is 38.6. FX is stable-to-firm and the narrative layer is still empty on China-tagged soy pressure, so there is no evidence of an active demand-diversion shock.",
-        "macroContext": "This channel sits below policy and volatility, which keeps it on the dashboard but out of lead-driver status.",
-        "supplyDemand": "China matters when it changes who clears the marginal vegetable-oil barrel equivalent. That transmission is not visible in the current tape.",
-        "geopolitical": "If tariff rhetoric broadens again, this channel can move quickly, but currency alone is still not confirming a trade reroute.",
-        "investorSentiment": "Bullish soybean-oil positioning still shortens reaction time if China headlines return, which is why the card stays alive even with zero tag confirmation.",
-        "nearTermOutlook": "Maintain watch status unless CNY weakens materially or China-tagged trade and soy headlines start clustering across multiple sessions.",
-        "zlImplication": "Chris does not need defensive urgency here today, but this channel still belongs on the watchlist because it can move from quiet to expensive quickly."
+        "whatsHappening": "China-flow pressure is 39.5. FX is stable and the narrative layer is still missing any China-tagged soy clustering, so there is still no evidence of an active demand-diversion event.",
+        "macroContext": "This channel sits 2.5 points above the 37.0 network average, which keeps it visible without letting it outrank energy or volatility.",
+        "supplyDemand": "China matters when it changes who clears the marginal vegetable-oil barrel equivalent. That transmission is not showing up in the current tape.",
+        "geopolitical": "Tariff rhetoric can move this lane quickly, but currency alone is still not confirming a trade reroute.",
+        "investorSentiment": "Bullish soybean-oil positioning shortens reaction time if China headlines return, which is why the card stays live even with zero tag confirmation.",
+        "nearTermOutlook": "Maintain watch status unless CNY weakens materially or China-tagged trade headlines start clustering across multiple sessions.",
+        "zlImplication": "Chris does not need defensive urgency here today, but this channel still belongs on the short watchlist because it can move from quiet to expensive quickly."
       },
       "strategicSpecialInstructions": {
         "cardTopic": "China Demand Rerouting and Currency Stress",
@@ -185,14 +185,13 @@
           "Explain the procurement timing consequence in buyer language."
         ]
       },
-      "score": 38.6,
+      "score": 39.5,
       "components": {
-        "cny_rate": 6.7979,
-        "soy_china_news_count": 0
+        "cny_rate": 6.794
       },
       "provenance": {
-        "asOf": "2026-05-21T10:50:11+00:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-23T00:40:18+00:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://query2.finance.yahoo.com/v8/finance/chart/CNY=X?interval=1d&range=3mo",
@@ -202,13 +201,13 @@
           {
             "source": "Yahoo Finance",
             "recordHint": "CNY daily close used for flow-sensitivity read",
-            "observedAt": "2026-05-19T10:58:08+00:00",
+            "observedAt": "2026-05-23T00:40:18+00:00",
             "url": "https://query2.finance.yahoo.com/v8/finance/chart/CNY=X?interval=1d&range=3mo"
           },
           {
             "source": "alt.news_events",
-            "recordHint": "seven-day China-tagged row count = 0",
-            "observedAt": "2026-05-19T07:08:09-04:00",
+            "recordHint": "seven-day China-tagged soy row count = 0",
+            "observedAt": "2026-05-23T07:00:00-04:00",
             "table": "alt.news_events"
           }
         ],
@@ -219,16 +218,16 @@
       }
     },
     "tariff_threat": {
-      "headline": "Economic policy uncertainty cooled to 439.64 on 2026-05-19, but with only five active seven-day rows and policy still leading the stack, macro shock risk remains the top monitored channel.",
-      "level": "Watch",
+      "headline": "Economic policy uncertainty cooled again to 221.01 and the active seven-day tape still shows only one tariff-tagged row, so macro shock risk has slipped into a background watch channel.",
+      "level": "Contained",
       "whatsHappening": {
-        "whatsHappening": "Tariff and macro-policy pressure leads at 51.5 because the uncertainty index remains elevated at 439.64 even as the headline tape thinned versus yesterday.",
-        "macroContext": "This sits 14.8 points above the 36.7 average network pressure, making policy the dominant channel in today's stack even after the latest cooldown.",
-        "supplyDemand": "Policy matters here through biofuel economics, trade lanes, and replacement-cost psychology. The issue is not a physical shortage today; it is that cost expectations can still gap higher before physical data move.",
-        "geopolitical": "The tape is still concentrated rather than broad, so the regime is macro-shock aware but not yet a fully confirmed policy panic state.",
-        "investorSentiment": "With managed money still net long 158,102 contracts, a policy surprise can still propagate faster into buyer anxiety than a flat positioning backdrop would allow.",
-        "nearTermOutlook": "Escalate from watch to contingency-first only if uncertainty stays elevated and starts re-confirming with stronger volatility or fresh tariff clustering.",
-        "zlImplication": "Chris should keep buying in tranches, but not passively. Policy remains the main reason to keep the review loop tight."
+        "whatsHappening": "Tariff and macro-policy pressure cooled to 15.8 because the uncertainty index retreated toward the lower end of the recent stress range and headline breadth stayed narrow.",
+        "macroContext": "That score is 21.2 points below the 37.0 network average, so policy is no longer competing for lead-driver status today.",
+        "supplyDemand": "Policy still matters through biofuel economics, trade lanes, and replacement-cost psychology, but today it is not the fastest-moving repricing channel.",
+        "geopolitical": "The tape is concentrated rather than broad, so the regime is watchful, not shock-confirmed.",
+        "investorSentiment": "With managed money still net long, a surprise policy headline could still travel fast, but the current policy backdrop is not demanding contingency-first behavior on its own.",
+        "nearTermOutlook": "Escalate only if uncertainty turns back up and re-confirms with energy or volatility transmission.",
+        "zlImplication": "Chris should keep policy in the review loop, but today it is not the main reason to rush coverage."
       },
       "strategicSpecialInstructions": {
         "cardTopic": "Macro Policy Shock and Geopolitical Escalation",
@@ -251,17 +250,14 @@
           "Provide the buyer posture consequence if escalation occurs."
         ]
       },
-      "score": 51.5,
+      "score": 15.8,
       "components": {
-        "tpu_value": 439.64,
-        "uncertainty_value": 439.64,
-        "soy_tariff_news_count": 2,
-        "macro_news_count": 3,
-        "oil_change_5d": 0.000791
+        "uncertainty_value": 221.01,
+        "oil_change_5d": -0.083665
       },
       "provenance": {
-        "asOf": "2026-05-19",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-21",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
@@ -271,40 +267,40 @@
         "sourceRecords": [
           {
             "source": "FRED",
-            "recordHint": "Economic Policy Uncertainty Index latest reading",
-            "observedAt": "2026-05-17",
+            "recordHint": "Economic policy uncertainty index latest print 221.01",
+            "observedAt": "2026-05-21",
             "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
           },
           {
             "source": "alt.news_events",
-            "recordHint": "active tariff-tagged and policy-tagged soybean-oil rows",
-            "observedAt": "2026-05-19T07:08:09-04:00",
+            "recordHint": "seven-day tariff-tagged row count = 1 and macro/policy breadth remains narrow",
+            "observedAt": "2026-05-23T07:00:00-04:00",
             "table": "alt.news_events"
           },
           {
-            "source": "Congress.gov",
-            "recordHint": "Farm, Food, and National Security Act watch item",
-            "observedAt": "2026-05-07T17:39:50+00:00",
-            "url": "https://www.congress.gov/bill/119th-congress/house-bill/7567"
+            "source": "Yahoo Finance",
+            "recordHint": "CL five-session change used as transmission cross-check",
+            "observedAt": "2026-05-22T04:00:00+00:00",
+            "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=3mo"
           }
         ],
         "notes": [
-          "Policy pressure is treated as lead-driver only when the macro uncertainty series and soy-complex narrative counts reinforce each other.",
-          "The current regime is elevated because the series shock is large even though the item tape is still concentrated."
+          "Policy risk is framed as a buyer transmission channel, not a generic headline count.",
+          "Today the uncertainty series cooled enough that energy and volatility dominate the timing problem."
         ]
       }
     },
     "energy_stress": {
-      "headline": "WTI crude is 101.25, up only 0.08% over five sessions, so energy pass-through is calmer than the OVX tape suggests and remains secondary to policy and volatility.",
-      "level": "Low Risk",
+      "headline": "Crude is 96.60 after an 8.37% five-session drop, but OVX is still 73.54, so energy leads at 71.7 because any rebound can reprice fryer-oil replacement cost faster than the calmer channels imply.",
+      "level": "Supply Shock",
       "whatsHappening": {
-        "whatsHappening": "Energy pressure is low at 26.1 because crude direction is nearly flat even while OVX stays elevated, so there is not yet a strong pass-through repricing signal into soybean-oil buyer costs.",
-        "macroContext": "This score sits 10.6 points below the network average, which keeps energy in the context lane instead of the lead lane.",
-        "supplyDemand": "Energy still matters through renewable-diesel economics and freight psychology, but the current crude move is too muted to dominate the stack.",
-        "geopolitical": "This channel can accelerate quickly if supply headlines broaden, but today's measured crude move says the energy complex is not driving the buyer posture by itself.",
-        "investorSentiment": "Commodity volatility remains elevated, but the absence of a stronger crude trend keeps energy from outrunning the policy and volatility channels.",
-        "nearTermOutlook": "Escalate only if crude starts trending higher with OVX still elevated or if energy-tagged headlines broaden beyond the current two-row pulse.",
-        "zlImplication": "Chris should keep energy on the board, but today it is a supporting risk input, not the main reason to accelerate coverage."
+        "whatsHappening": "Energy pass-through leads the network at 71.7 because crude moved violently over five sessions and OVX stayed above 73 even after the selloff.",
+        "macroContext": "That puts energy 34.7 points above the 37.0 network average, making it the dominant live buyer-risk channel today.",
+        "supplyDemand": "The immediate pressure is not that crude is rising right now; it is that a market this jumpy can transmit a rebound into soybean-oil replacement cost before calmer channels catch up.",
+        "geopolitical": "Any fresh Middle East, refinery, or shipping headline could reverse the recent crude relief quickly while oil volatility remains elevated.",
+        "investorSentiment": "Speculative length in soybean oil means buyers do not get much grace period if energy resumes climbing.",
+        "nearTermOutlook": "Treat the recent crude pullback as temporary relief until OVX comes down materially or crude stops printing multi-session swings of this size.",
+        "zlImplication": "Chris can accumulate, but the cadence should stay staged and close to the tape because energy is still the fastest route back to higher replacement cost."
       },
       "strategicSpecialInstructions": {
         "cardTopic": "Energy Pass-Through and Buyer Cost Shock",
@@ -327,16 +323,15 @@
           "Give the buyer timing implication in clear operating language."
         ]
       },
-      "score": 26.1,
+      "score": 71.7,
       "components": {
-        "cl_price": 101.25,
-        "cl_change_5d": 0.000791,
-        "ovx_value": 72.89,
-        "energy_news_count": 2
+        "cl_price": 96.6,
+        "cl_change_5d": -0.083665,
+        "ovx_value": 73.54
       },
       "provenance": {
-        "asOf": "2026-05-21T04:00:00+00:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-22T04:00:00+00:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=3mo",
@@ -346,63 +341,63 @@
         "sourceRecords": [
           {
             "source": "Yahoo Finance",
-            "recordHint": "CL daily close and five-session move",
-            "observedAt": "2026-05-19T04:00:00+00:00",
+            "recordHint": "WTI crude daily close 96.60 and five-session change -8.37%",
+            "observedAt": "2026-05-22T04:00:00+00:00",
             "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=3mo"
           },
           {
             "source": "FRED",
-            "recordHint": "OVX close",
-            "observedAt": "2026-05-15",
+            "recordHint": "OVX close 73.54",
+            "observedAt": "2026-05-21",
             "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
           },
           {
-            "source": "EIA",
-            "recordHint": "current Today in Energy feed window supporting energy context",
-            "observedAt": "2026-05-19T07:08:09-04:00",
-            "url": "https://www.eia.gov/rss/todayinenergy.xml"
+            "source": "CFTC PRE",
+            "recordHint": "managed money remains net long for soybean oil",
+            "observedAt": "2026-05-19",
+            "url": "https://publicreporting.cftc.gov"
           }
         ],
         "notes": [
-          "Energy pass-through is ranked by momentum plus implied energy volatility, not by narrative alone.",
-          "This card remains framed from the buyer replacement-cost perspective."
+          "Energy leads despite crude falling because rebound risk still dominates buyer timing while oil volatility stays elevated.",
+          "The card focuses on replacement-cost transmission rather than generic crude commentary."
         ]
       }
     }
   },
   "intelligence": {
-    "headline": "BALANCED NETWORK PRESSURE - staged accumulation with policy watch",
-    "summary": "Trusted-source synthesis as of 2026-05-21 07:01 EDT: average pressure is 36.7, tariff/policy risk leads at 51.5, volatility follows at 46.4, and crush plus energy remain contained enough to keep buyer posture in disciplined ACCUMULATE rather than WAIT.",
+    "headline": "ENERGY-LED NETWORK PRESSURE - staged accumulation with rebound-risk vigilance",
+    "summary": "Trusted-source synthesis as of 2026-05-23 07:05 EDT: average pressure is 37.0 and energy stress leads at 71.7, 34.7 points above the stack average. Crude relief extended into the May 22, 2026 close, but OVX at 73.54 still keeps rebound risk as the main procurement timing problem.",
     "drivers": [
       {
-        "label": "Macro / Geopolitical",
-        "outlook": "WATCH",
-        "detail": "Economic policy uncertainty cooled to 439.64 on 2026-05-19, but with only five active seven-day rows and policy still leading the stack, macro shock risk remains the top monitored channel."
+        "label": "Volatility Transmission",
+        "outlook": "MIXED",
+        "detail": "VIX 16.76 versus OVX 73.54 leaves a 56.78-point spread, so broad-equity calm still understates commodity-specific fill risk for soybean-oil buyers."
       },
       {
-        "label": "Volatility Transmission",
-        "outlook": "WATCH",
-        "detail": "VIX 18.06 versus OVX 72.89 leaves a 54.83-point spread, so broad equity calm still understates commodity-specific execution friction for soybean-oil buyers."
+        "label": "Crush Economics",
+        "outlook": "MIXED",
+        "detail": "Board crush is 3.47 and oil share is 52.71%, with oil share up 0.21 points over five sessions, so processor economics still support throughput rather than scarcity."
       },
       {
         "label": "China Flow Risk",
         "outlook": "CALM",
-        "detail": "CNY is 6.7979, still 0.2021 away from 7.00, and there are still zero China-tagged soy rows in the active tape, so flow stress remains background watch instead of live rerouting."
+        "detail": "CNY is 6.7940, still 0.2060 away from 7.00, and the current seven-day headline tape still carries zero China-tagged soy rows, so rerouting stress remains a watch item instead of a live shock."
       },
       {
-        "label": "Crush Economics",
+        "label": "Macro / Geopolitical",
         "outlook": "CALM",
-        "detail": "Board crush is 3.438 and oil share is 53.15%, so processor economics still support throughput even with ZL easing 0.39% over five sessions."
+        "detail": "Economic policy uncertainty cooled again to 221.01 and the active seven-day tape still shows only one tariff-tagged row, so macro shock risk has slipped into a background watch channel."
       },
       {
         "label": "Energy Pass-Through",
-        "outlook": "CALM",
-        "detail": "WTI crude is 101.25, up only 0.08% over five sessions, so energy pass-through is calmer than the OVX tape suggests and remains secondary to policy and volatility."
+        "outlook": "PRESSURE",
+        "detail": "Crude is 96.60 after an 8.37% five-session drop, but OVX is still 73.54, so energy leads at 71.7 because any rebound can reprice fryer-oil replacement cost faster than the calmer channels imply."
       }
     ],
     "zlOutlook": "NEUTRAL",
     "zlColor": "#EAB308",
-    "tradingImplication": "Buyer posture should stay ACCUMULATE, but with fast re-check cadence around policy and volatility because those are the only two channels materially above the current network average.",
+    "tradingImplication": "Buyer posture stays ACCUMULATE, but the execution edge is still staged timing rather than passive waiting because energy remains the only channel materially above the network average.",
     "strategicSpecialInstructions": {
       "cardTopic": "Cross-Network Buyer Posture Synthesis",
       "strategicObjective": "Collapse the full risk network into one buyer-facing posture without losing the identity of the lead channel.",
@@ -425,13 +420,15 @@
       ]
     },
     "provenance": {
-      "asOf": "2026-05-21",
-      "generatedAt": "2026-05-21T07:05:03-04:00",
+      "asOf": "2026-05-22",
+      "generatedAt": "2026-05-26T07:02:35-04:00",
       "method": "ai-daily-refresh",
       "sourceFeeds": [
+        "analytics.dashboard_metrics",
+        "analytics.driver_attribution_1d",
+        "mkt.cftc_1w",
         "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo",
         "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=3mo",
-        "https://query2.finance.yahoo.com/v8/finance/chart/CNY=X?interval=1d&range=3mo",
         "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
         "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS",
         "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
@@ -439,51 +436,39 @@
       ],
       "sourceRecords": [
         {
-          "source": "Yahoo Finance",
-          "recordHint": "ZL daily close 74.53 used for current buyer cost framing",
-          "observedAt": "2026-05-21T04:00:00+00:00",
-          "url": "https://query2.finance.yahoo.com/v8/finance/chart/ZL=F?interval=1d&range=3mo"
+          "source": "analytics.dashboard_metrics",
+          "table": "analytics.dashboard_metrics",
+          "recordHint": "mixed-vintage cross-driver metrics supporting average pressure 37.0",
+          "observedAt": "2026-05-23"
+        },
+        {
+          "source": "analytics.driver_attribution_1d",
+          "table": "analytics.driver_attribution_1d",
+          "recordHint": "energy_stress remains lead channel in current synthesis",
+          "observedAt": "2026-05-23"
         },
         {
           "source": "Yahoo Finance",
-          "recordHint": "WTI daily close 101.25 and five-day drift used for energy pass-through",
-          "observedAt": "2026-05-21T04:00:00+00:00",
+          "recordHint": "CL daily close 96.60 and ZL daily close 73.98",
+          "observedAt": "2026-05-22T04:00:00+00:00",
           "url": "https://query2.finance.yahoo.com/v8/finance/chart/CL=F?interval=1d&range=3mo"
         },
         {
-          "source": "Yahoo Finance",
-          "recordHint": "CNY daily close used for China-flow sensitivity",
-          "observedAt": "2026-05-21T10:50:11+00:00",
-          "url": "https://query2.finance.yahoo.com/v8/finance/chart/CNY=X?interval=1d&range=3mo"
-        },
-        {
           "source": "FRED",
-          "recordHint": "VIX close 18.06",
-          "observedAt": "2026-05-19",
+          "recordHint": "VIX 16.76, OVX 73.54, USEPUINDXD 221.01",
+          "observedAt": "2026-05-21",
           "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS"
         },
         {
-          "source": "FRED",
-          "recordHint": "OVX close 72.89",
-          "observedAt": "2026-05-19",
-          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=OVXCLS"
-        },
-        {
-          "source": "FRED",
-          "recordHint": "Economic Policy Uncertainty reading 439.64",
-          "observedAt": "2026-05-19",
-          "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD"
-        },
-        {
           "source": "CFTC PRE",
-          "recordHint": "latest soybean-oil managed-money context: net long 158,102 contracts",
-          "observedAt": "2026-05-12",
+          "recordHint": "managed money net long 158,107 contracts",
+          "observedAt": "2026-05-19",
           "url": "https://publicreporting.cftc.gov"
         }
       ],
       "notes": [
-        "The synthesis keeps buyer language grounded in replacement-cost and timing consequences.",
-        "Policy and volatility remain the only live channels materially above the current network average."
+        "Network posture is buyer-side and lead-channel aware rather than average-score only.",
+        "Energy leads because rebound risk remains the fastest path back to higher replacement cost even after the recent crude selloff."
       ]
     }
   }

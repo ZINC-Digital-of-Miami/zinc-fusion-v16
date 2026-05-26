@@ -165,12 +165,12 @@ function missingFields(row: VegasOpportunityRow): string[] {
 function opportunitySummary(row: VegasOpportunityRow): string {
   if (row.customerStatus === "prospect") {
     return row.eventName
-      ? `${row.name} is unserviced in the current dataset, linked to ${row.eventName}, and should be treated as an active lead instead of a missing-service placeholder.`
-      : `${row.name} is unserviced in the current dataset and should be kept in the lead queue until event linkage or routing evidence improves.`;
+      ? `${row.name} is unserviced, linked to ${row.eventName}, and belongs in Kevin's active lead queue.`
+      : `${row.name} is unserviced and stays in the lead queue until event linkage is real.`;
   }
   return row.eventName
-    ? `${row.name} is an active customer account aligned to ${row.eventName}. Keep it in coverage mode, not lead-generation mode.`
-    : `${row.name} is an active customer account with no verified event linkage in the current response.`;
+    ? `${row.name} is an active customer aligned to ${row.eventName}; keep this in coverage mode, not spray-and-pray mode.`
+    : `${row.name} is an active customer with no verified event linkage in this payload.`;
 }
 
 export default function VegasIntelPage() {

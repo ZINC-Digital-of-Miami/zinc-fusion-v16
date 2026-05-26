@@ -137,18 +137,18 @@ function toDaysUntil(current: Date, futureDateText: string): number {
 
 function pitchAngleForCategory(category: string): string {
   if (category === "expos" || category === "conferences") {
-    return "Business-volume demand window with group dining and predictable oil-supply continuity.";
+    return "Business-heavy demand window; lead with continuity and group-volume readiness.";
   }
   if (category === "concerts" || category === "festivals") {
-    return "Pre/post-event throughput pressure with late-night volume protection.";
+    return "Pre/post-event throughput pressure; protect late-night volume before it gets chaotic.";
   }
   if (category === "sports") {
-    return "Game-day surge protection with fryer uptime and high-turn menu readiness.";
+    return "Game-day surge profile; sell fryer uptime and high-turn menu protection.";
   }
   if (category === "performing-arts") {
-    return "Pre-show reservation flow with premium-quality and timing-sensitive service execution.";
+    return "Pre-show reservation flow; timing discipline beats panic fixes.";
   }
-  return "General event-demand timing with procurement certainty and service continuity.";
+  return "General event-timing play: procurement certainty plus service continuity.";
 }
 
 export async function GET(request: Request) {

@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-05-21T07:28:58-05:00",
-  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "generatedAt": "2026-05-26T07:02:35-04:00",
+  "model": "gpt-5.5-fast",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "overview": {
-    "headlineCount": 5,
+    "headlineCount": 7,
     "sentimentScore": 100,
     "cotBias": "bullish",
-    "updatedAt": "2026-05-21T07:05:03-04:00"
+    "updatedAt": "2026-05-26T07:02:35-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Macro sentiment remains mixed-to-supportive, but conviction quality still depends on volatility behavior and positioning follow-through. Treat this regime as actionable only with persistence, not single-session enthusiasm.",
+        "body": "Macro sentiment is mixed rather than risk-off. The active seven-day tape holds 7 high-signal rows and the policy-uncertainty index cooled again to 221.01, so macro fear has stepped back even while oil volatility stays sticky.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Sentiment Regime",
           "strategicObjective": "Classify macro sentiment pressure so buyers can judge timing risk before conviction appears in price structure.",
@@ -37,8 +37,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-19",
-          "generatedAt": "2026-05-21T07:05:03-04:00",
+          "asOf": "2026-05-21",
+          "generatedAt": "2026-05-26T07:02:35-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
@@ -66,7 +66,7 @@
       },
       {
         "title": "Flow Narrative",
-        "body": "Participation flow remains concentrated rather than broad, which raises fragility risk if conviction thins further. Keep monitoring cadence tight and evidence-led.",
+        "body": "Flow is narrow, not broad. The current seven-day pull carries 7 rows, with only 1 energy-tagged row, 1 tariff-tagged row, and zero China-tagged soy rows, so conviction still depends more on oil volatility than headline breadth.",
         "strategicSpecialInstructions": {
           "cardTopic": "Narrative Flow and Participation Pressure",
           "strategicObjective": "Determine whether current participation flow is stable, crowded, or fragile for procurement timing decisions.",
@@ -89,8 +89,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-21T07:05:03-04:00",
-          "generatedAt": "2026-05-21T07:05:03-04:00",
+          "asOf": "2026-05-23T07:00:00-04:00",
+          "generatedAt": "2026-05-26T07:02:35-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "alt.news_events"
@@ -111,7 +111,7 @@
       },
       {
         "title": "Procurement Narrative",
-        "body": "Current sentiment conditions still favor disciplined staged execution over reactive timing. Buyer hesitation risk rises when volatility expands and narrative conviction destabilizes.",
+        "body": "Procurement psychology should stay disciplined, not reactive. Managed money is still bullish and net long 158,107 contracts, but the live driver stack averages only 37.0, so Chris should keep staged coverage and treat crude rebounds as the trigger to re-check, not as proof the whole regime changed.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
           "strategicObjective": "Convert sentiment and positioning conditions into buyer-ready pacing guidance under uncertainty.",
@@ -134,8 +134,8 @@
           ]
         },
         "provenance": {
-          "asOf": "2026-05-21",
-          "generatedAt": "2026-05-21T07:05:03-04:00",
+          "asOf": "2026-05-22",
+          "generatedAt": "2026-05-26T07:02:35-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://publicreporting.cftc.gov",
@@ -164,7 +164,7 @@
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "Managed-money bias remains context, not certainty. Treat weekly positioning as a pressure indicator and confirm with current volatility and headline coherence before changing pace.",
+      "body": "Managed-money positioning is still bullish, with a 158,107-contract net long equal to 22.08% of open interest as of 2026-05-19. That is enough length to accelerate upside buyer pain if crude rebounds, but it is still a weekly context signal, not intraday truth.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
         "strategicObjective": "Determine whether managed-money positioning is stabilizing or destabilizing soybean-oil procurement expectations.",
@@ -187,8 +187,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-12",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-19",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://publicreporting.cftc.gov"
@@ -209,7 +209,7 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "Headline velocity is useful when it is persistent and coherent across core themes. Treat short bursts as watch signals, not immediate posture changes.",
+      "body": "Headline velocity still matters because the tape is small enough to inspect: 7 active rows, 1 tariff-tagged item, and no China-tagged soy rows. That is signal, not noise, but it is still too concentrated to support a broad-based panic narrative.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
         "strategicObjective": "Assess whether headline stream is producing actionable signal or noise for procurement decisions.",
@@ -232,8 +232,8 @@
         ]
       },
       "provenance": {
-        "asOf": "2026-05-21T07:05:03-04:00",
-        "generatedAt": "2026-05-21T07:05:03-04:00",
+        "asOf": "2026-05-23T07:00:00-04:00",
+        "generatedAt": "2026-05-26T07:02:35-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
