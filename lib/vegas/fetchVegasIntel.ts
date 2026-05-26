@@ -1,0 +1,215 @@
+import { createServerDataClient } from "@/lib/server/server-data-client";
+
+export type RawRestaurantRow = {
+  id: number;
+  restaurant_name: string;
+  account_status: string | null;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+export type RawCasinoRow = {
+  id: number;
+  casino_name: string;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+export type RawEventRow = {
+  id: number;
+  event_name: string;
+  event_date: string;
+  venue_id: number | null;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+export type RawVenueRow = {
+  id: number;
+  venue_name: string;
+  metadata: unknown;
+};
+
+export type RawFryerRow = {
+  restaurant_id: number | null;
+  fryer_count: number | null;
+  metadata: unknown;
+  ingested_at: string;
+};
+
+export type RawCustomerScoreRow = {
+  restaurant_id: number | null;
+  score_date: string;
+  score: number | null;
+};
+
+export type RawEventImpactRow = {
+  event_id: number | null;
+  restaurant_id: number | null;
+  impact_score: number | null;
+  metadata: unknown;
+};
+
+export type GlideCoverageCounts = {
+  exportList: number | null;
+  shifts: number | null;
+  scheduledReports: number | null;
+  shiftCasinos: number | null;
+  shiftRestaurants: number | null;
+};
+
+type CoverageCountQuery = {
+  schema: "vegas" | "ops";
+  table: string;
+};
+
+const GLIDE_COVERAGE_COUNT_QUERIES: Record<keyof GlideCoverageCounts, CoverageCountQuery[]> = {
+  exportList: [
+    { schema: "vegas", table: "export_list" },
+    { schema: "ops", table: "glide_vegas_export_list" },
+    { schema: "ops", table: "vegas_export_list" },
+  ],
+  shifts: [
+    { schema: "vegas", table: "shifts" },
+    { schema: "ops", table: "glide_vegas_shifts" },
+    { schema: "ops", table: "vegas_shifts" },
+  ],
+  scheduledReports: [
+    { schema: "vegas", table: "scheduled_reports" },
+    { schema: "ops", table: "glide_vegas_scheduled_reports" },
+    { schema: "ops", table: "vegas_scheduled_reports" },
+  ],
+  shiftCasinos: [
+    { schema: "vegas", table: "shift_casinos" },
+    { schema: "ops", table: "glide_vegas_shift_casinos" },
+    { schema: "ops", table: "vegas_shift_casinos" },
+  ],
+  shiftRestaurants: [
+    { schema: "vegas", table: "shift_restaurants" },
+    { schema: "ops", table: "glide_vegas_shift_restaurants" },
+    { schema: "ops", table: "vegas_shift_restaurants" },
+  ],
+};
+
+function isMissingRelationError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const maybeCode = "code" in error ? String((error as any).code ?? "") : "";
+  const maybeMessage = "message" in error ? String((error as any).message ?? "") : "";
+  return maybeCode === "PGRST205" || maybeMessage.toLowerCase().includes("does not exist");
+}
+
+async function readCoverageCount(
+  supabase: Awaited<ReturnType<typeof createServerDataClient>>,
+  candidates: CoverageCountQuery[],
+): Promise<number | null> {
+  for (const candidate of candidates) {
+    const { count, error } = await supabase
+      .schema(candidate.schema)
+      .from(candidate.table)
+      .select("*", { count: "exact", head: true });
+    if (!error) return count ?? 0;
+    if (isMissingRelationError(error)) continue;
+    continue;
+  }
+  return null;
+}
+
+export async function fetchGlideCoverageCounts(
+  supabase: Awaited<ReturnType<typeof createServerDataClient>>,
+): Promise<GlideCoverageCounts> {
+  const exportList = await readCoverageCount(supabase, GLIDE_COVERAGE_COUNT_QUERIES.exportList);
+  const shifts = await readCoverageCount(supabase, GLIDE_COVERAGE_COUNT_QUERIES.shifts);
+  const scheduledReports = await readCoverageCount(
+    supabase,
+    GLIDE_COVERAGE_COUNT_QUERIES.scheduledReports,
+  );
+  const shiftCasinos = await readCoverageCount(
+    supabase,
+    GLIDE_COVERAGE_COUNT_QUERIES.shiftCasinos,
+  );
+  const shiftRestaurants = await readCoverageCount(
+    supabase,
+    GLIDE_COVERAGE_COUNT_QUERIES.shiftRestaurants,
+  );
+  return { exportList, shifts, scheduledReports, shiftCasinos, shiftRestaurants };
+}
+
+export async function fetchVegasData(supabase: Awaited<ReturnType<typeof createServerDataClient>>) {
+  const todayText = new Date().toISOString().slice(0, 10);
+
+  const [
+    glideCoverageCounts,
+    { data: eventRowsRaw, error: eventError },
+    { data: venueRowsRaw, error: venueError },
+    { data: restaurantRowsRaw, error: restaurantError },
+    { data: casinoRowsRaw, error: casinoError },
+    { data: fryerRowsRaw, error: fryerError },
+    { data: scoreRowsRaw, error: scoreError },
+    { data: impactRowsRaw, error: impactError },
+  ] = await Promise.all([
+    fetchGlideCoverageCounts(supabase),
+    supabase
+      .schema("vegas")
+      .from("events")
+      .select("id, event_name, event_date, venue_id, metadata, ingested_at")
+      .gte("event_date", todayText)
+      .order("event_date", { ascending: true })
+      .limit(200),
+    supabase
+      .schema("vegas")
+      .from("venues")
+      .select("id, venue_name, metadata")
+      .limit(400),
+    supabase
+      .schema("vegas")
+      .from("restaurants")
+      .select("id, restaurant_name, account_status, metadata, ingested_at")
+      .limit(1000),
+    supabase
+      .schema("vegas")
+      .from("casinos")
+      .select("id, casino_name, metadata, ingested_at")
+      .limit(500),
+    supabase
+      .schema("vegas")
+      .from("fryers")
+      .select("restaurant_id, fryer_count, metadata, ingested_at")
+      .limit(5000),
+    supabase
+      .schema("vegas")
+      .from("customer_scores")
+      .select("restaurant_id, score_date, score")
+      .order("score_date", { ascending: false })
+      .limit(5000),
+    supabase
+      .schema("vegas")
+      .from("event_impact")
+      .select("event_id, restaurant_id, impact_score, metadata")
+      .order("impact_score", { ascending: false })
+      .limit(10000),
+  ]);
+
+  const firstError =
+    eventError ??
+    venueError ??
+    restaurantError ??
+    casinoError ??
+    fryerError ??
+    scoreError ??
+    impactError;
+
+  if (firstError) {
+    throw new Error(firstError.message);
+  }
+
+  return {
+    glideCoverageCounts,
+    events: (eventRowsRaw ?? []) as RawEventRow[],
+    venues: (venueRowsRaw ?? []) as RawVenueRow[],
+    restaurants: (restaurantRowsRaw ?? []) as RawRestaurantRow[],
+    casinos: (casinoRowsRaw ?? []) as RawCasinoRow[],
+    fryers: (fryerRowsRaw ?? []) as RawFryerRow[],
+    scores: (scoreRowsRaw ?? []) as RawCustomerScoreRow[],
+    impacts: (impactRowsRaw ?? []) as RawEventImpactRow[],
+  };
+}

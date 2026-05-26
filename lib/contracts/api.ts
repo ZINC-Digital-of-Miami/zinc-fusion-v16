@@ -134,3 +134,44 @@ export interface VegasOpportunityRow {
   exportListed: boolean | null;
   metadata: Record<string, unknown>;
 }
+
+export interface VegasDemandSignal {
+  category: string;
+  demandScore: number;
+  trendDirection: "up" | "down" | "flat";
+  oilRelevance: string[];
+  evidence: string[];
+  salesNote: string;
+}
+
+export interface VegasAlert {
+  alertId: string;
+  severity: "high" | "medium" | "low";
+  category: "freight" | "weather" | "tourism" | "route" | "supply" | "fryer_risk";
+  message: string;
+  affectedAccounts: string[];
+  recommendedAction: string;
+}
+
+export interface VegasCustomerMatrixBucket {
+  bucket: string;
+  accounts: VegasOpportunityRow[];
+  totalPotentialGallons: number | null;
+  suggestedAction: string;
+}
+
+export interface VegasOutreachDraft {
+  subject: string;
+  emailBody: string;
+  callScript: string;
+  shortText: string;
+  internalNote: string;
+}
+
+export interface VegasSourceHealth {
+  source: string;
+  lastUpdated: string | null;
+  status: "fresh" | "stale" | "missing";
+  severity: "ok" | "warn" | "fail";
+  message: string;
+}
