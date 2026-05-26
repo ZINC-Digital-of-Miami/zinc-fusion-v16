@@ -1,29 +1,6 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "logLevel": "INFO",
-  "model": "openai/gpt-5.5",
-  "small_model": "openai/gpt-5.4-mini",
-  "enabled_providers": ["openai"],
-  "provider": {
-    "openai": {
-      "options": {
-        "timeout": 600000,
-        "chunkTimeout": 120000
-      }
-    }
-  },
-  "default_agent": "build",
-  "share": "disabled",
-  "autoupdate": "notify",
-  "snapshot": true,
-  "auto_collapse_reasoning": true,
-  "terminal_command_display": "collapsed",
-  "instructions": [
-    "AGENTS.md",
-    "docs/INDEX.md",
-    "docs/MASTER_PLAN.md",
-    "docs/agent-safety-gates.md"
-  ],
   "watcher": {
     "ignore": [
       ".git/**",
@@ -46,146 +23,178 @@
       ".DS_Store"
     ]
   },
-  "tool_output": {
-    "max_lines": 4000,
-    "max_bytes": 102400
-  },
-  "compaction": {
-    "auto": true,
-    "prune": true,
-    "tail_turns": 4,
-    "reserved": 20000
-  },
-  "lsp": true,
-  "experimental": {
-    "codebase_search": true,
-    "openTelemetry": false
-  },
-  "permission": {
-    "read": "allow",
-    "list": "allow",
-    "glob": "allow",
-    "grep": "allow",
-    "lsp": "allow",
-    "codesearch": "allow",
-    "semantic_search": "allow",
-    "repo_overview": "allow",
-    "edit": "ask",
-    "bash": "ask",
-    "task": "ask",
-    "webfetch": "ask",
-    "websearch": "ask",
-    "repo_clone": "deny",
-    "skill": "allow",
-    "external_directory": {
-      "/Users/zincdigital/.config/kilo/**": "allow",
-      "/Users/zincdigital/.kilo/**": "allow",
-      "/Users/zincdigital/.kilocode/**": "allow",
-      "/Users/zincdigital/.opencode/**": "allow",
-      "/Users/zincdigital/.local/share/kilo/tool-output/**": "allow",
-      "/var/folders/wz/8sk53hkd7t94kq73n8b4n4jc0000gn/T/kilo/**": "allow",
-      "*": "deny"
-    },
-    "todowrite": "allow",
-    "question": "ask",
-    "doom_loop": "deny"
-  },
+  "snapshot": true,
+  "share": "disabled",
+  "autoupdate": "notify",
+  "enabled_providers": [
+    "openrouter"
+  ],
+  "model": "deepseek/deepseek-v4-flash:free",
+  "small_model": "qwen/qwen3-next-80b-a3b-instruct:free",
+  "default_agent": "build",
   "agent": {
-    "build": {
-      "description": "Default implementation agent for scoped ZINC Fusion V16 changes after repository reality and phase gates are checked.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "top_p": 0.85,
-      "steps": 20
-    },
-    "general": {
-      "description": "General-purpose agent for mixed research, implementation, and verification tasks that do not require a narrower audit skill.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.15,
-      "top_p": 0.9,
-      "steps": 16
-    },
     "plan": {
-      "description": "Planning-only agent for phase, schema, architecture, and implementation sequencing decisions. It may inspect files and run read-only commands, but must not edit files.",
-      "model": "openai/gpt-5.5",
+      "model": "deepseek/deepseek-v4-flash:free",
       "temperature": 0.1,
       "top_p": 0.85,
-      "steps": 10,
+      "description": "Planning-only agent for phase, schema, architecture, and implementation sequencing decisions. It may inspect files and run read-only commands, but must not edit files.",
+      "steps": 9007199254740991,
       "permission": {
         "edit": "deny",
         "bash": "ask",
         "task": "ask"
       }
     },
+    "build": {
+      "model": "deepseek/deepseek-v4-flash:free",
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "description": "Default implementation agent for scoped ZINC Fusion V16 changes after repository reality and phase gates are checked.",
+      "steps": 9007199254740991
+    },
+    "debug": {
+      "model": "deepseek/deepseek-v4-flash:free",
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "description": "Diagnosis agent for reproducing failures, isolating root causes, and applying minimal fixes after evidence points to a specific changed surface.",
+      "steps": 9007199254740991
+    },
+    "orchestrator": {
+      "model": "deepseek/deepseek-v4-flash:free",
+      "temperature": 0.1,
+      "top_p": 0.85,
+      "description": "Coordinator agent for multi-step work that needs todo tracking, focused subagents, implementation, and verification in one session.",
+      "steps": 9007199254740991
+    },
+    "ask": {
+      "model": "deepseek/deepseek-v4-flash:free",
+      "temperature": 0.15,
+      "top_p": 0.9,
+      "description": "Read-first answer agent for direct questions. It should cite files when discussing repo behavior and avoid making changes unless the user explicitly switches to implementation.",
+      "steps": 9007199254740991,
+      "permission": {
+        "edit": "deny",
+        "task": "deny"
+      }
+    },
+    "general": {
+      "model": "deepseek/deepseek-v4-flash:free",
+      "temperature": 0.15,
+      "top_p": 0.9,
+      "description": "General-purpose agent for mixed research, implementation, and verification tasks that do not require a narrower audit skill.",
+      "steps": 9007199254740991
+    },
     "explore": {
-      "description": "Read-only codebase exploration agent for locating files, mapping dependencies, and summarizing repo reality before edits.",
-      "model": "openai/gpt-5.5",
+      "model": "deepseek/deepseek-v4-flash:free",
       "temperature": 0.05,
       "top_p": 0.8,
-      "steps": 12,
+      "description": "Read-only codebase exploration agent for locating files, mapping dependencies, and summarizing repo reality before edits.",
+      "steps": 9007199254740991,
       "permission": {
         "edit": "deny",
         "bash": "ask",
         "task": "deny"
+      }
+    },
+    "title": {
+      "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "temperature": 0.2,
+      "description": "Session title generation only. Must not call tools or change files.",
+      "steps": 9007199254740991,
+      "permission": {
+        "*": "deny"
+      }
+    },
+    "summary": {
+      "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "temperature": 0.1,
+      "description": "Session summary generation only. Must preserve decisions, blockers, changed files, and verification status without inventing facts.",
+      "steps": 9007199254740991,
+      "permission": {
+        "*": "deny"
+      }
+    },
+    "compaction": {
+      "model": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "temperature": 0.05,
+      "description": "Context compaction only. Must preserve project hard rules, active phase, user approvals, changed files, and verification state.",
+      "steps": 9007199254740991,
+      "permission": {
+        "*": "deny"
       }
     },
     "scout": {
-      "description": "Fast read-only search agent for finding exact code, docs, migrations, and config surfaces without modifying the workspace.",
-      "model": "openai/gpt-5.5",
+      "model": "deepseek/deepseek-v4-flash:free",
       "temperature": 0.05,
       "top_p": 0.8,
-      "steps": 8,
+      "description": "Fast read-only search agent for finding exact code, docs, migrations, and config surfaces without modifying the workspace.",
+      "steps": 9007199254740991,
       "permission": {
         "edit": "deny",
         "bash": "ask",
         "task": "deny"
       }
-    },
-    "ask": {
-      "description": "Read-first answer agent for direct questions. It should cite files when discussing repo behavior and avoid making changes unless the user explicitly switches to implementation.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.15,
-      "top_p": 0.9,
-      "steps": 6,
-      "permission": {
-        "edit": "deny",
-        "task": "deny"
-      }
-    },
-    "debug": {
-      "description": "Diagnosis agent for reproducing failures, isolating root causes, and applying minimal fixes after evidence points to a specific changed surface.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "top_p": 0.85,
-      "steps": 16
-    },
-    "orchestrator": {
-      "description": "Coordinator agent for multi-step work that needs todo tracking, focused subagents, implementation, and verification in one session.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "top_p": 0.85,
-      "steps": 24
-    },
-    "title": {
-      "description": "Session title generation only. Must not call tools or change files.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.2,
-      "steps": 2,
-      "permission": "deny"
-    },
-    "summary": {
-      "description": "Session summary generation only. Must preserve decisions, blockers, changed files, and verification status without inventing facts.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.1,
-      "steps": 4,
-      "permission": "deny"
-    },
-    "compaction": {
-      "description": "Context compaction only. Must preserve project hard rules, active phase, user approvals, changed files, and verification state.",
-      "model": "openai/gpt-5.5",
-      "temperature": 0.05,
-      "steps": 4,
-      "permission": "deny"
     }
+  },
+  "provider": {
+    "openrouter": {
+      "whitelist": [
+        "deepseek/deepseek-v4-flash:free",
+        "qwen/qwen3-next-80b-a3b-instruct:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "google/gemma-4-31b-it:free",
+        "openai/gpt-oss-120b:free",
+        "z-ai/glm-4.5-air:free"
+      ],
+      "options": {
+        "timeout": false,
+        "chunkTimeout": 9007199254740991
+      }
+    }
+  },
+  "instructions": [
+    "AGENTS.md",
+    "docs/INDEX.md",
+    "docs/MASTER_PLAN.md",
+    "docs/agent-safety-gates.md"
+  ],
+  "permission": {
+    "read": "allow",
+    "edit": "ask",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "bash": "ask",
+    "task": "ask",
+    "external_directory": {
+      "*": "deny",
+      "/Users/zincdigital/.config/kilo/**": "allow",
+      "/Users/zincdigital/.kilo/**": "allow",
+      "/Users/zincdigital/.kilocode/**": "allow",
+      "/Users/zincdigital/.opencode/**": "allow",
+      "/Users/zincdigital/.local/share/kilo/tool-output/**": "allow",
+      "/var/folders/wz/8sk53hkd7t94kq73n8b4n4jc0000gn/T/kilo/**": "allow"
+    },
+    "todowrite": "allow",
+    "question": "ask",
+    "webfetch": "ask",
+    "websearch": "ask",
+    "lsp": "allow",
+    "doom_loop": "deny",
+    "skill": "allow",
+    "codesearch": "allow",
+    "semantic_search": "allow",
+    "repo_overview": "allow",
+    "repo_clone": "deny"
+  },
+  "compaction": {
+    "auto": false,
+    "prune": false,
+    "tail_turns": 9007199254740991,
+    "reserved": 9007199254740991
+  },
+  "experimental": {
+    "codebase_search": true,
+    "openTelemetry": false
   }
 }
