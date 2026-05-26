@@ -225,3 +225,5 @@
 10. **No `layout.tsx` in naked `app/dashboard/`:** Historical routing gotcha only; current build-mode auth state is owned by `lib/auth-mode.ts`, not by the route group name.
 
 11. **Training gate:** NEVER start model training without explicit user approval. `train-readiness --dry-run` currently reports `blocked` (row floor not met).
+
+12. **Dev-host origin lock (2026-05-26):** Client-rendered pages can appear stuck on `Loading...` when opened from a host not listed in Next.js `allowedDevOrigins` (for example `127.0.0.1` or the local network host). Keep `next.config.ts` `allowedDevOrigins` aligned with active local hosts and re-test both `localhost` and the non-localhost dev host after changes.

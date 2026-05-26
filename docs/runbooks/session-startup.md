@@ -18,10 +18,16 @@ Read in order:
 Run:
 
 ```bash
+pwd
+git rev-parse --show-toplevel
 git status --short
 git branch --show-current
 git log --oneline -10
+git remote -v
 ```
+
+Path lock for this workstation: `/Volumes/Satechi Hub/ZINC-FUSION-V16`.
+If a different checkout is active, stop and declare it explicitly before editing.
 
 Classify existing changes before editing:
 

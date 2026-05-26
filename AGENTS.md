@@ -222,6 +222,7 @@ These are hard-won lessons. Don't repeat them.
 - Target Zones stay off the chart and render in the `ProbabilitySurface` dashboard card.
 - Pivot labels use format `D(P)`, `D(R1)`, `D(S1)`, `W(P)`, `M(P)`, `Y(P)`.
 - The NeuralSphere on the landing page uses Three.js + `head.glb`. Resource-heavy but intentional.
+- Next.js dev-host origin lock can leave client routes stuck on loading if the host is not allowed. Keep `next.config.ts` `allowedDevOrigins` aligned with active local hosts (default lock includes `127.0.0.1` and `169.254.191.245`).
 
 ### Supabase-Specific Tips
 
@@ -266,11 +267,12 @@ Before code edits, architecture claims, phase claims, or planning decisions:
 
 1. **Memory search** — Search Kilo local recall or the configured memory MCP for decisions relevant to the current task. If memory tooling is unavailable, state `memory search: NOT RUN` in the report.
 2. **Authority docs** — Read `docs/INDEX.md`, `docs/MASTER_PLAN.md`, `docs/agent-safety-gates.md`, and `docs/plans/2026-03-17-v16-migration-plan.md` before touching architecture, schema, phase, ML, or data-flow work.
-3. **Phase check** — Identify the active execution phase and next gate from repository evidence, not assumptions.
-4. **Scoped plan** — For multi-step work, record the minimal todo/checkpoint sequence and approval gates before editing.
+3. **Workspace identity check** — Run `pwd`, `git rev-parse --show-toplevel`, and `git remote -v`. On this workstation the canonical mounted repo path is `/Volumes/Satechi Hub/ZINC-FUSION-V16`; if a different path is active, state it explicitly before edits.
+4. **Phase check** — Identify the active execution phase and next gate from repository evidence, not assumptions.
+5. **Scoped plan** — For multi-step work, record the minimal todo/checkpoint sequence and approval gates before editing.
 
 ```
-Memory(search or NOT RUN) -> Authority docs -> Phase check -> Scoped plan -> Execute -> Verify -> Report
+Memory(search or NOT RUN) -> Authority docs -> Workspace identity -> Phase check -> Scoped plan -> Execute -> Verify -> Report
 ```
 
 Every non-trivial task follows this sequence. For trivial one-command or informational requests, answer directly and report any check that was intentionally not run.
