@@ -6,7 +6,10 @@ import { createSupabaseAdminClient } from "@/lib/server/supabase-admin";
 
 export async function createServerDataClient() {
   if (isAuthDisabledForBuild()) {
-    return createSupabaseAdminClient();
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return createSupabaseAdminClient();
+    }
+    return await createRequestClient();
   }
 
   return await createRequestClient();

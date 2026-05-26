@@ -12,28 +12,46 @@ import { VegasCuisineSignals } from "@/components/vegas/VegasCuisineSignals";
 import { VegasCustomerMatrix } from "@/components/vegas/VegasCustomerMatrix";
 import { VegasOperationalAlerts } from "@/components/vegas/VegasOperationalAlerts";
 import { VegasOutreachPanel } from "@/components/vegas/VegasOutreachPanel";
+import type { VegasIntelDraft } from "@/components/vegas/VegasOutreachPanel";
 import { VegasSourceHealthFooter } from "@/components/vegas/VegasSourceHealth";
 
 export default function VegasIntelPage() {
   const [data, setData] = useState<VegasIntelDashboardResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   
   const [intelPanelOpen, setIntelPanelOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<VegasOpportunityRow | null>(null);
-  const [intelDraft, setIntelDraft] = useState<any>(null);
+  const [intelDraft, setIntelDraft] = useState<VegasIntelDraft | undefined>(undefined);
   const [intelError, setIntelError] = useState<string | undefined>();
   const [intelLoadingId, setIntelLoadingId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/vegas/intel", { cache: "no-store" })
-      .then((r) => r.json() as Promise<VegasIntelDashboardResponse>)
-      .then((res) => {
-        if (res.ok && res.data) {
-          setData(res.data);
+    const controller = new AbortController();
+
+    (async () => {
+      try {
+        const response = await fetch("/api/vegas/intel", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const payload = (await response.json()) as VegasIntelDashboardResponse & {
+          error?: string;
+        };
+        if (!response.ok || !payload.ok || !payload.data) {
+          throw new Error(payload.error ?? `Vegas Intel load failed (${response.status}).`);
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+        setData(payload.data);
+        setLoadError(null);
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setLoadError(error instanceof Error ? error.message : "Vegas Intel load failed.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+
+    return () => controller.abort();
   }, []);
 
   const handleIntelClick = async (row: VegasOpportunityRow) => {
@@ -41,7 +59,7 @@ export default function VegasIntelPage() {
     setIntelPanelOpen(true);
     setIntelLoadingId(row.id);
     setIntelError(undefined);
-    setIntelDraft(null);
+    setIntelDraft(undefined);
 
     try {
       const params = new URLSearchParams({ restaurantId: String(row.id) });
@@ -64,11 +82,49 @@ export default function VegasIntelPage() {
     }
   };
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <BackendShell>
         <div className="flex min-h-screen items-center justify-center bg-[#05070b] text-cyan-500">
           <div className="animate-pulse text-sm font-bold uppercase tracking-widest">Loading Command Center...</div>
+        </div>
+      </BackendShell>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <BackendShell>
+        <div className="flex min-h-screen items-center justify-center bg-[#05070b] px-6 text-slate-200">
+          <div className="w-full max-w-2xl rounded-2xl border border-red-500/30 bg-red-500/10 p-6">
+            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-300">
+              Vegas Intel Unavailable
+            </div>
+            <p className="mt-3 text-sm leading-6 text-red-100">{loadError}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-5 rounded-lg border border-red-300/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-red-100 transition hover:bg-red-400/10"
+            >
+              Retry Load
+            </button>
+          </div>
+        </div>
+      </BackendShell>
+    );
+  }
+
+  if (!data) {
+    return (
+      <BackendShell>
+        <div className="flex min-h-screen items-center justify-center bg-[#05070b] px-6 text-slate-200">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-300">
+              Vegas Intel Waiting For Data
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-400">
+              No live Vegas Intel payload is available yet. This page will render once the backend data flow is present.
+            </p>
+          </div>
         </div>
       </BackendShell>
     );

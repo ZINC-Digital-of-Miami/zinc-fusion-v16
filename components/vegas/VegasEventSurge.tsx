@@ -33,7 +33,7 @@ export function VegasEventSurge({ events }: { events: VegasEventRow[] }) {
         <div className="absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 bg-white/10" />
 
         <div className="relative flex justify-between gap-4 overflow-x-auto pb-4">
-          {events.map((evt, idx) => {
+          {events.map((evt) => {
             const urgency = evt.daysUntil <= 14 ? "High" : evt.daysUntil <= 30 ? "Medium" : "Normal";
             const urgencyColor = evt.daysUntil <= 14 ? "text-red-400 border-red-500/30" : "text-violet-400 border-violet-500/30";
 

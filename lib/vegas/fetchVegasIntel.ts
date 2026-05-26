@@ -93,8 +93,9 @@ const GLIDE_COVERAGE_COUNT_QUERIES: Record<keyof GlideCoverageCounts, CoverageCo
 
 function isMissingRelationError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const maybeCode = "code" in error ? String((error as any).code ?? "") : "";
-  const maybeMessage = "message" in error ? String((error as any).message ?? "") : "";
+  const errorRecord = error as { code?: unknown; message?: unknown };
+  const maybeCode = typeof errorRecord.code === "string" ? errorRecord.code : "";
+  const maybeMessage = typeof errorRecord.message === "string" ? errorRecord.message : "";
   return maybeCode === "PGRST205" || maybeMessage.toLowerCase().includes("does not exist");
 }
 

@@ -116,8 +116,23 @@ function buildAlerts(opps: VegasOpportunityRow[]): VegasAlert[] {
   return alerts;
 }
 
-function buildSourceHealth(data: any): VegasSourceHealth[] {
+function buildSourceHealth(
+  data: Awaited<ReturnType<typeof fetchVegasData>>,
+): VegasSourceHealth[] {
   const now = new Date().toISOString();
+  const coverage = data.glideCoverageCounts;
+  const coverageValues = [
+    coverage.exportList,
+    coverage.shifts,
+    coverage.scheduledReports,
+    coverage.shiftCasinos,
+    coverage.shiftRestaurants,
+  ];
+  const reachableCoverage = coverageValues.filter((value): value is number => value !== null);
+  const hasCoverage = reachableCoverage.length > 0;
+  const isCoverageComplete = coverageValues.every((value) => value !== null);
+  const coverageRows = reachableCoverage.reduce((sum, value) => sum + value, 0);
+
   return [
     {
       source: "Supabase Events Feed",
@@ -128,10 +143,12 @@ function buildSourceHealth(data: any): VegasSourceHealth[] {
     },
     {
       source: "Glide CRM Sync",
-      lastUpdated: data.glideCoverageCounts?.lastSync ?? now,
-      status: "fresh",
-      severity: "ok",
-      message: "Glide operational coverage intact."
+      lastUpdated: now,
+      status: !hasCoverage ? "missing" : isCoverageComplete ? "fresh" : "stale",
+      severity: !hasCoverage ? "warn" : isCoverageComplete ? "ok" : "warn",
+      message: !hasCoverage
+        ? "No Glide coverage tables were reachable in this environment."
+        : `Coverage visible in ${reachableCoverage.length}/5 tables (${coverageRows.toLocaleString()} rows).`
     }
   ];
 }

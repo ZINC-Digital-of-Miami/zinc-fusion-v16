@@ -3,7 +3,7 @@
 import { Sparkles, Mail, Phone, Map } from "lucide-react";
 import type { VegasOpportunityRow } from "@/lib/contracts/api";
 
-type VegasIntelDraft = {
+export type VegasIntelDraft = {
   status: string;
   executiveBrief?: string | null;
   pitchAngle: string | null;

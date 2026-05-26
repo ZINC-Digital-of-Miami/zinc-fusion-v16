@@ -55,7 +55,7 @@ export function VegasOpportunityGrid({
                 <div className="hidden text-right md:block">
                   <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500">Target Lift</div>
                   <div className="font-semibold text-green-400">
-                    +{row.zfusionScore ? row.zfusionScore.toFixed(0) : "12"}%
+                    {row.zfusionScore !== null ? `+${row.zfusionScore.toFixed(0)}%` : "n/a"}
                   </div>
                 </div>
                 

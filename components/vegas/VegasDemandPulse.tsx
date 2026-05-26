@@ -15,6 +15,7 @@ export function VegasDemandPulse({
   const isMed = score > 30;
   const color = isHigh ? "text-cyan-400" : isMed ? "text-violet-400" : "text-slate-400";
   const glow = isHigh ? "shadow-[0_0_30px_rgba(34,211,238,0.2)]" : "";
+  const trendLabel = trend === "up" ? "Rising" : trend === "down" ? "Softening" : "Stable";
 
   return (
     <div className="flex flex-col justify-between rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.01)_100%)] p-8 xl:flex-row xl:items-center">
@@ -23,6 +24,9 @@ export function VegasDemandPulse({
           <Activity className="h-6 w-6" />
           <span className="text-[11px] font-bold uppercase tracking-[0.3em]">
             Vegas Demand Pulse
+          </span>
+          <span className="rounded border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-300">
+            {trendLabel}
           </span>
         </div>
         <h1 className="mb-4 text-4xl font-bold tracking-tight text-white md:text-5xl">
