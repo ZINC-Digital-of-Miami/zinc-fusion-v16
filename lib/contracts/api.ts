@@ -8,6 +8,15 @@ export interface ApiEnvelope<T> {
   warning?: string;
 }
 
+export interface AiEnvelopeMeta {
+  enabled: boolean;
+  source: string;
+  model: string | null;
+  reasoningEffort: string | null;
+  generatedAt: string | null;
+  refreshScheduleEt: string | null;
+}
+
 export interface ZlPriceBar {
   symbol: string;
   tradeDate: string;
@@ -108,27 +117,26 @@ export interface VegasOpportunityRow {
   glideRowId: string | null;
   name: string;
   casino: string | null;
+  location: string | null;
   contactPerson: string | null;
+  contactEmail: string | null;
   serviceFrequency: string | null;
+  changesPerWeek: number | null;
   oilType: string | null;
   oilForm: string | null;
   cuisineType: string | null;
   status: string | null;
   fryerCount: number | null;
   totalCapacityLbs: number | null;
+  estimatedOilLbsPerWeek: number | null;
   customerStatus: "customer" | "prospect";
-  opportunityScore: number | null;
-  eventPressure: number | null;
   eventId: number | null;
   eventName: string | null;
   eventCategory: string | null;
   eventDate: string | null;
-  expectedSpend: number | null;
-  hospitalityImpact: number | null;
-  phqMultiplier: number | null;
-  affinityScore: number | null;
-  zfusionScore: number | null;
-  pitchReasoning: string | null;
+  eventDaysUntil: number | null;
+  cuisineAffinityScore: number | null;
+  cuisineAffinityReason: string | null;
   shiftCount: number | null;
   scheduledReportCount: number | null;
   exportListed: boolean | null;
@@ -156,7 +164,7 @@ export interface VegasAlert {
 export interface VegasCustomerMatrixBucket {
   bucket: string;
   accounts: VegasOpportunityRow[];
-  totalPotentialGallons: number | null;
+  estimatedOilLbsPerWeek: number | null;
   suggestedAction: string;
 }
 

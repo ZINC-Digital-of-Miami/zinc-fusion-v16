@@ -53,16 +53,18 @@ export function VegasOpportunityGrid({
 
               <div className="flex items-center gap-8">
                 <div className="hidden text-right md:block">
-                  <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500">Target Lift</div>
-                  <div className="font-semibold text-green-400">
-                    {row.zfusionScore !== null ? `+${row.zfusionScore.toFixed(0)}%` : "n/a"}
+                  <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500">Est. Oil / Week</div>
+                  <div className="font-semibold text-cyan-400">
+                    {row.estimatedOilLbsPerWeek !== null
+                      ? `${row.estimatedOilLbsPerWeek.toLocaleString()} lbs`
+                      : "telemetry incomplete"}
                   </div>
                 </div>
-                
+
                 <div className="hidden text-right md:block">
-                  <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500">Avg Ticket</div>
+                  <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500">Oil Product</div>
                   <div className="font-semibold text-white">
-                    ${row.expectedSpend ? row.expectedSpend.toLocaleString() : "n/a"}
+                    {row.oilType ?? row.oilForm ?? "n/a"}
                   </div>
                 </div>
 

@@ -1,17 +1,32 @@
 import { NextResponse } from "next/server";
 
+import type { AiCardContent } from "@/lib/contracts/ai-card";
 import type {
+  AiEnvelopeMeta,
   ApiEnvelope,
   VegasAlert,
   VegasCustomerMatrixBucket,
   VegasDemandSignal,
   VegasEventRow,
+  VegasIntelSnapshot,
   VegasOpportunityRow,
   VegasSourceHealth,
 } from "@/lib/contracts/api";
+import { readAiSnapshot, toAiEnvelopeMeta, type AiSnapshotMeta } from "@/lib/server/ai-snapshot";
 import { createServerDataClient } from "@/lib/server/server-data-client";
 import { fetchVegasData } from "@/lib/vegas/fetchVegasIntel";
 import { assembleVegasIntel } from "@/lib/vegas/scoreVegasOpportunities";
+
+type VegasAiCardKey =
+  | "upcomingEvents"
+  | "aiSalesStrategy"
+  | "restaurantAccounts"
+  | "fryerTracking";
+
+type VegasIntelAiSnapshot = {
+  snapshot?: VegasIntelSnapshot;
+  cards: Partial<Record<VegasAiCardKey, AiCardContent>>;
+} & AiSnapshotMeta;
 
 export type VegasIntelDashboardResponse = ApiEnvelope<{
   demandPulse: {
@@ -25,21 +40,39 @@ export type VegasIntelDashboardResponse = ApiEnvelope<{
   customerMatrix: VegasCustomerMatrixBucket[];
   alerts: VegasAlert[];
   sourceHealth: VegasSourceHealth[];
+  cards: Partial<Record<VegasAiCardKey, AiCardContent>> | null;
+  ai: AiEnvelopeMeta;
 }>;
 
-function buildDemandPulse(events: VegasEventRow[], opps: VegasOpportunityRow[]): VegasIntelDashboardResponse["data"]["demandPulse"] {
-  const events14d = events.filter((e) => e.daysUntil <= 14).length;
-  const avgZfusion = opps.reduce((sum, o) => sum + (o.zfusionScore ?? 0), 0) / (opps.length || 1);
-  const demandScore = Math.min(100, Math.round(events14d * 5 + avgZfusion));
-  
+function sumEstimatedOilLbs(opps: VegasOpportunityRow[]): number {
+  return opps.reduce((sum, o) => sum + (o.estimatedOilLbsPerWeek ?? 0), 0);
+}
+
+function buildDemandPulse(
+  events: VegasEventRow[],
+  opps: VegasOpportunityRow[],
+): VegasIntelDashboardResponse["data"]["demandPulse"] {
+  const events14d = events.filter((e) => e.daysUntil >= 0 && e.daysUntil <= 14).length;
+  const events30d = events.filter((e) => e.daysUntil >= 0 && e.daysUntil <= 30).length;
+  const customers = opps.filter((o) => o.customerStatus === "customer");
+  const totalOilLbs = sumEstimatedOilLbs(opps);
+
+  // Near-term demand pressure is driven by how many real events fall inside the
+  // outreach window; no synthetic account scores are blended in.
+  const demandScore = Math.min(100, events14d * 20 + (events30d - events14d) * 8);
+
   return {
     score: demandScore,
     trend: demandScore > 60 ? "up" : demandScore > 30 ? "flat" : "down",
     metrics: [
-      { label: "14-Day Events", value: events14d.toString(), hint: "High-pressure windows" },
-      { label: "Avg ZFusion", value: avgZfusion.toFixed(1), hint: "Account overlap intensity" },
-      { label: "Active Coverage", value: opps.length.toString(), hint: "Monitored universe" },
-    ]
+      { label: "14-Day Events", value: events14d.toString(), hint: "Demand windows" },
+      {
+        label: "Est. Oil / Week",
+        value: totalOilLbs > 0 ? `${totalOilLbs.toLocaleString()} lbs` : "n/a",
+        hint: "Glide fryer + cadence",
+      },
+      { label: "Active Customers", value: customers.length.toString(), hint: "Serviced accounts" },
+    ],
   };
 }
 
@@ -54,16 +87,25 @@ function buildCuisineSignals(opps: VegasOpportunityRow[]): VegasDemandSignal[] {
 
   const signals: VegasDemandSignal[] = [];
   for (const [cuisine, list] of byCuisine.entries()) {
-    const validScores = list.filter(o => o.zfusionScore !== null).map(o => o.zfusionScore as number);
-    const avgScore = validScores.length > 0 ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
-    
+    const validScores = list
+      .filter((o) => o.cuisineAffinityScore !== null)
+      .map((o) => o.cuisineAffinityScore as number);
+    const avgScore =
+      validScores.length > 0
+        ? validScores.reduce((a, b) => a + b, 0) / validScores.length
+        : 0;
+    const cuisineOilLbs = sumEstimatedOilLbs(list);
+
     signals.push({
       category: cuisine,
       demandScore: Math.round(avgScore),
       trendDirection: avgScore > 50 ? "up" : "flat",
-      oilRelevance: ["Standard Fryer Oil", "Premium Canola"],
-      evidence: [`${list.length} mapped accounts`, `Avg impact score: ${avgScore.toFixed(1)}`],
-      salesNote: `Event alignment drives throughput for ${cuisine} venues in this cycle.`
+      oilRelevance: [],
+      evidence: [
+        `${list.length} mapped accounts`,
+        cuisineOilLbs > 0 ? `${cuisineOilLbs.toLocaleString()} lbs/week est. oil` : "oil usage telemetry incomplete",
+      ],
+      salesNote: `Event alignment drives throughput for ${cuisine} venues in this cycle.`,
     });
   }
 
@@ -72,30 +114,36 @@ function buildCuisineSignals(opps: VegasOpportunityRow[]): VegasDemandSignal[] {
 
 function buildCustomerMatrix(opps: VegasOpportunityRow[]): VegasCustomerMatrixBucket[] {
   const buckets: Record<string, VegasOpportunityRow[]> = {
-    "Hot Leads (Unserviced)": [],
-    "Vulnerable Customers (Missing Telemetry)": [],
-    "Stable Customers": [],
-    "Low Priority": []
+    "High-Volume Customers": [],
+    "Customers (Incomplete Telemetry)": [],
+    Prospects: [],
   };
 
   for (const o of opps) {
-    if (o.customerStatus === "prospect" && (o.opportunityScore ?? 0) >= 60) {
-      buckets["Hot Leads (Unserviced)"].push(o);
-    } else if (o.customerStatus === "customer" && (o.fryerCount === null || o.totalCapacityLbs === null)) {
-      buckets["Vulnerable Customers (Missing Telemetry)"].push(o);
-    } else if (o.customerStatus === "customer") {
-      buckets["Stable Customers"].push(o);
+    if (o.customerStatus === "prospect") {
+      buckets["Prospects"].push(o);
+    } else if (o.estimatedOilLbsPerWeek !== null) {
+      buckets["High-Volume Customers"].push(o);
     } else {
-      buckets["Low Priority"].push(o);
+      buckets["Customers (Incomplete Telemetry)"].push(o);
     }
   }
 
-  return Object.entries(buckets).map(([bucket, accounts]) => ({
-    bucket,
-    accounts: accounts.sort((a, b) => (b.opportunityScore ?? 0) - (a.opportunityScore ?? 0)),
-    totalPotentialGallons: accounts.reduce((sum, o) => sum + ((o.totalCapacityLbs ?? 0) / 7.5), 0),
-    suggestedAction: bucket.includes("Leads") ? "Direct Outreach" : bucket.includes("Vulnerable") ? "Service Audit" : "Monitor"
-  }));
+  return Object.entries(buckets).map(([bucket, accounts]) => {
+    const totalOilLbs = sumEstimatedOilLbs(accounts);
+    return {
+      bucket,
+      accounts: accounts.sort(
+        (a, b) => (b.estimatedOilLbsPerWeek ?? 0) - (a.estimatedOilLbsPerWeek ?? 0),
+      ),
+      estimatedOilLbsPerWeek: totalOilLbs > 0 ? totalOilLbs : null,
+      suggestedAction: bucket.includes("Incomplete")
+        ? "Service Audit"
+        : bucket.includes("Prospects")
+        ? "Direct Outreach"
+        : "Retain / Schedule",
+    };
+  });
 }
 
 function buildAlerts(opps: VegasOpportunityRow[]): VegasAlert[] {
@@ -156,10 +204,13 @@ function buildSourceHealth(
 export async function GET() {
   try {
     const supabase = await createServerDataClient();
-    
-    // 1. Fetch RAW data from DB (NO FAKE DATA)
-    const rawData = await fetchVegasData(supabase);
-    
+
+    // 1. Fetch RAW data from DB (NO FAKE DATA) + the AI snapshot in parallel.
+    const [rawData, aiSnapshot] = await Promise.all([
+      fetchVegasData(supabase),
+      readAiSnapshot<VegasIntelAiSnapshot>("app/config/vegas-intel-ai.json"),
+    ]);
+
     // 2. Normalize and Score
     const { events, opportunities } = assembleVegasIntel(rawData);
 
@@ -177,7 +228,9 @@ export async function GET() {
       cuisineSignals,
       customerMatrix,
       alerts,
-      sourceHealth
+      sourceHealth,
+      cards: aiSnapshot?.cards ?? null,
+      ai: toAiEnvelopeMeta(aiSnapshot),
     };
 
     return NextResponse.json({

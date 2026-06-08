@@ -103,19 +103,6 @@ VEGAS_EVENT_SOURCES = [
     },
 ]
 
-VEGAS_ACCOUNT_NAMES = [
-    "Caesars Palace",
-    "Resorts World Las Vegas",
-    "The Venetian Resort",
-    "MGM Grand Hotel and Casino",
-    "ARIA Resort and Casino",
-    "Planet Hollywood Resort and Casino",
-    "Fontainebleau Las Vegas",
-    "Treasure Island Las Vegas",
-    "Wynn Las Vegas",
-    "Boyd Gaming Las Vegas Properties",
-]
-
 SOURCE_REGISTRY_ROWS = [
     ("yahoo_finance_chart", "Yahoo Finance Chart API", "data-engineering", "hourly", True),
     ("fred_csv", "FRED CSV endpoint", "data-engineering", "daily", True),
@@ -991,10 +978,6 @@ def main() -> None:
     forecast_date = trade_date
     model_version = "trusted-fill-v2-ag-horizons"
 
-    # Vegas-derived tables.
-    vegas_events_future = [e for e in vegas_events if e["event_date"] >= trade_date]
-    event_mentions = " ".join([e["event_name"] for e in vegas_events_future]).lower()
-
     # Build rows for DB writes.
     dashboard_metric_rows = [
         ("vix_value", vix_value),
@@ -1326,36 +1309,9 @@ def main() -> None:
         upsert_legislation("executive_actions", executive_rows[:30])
         upsert_legislation("congress_bills", congress_rows[:30])
 
-        # vegas restaurants
-        cur.execute(
-            "SELECT id, restaurant_name FROM vegas.restaurants WHERE account_status = 'active'"
-        )
-        existing_restaurants = {name: rid for rid, name in cur.fetchall()}
-        restaurant_ids: dict[str, int] = {}
-
-        for account_name in VEGAS_ACCOUNT_NAMES:
-            if account_name in existing_restaurants:
-                restaurant_ids[account_name] = existing_restaurants[account_name]
-                continue
-            cur.execute(
-                """
-                INSERT INTO vegas.restaurants (restaurant_name, account_status, metadata)
-                VALUES (%s, 'active', %s)
-                RETURNING id
-                """,
-                (
-                    account_name,
-                    Json(
-                        {
-                            "source": "trusted-fill-pipeline",
-                            "source_type": "public_venue_account_proxy",
-                            "asOf": now_et_iso,
-                        }
-                    ),
-                ),
-            )
-            new_id = int(cur.fetchone()[0])
-            restaurant_ids[account_name] = new_id
+        # vegas restaurants/casinos/fryers are owned exclusively by the Glide sync
+        # (scripts/sync_vegas_glide_to_supabase.py). This pipeline never inserts
+        # proxy accounts or synthetic customer scores / event-impact rows.
 
         # vegas events
         cur.execute("SELECT id, event_name, event_date FROM vegas.events")
@@ -1386,118 +1342,6 @@ def main() -> None:
                 ),
             )
             event_ids[key] = int(cur.fetchone()[0])
-
-        # vegas.fryers: keep one row per tracked restaurant with null count until telemetry arrives.
-        cur.execute(
-            """
-            SELECT id, restaurant_id
-            FROM vegas.fryers
-            WHERE restaurant_id = ANY(%s)
-            ORDER BY id ASC
-            """,
-            (list(restaurant_ids.values()),),
-        )
-        existing_fryers_by_rest: dict[int, int] = {}
-        for fryer_id, rest_id in cur.fetchall():
-            existing_fryers_by_rest.setdefault(rest_id, fryer_id)
-        for rest_name, rest_id in restaurant_ids.items():
-            payload = Json(
-                {
-                    "source": "trusted-fill-pipeline",
-                    "note": "Fryer-count telemetry pending customer equipment sync.",
-                    "accountName": rest_name,
-                    "asOf": now_et_iso,
-                }
-            )
-            existing_id = existing_fryers_by_rest.get(rest_id)
-            if existing_id:
-                cur.execute(
-                    """
-                    UPDATE vegas.fryers
-                    SET fryer_count = NULL,
-                        metadata = %s,
-                        ingested_at = NOW()
-                    WHERE id = %s
-                    """,
-                    (payload, existing_id),
-                )
-            else:
-                cur.execute(
-                    """
-                    INSERT INTO vegas.fryers (restaurant_id, fryer_count, metadata)
-                    VALUES (%s, NULL, %s)
-                    """,
-                    (rest_id, payload),
-                )
-
-        # customer scores (derived from event pressure + market risk).
-        active_event_count = len(vegas_events_future)
-        high_risk_boost = (avg_score - 50.0) * 0.2
-        for idx, (rest_name, rest_id) in enumerate(sorted(restaurant_ids.items()), start=1):
-            venue_match_bonus = 0.0
-            name_lower = rest_name.lower()
-            if name_lower in event_mentions:
-                venue_match_bonus = 16.0
-            cadence_boost = min(20.0, active_event_count * 0.8)
-            base = 52.0 + high_risk_boost + venue_match_bonus + cadence_boost + (idx % 5) * 1.5
-            score = round(max(1.0, min(100.0, base)), 4)
-            cur.execute(
-                """
-                INSERT INTO vegas.customer_scores (restaurant_id, score_date, score, metadata)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (restaurant_id, score_date) DO UPDATE
-                  SET score = EXCLUDED.score,
-                      metadata = EXCLUDED.metadata,
-                      ingested_at = NOW()
-                """,
-                (
-                    rest_id,
-                    trade_date,
-                    score,
-                    Json(
-                        {
-                            "source": "trusted-fill-pipeline",
-                            "method": "event-pressure-and-risk-weighted-score",
-                            "asOf": now_et_iso,
-                        }
-                    ),
-                ),
-            )
-
-        # event impact matrix.
-        for evt in vegas_events:
-            evt_key = (evt["event_name"], evt["event_date"])
-            evt_id = event_ids.get(evt_key)
-            if not evt_id:
-                continue
-            for rest_name, rest_id in restaurant_ids.items():
-                proximity_days = abs((evt["event_date"] - trade_date).days)
-                proximity_component = max(0.0, 1.0 - min(45.0, float(proximity_days)) / 45.0)
-                venue_component = 1.0 if evt["venue"].lower() in rest_name.lower() else 0.45
-                impact_score = round((proximity_component * 70.0) + (venue_component * 30.0), 4)
-                cur.execute(
-                    """
-                    INSERT INTO vegas.event_impact (event_id, restaurant_id, impact_score, metadata)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (event_id, restaurant_id) DO UPDATE
-                      SET impact_score = EXCLUDED.impact_score,
-                          metadata = EXCLUDED.metadata,
-                          ingested_at = NOW()
-                    """,
-                    (
-                        evt_id,
-                        rest_id,
-                        impact_score,
-                        Json(
-                            {
-                                "source": evt["source"],
-                                "eventDate": evt["event_date"].isoformat(),
-                                "venue": evt["venue"],
-                                "asOf": now_et_iso,
-                            }
-                        ),
-                    ),
-                )
 
         # Refresh AI snapshot files from trusted rows.
         dashboard_snapshot = read_json(SNAPSHOT_FILES["dashboard"])
@@ -1750,15 +1594,66 @@ def main() -> None:
             """
         )
         active_events, events_14d, events_30d = cur.fetchone()
+        # Real Glide-driven account signal: customers (service cadence present) and
+        # estimated weekly oil volume (fryer capacity x service cadence). No synthetic scores.
         cur.execute(
             """
-            SELECT COUNT(*)
-            FROM vegas.customer_scores
-            WHERE score_date = %s AND score >= 65
-            """,
-            (trade_date,),
+            SELECT
+              COUNT(*) AS total_restaurants,
+              COUNT(*) FILTER (WHERE COALESCE(metadata->>'service_frequency', '') <> '') AS customer_count,
+              COUNT(*) FILTER (WHERE (metadata->>'estimated_oil_lbs_per_week') ~ '^[0-9]') AS oil_known_count,
+              COALESCE(
+                SUM(
+                  CASE
+                    WHEN (metadata->>'estimated_oil_lbs_per_week') ~ '^[0-9.]+$'
+                    THEN (metadata->>'estimated_oil_lbs_per_week')::numeric
+                    ELSE 0
+                  END
+                ),
+                0
+              ) AS total_oil_lbs
+            FROM vegas.restaurants
+            """
         )
-        high_priority_accounts = int(cur.fetchone()[0])
+        total_restaurants_raw, customer_count_raw, oil_known_raw, total_oil_lbs_raw = cur.fetchone()
+        total_restaurants = int(total_restaurants_raw or 0)
+        customer_count = int(customer_count_raw or 0)
+        oil_known_count = int(oil_known_raw or 0)
+        total_oil_lbs = int(total_oil_lbs_raw or 0)
+        high_priority_accounts = oil_known_count
+        cur.execute(
+            """
+            SELECT COUNT(*),
+                   COALESCE(
+                     SUM(
+                       CASE
+                         WHEN (metadata->>'total_capacity_lbs') ~ '^[0-9.]+$'
+                         THEN 1
+                         ELSE 0
+                       END
+                     ),
+                     0
+                   )
+            FROM vegas.fryers
+            """
+        )
+        fryer_rows_count, fryer_capacity_rows = cur.fetchone()
+        cur.execute(
+            """
+            SELECT event_name, event_date, metadata
+            FROM vegas.events
+            WHERE event_date >= CURRENT_DATE
+            ORDER BY event_date ASC
+            LIMIT 1
+            """
+        )
+        next_event_row = cur.fetchone()
+        next_event_name = next_event_row[0] if next_event_row else "next tracked event"
+        next_event_date = next_event_row[1] if next_event_row else None
+        next_event_meta = next_event_row[2] if next_event_row else {}
+        next_event_venue = "tracked Vegas venues"
+        if isinstance(next_event_meta, dict):
+            next_event_venue = str(next_event_meta.get("venue") or next_event_venue)
         vegas_snapshot["snapshot"] = {
             "activeEvents": int(active_events or 0),
             "highPriorityAccounts": high_priority_accounts,
@@ -1771,19 +1666,24 @@ def main() -> None:
         vegas_cards.setdefault("fryerTracking", {})
         vegas_cards["upcomingEvents"]["title"] = "Upcoming Events"
         vegas_cards["upcomingEvents"]["body"] = (
-            f"Trusted event pull shows {events_14d} events in 14 days and {events_30d} in 30 days across tracked Vegas demand windows."
+            f"The Vegas calendar is in reload mode: {active_events} future events remain, {events_14d} sits inside the next 14 days, and {events_30d} fall inside the next 30 days. "
+            f"The next named demand pulse is {next_event_name} on {next_event_date.isoformat() if next_event_date else 'n/a'} at {next_event_venue}."
         )
         vegas_cards["aiSalesStrategy"]["title"] = "AI Sales Strategy"
         vegas_cards["aiSalesStrategy"]["body"] = (
-            f"Prioritize accounts with score >=65 ({high_priority_accounts} accounts) before the next two-week event cluster."
+            f"Across {total_restaurants} Glide accounts, {customer_count} are active service customers and {oil_known_count} have a computed weekly oil estimate "
+            f"(fryer capacity x service cadence), totaling about {total_oil_lbs:,} lbs/week. Kevin should lead with the highest-volume customers nearest the next event window, "
+            "then work prospects and incomplete-telemetry accounts."
         )
         vegas_cards["restaurantAccounts"]["title"] = "Restaurant Accounts"
         vegas_cards["restaurantAccounts"]["body"] = (
-            f"Active tracked accounts: {len(restaurant_ids)}. Scores are refreshed from event-pressure and market-risk weighted logic."
+            f"{total_restaurants} restaurant rows are synced from Glide; {customer_count} carry a service schedule and {oil_known_count} have enough fryer telemetry "
+            "to estimate weekly oil usage. Accounts without a computed volume are surfaced honestly as incomplete telemetry rather than ranked on a synthetic score."
         )
         vegas_cards["fryerTracking"]["title"] = "Fryer Equipment Tracking"
         vegas_cards["fryerTracking"]["body"] = (
-            "Fryer rows are present for every tracked account; count telemetry is flagged pending direct customer equipment sync."
+            f"Fryer telemetry is materially populated now: {int(fryer_rows_count)} fryer rows exist and {int(fryer_capacity_rows)} carry positive capacity data. "
+            "That is enough to support service-load planning, but direct fryer-count telemetry is still incomplete for precision scheduling."
         )
 
         # Write updated snapshots to repo.
@@ -1804,7 +1704,6 @@ def main() -> None:
             + len(executive_rows[:30])
             + len(congress_rows[:30])
             + len(vegas_events)
-            + len(restaurant_ids)
         )
         cur.execute(
             """

@@ -152,3 +152,89 @@ export function toPhqMultiplier(attendance: number): number {
   const attendanceScore = Math.min(100000, Math.max(0, attendance || 5000)) / 100000;
   return 0.5 + attendanceScore * 1.5;
 }
+
+const WORD_NUMBER_MAP: Record<string, number> = {
+  one: 1,
+  once: 1,
+  two: 2,
+  twice: 2,
+  three: 3,
+  thrice: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+};
+
+const DAY_TOKENS = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+  "mon",
+  "tue",
+  "tues",
+  "wed",
+  "thu",
+  "thur",
+  "thurs",
+  "fri",
+  "sat",
+  "sun",
+];
+
+// Deterministic Glide-only oil-change cadence model. Maps the restaurant service
+// schedule (Po4Zg frequency text + lf0gF day list) to oil changes per week.
+// Returns null when the schedule is not populated; callers must not guess.
+export function serviceChangesPerWeek(
+  frequency: string | null,
+  days: string | null,
+): number | null {
+  const freq = (frequency ?? "").trim().toLowerCase();
+  const dayText = (days ?? "").trim().toLowerCase();
+
+  if (dayText) {
+    const dayCount = DAY_TOKENS.reduce((count, token) => {
+      const pattern = new RegExp(`(?<![a-z])${token}(?![a-z])`, "g");
+      return count + (dayText.match(pattern)?.length ?? 0);
+    }, 0);
+    if (dayCount > 0) return Math.min(7, dayCount);
+  }
+
+  if (!freq) return null;
+  if (freq.includes("daily") || freq.includes("every day")) return 7;
+  if (freq.includes("weekly") || freq.includes("once")) return 1;
+  if (freq.includes("biweekly") || freq.includes("bi-weekly") || freq.includes("every other week")) {
+    return 0.5;
+  }
+  if (freq.includes("monthly")) return 0.25;
+
+  for (const [word, value] of Object.entries(WORD_NUMBER_MAP)) {
+    if (new RegExp(`(?<![a-z])${word}(?![a-z])`).test(freq)) {
+      return Math.min(7, value);
+    }
+  }
+
+  const numericMatch = freq.match(/(\d+(?:\.\d+)?)/);
+  if (numericMatch) {
+    const parsed = Number(numericMatch[1]);
+    if (Number.isFinite(parsed) && parsed > 0) return Math.min(7, parsed);
+  }
+
+  return null;
+}
+
+// Estimated weekly soybean-oil volume an account actually consumes, derived only
+// from verified Glide fryer capacity and service cadence. Returns null when either
+// input is missing so the UI can surface incomplete telemetry honestly.
+export function estimateOilLbsPerWeek(
+  totalCapacityLbs: number | null,
+  changesPerWeek: number | null,
+): number | null {
+  if (totalCapacityLbs === null || totalCapacityLbs <= 0) return null;
+  if (changesPerWeek === null || changesPerWeek <= 0) return null;
+  return Math.round(totalCapacityLbs * changesPerWeek);
+}

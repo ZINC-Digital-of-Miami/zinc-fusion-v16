@@ -7,6 +7,7 @@ import type { VegasOpportunityRow } from "@/lib/contracts/api";
 
 import { VegasDemandPulse } from "@/components/vegas/VegasDemandPulse";
 import { VegasEventSurge } from "@/components/vegas/VegasEventSurge";
+import { VegasAiCards } from "@/components/vegas/VegasAiCards";
 import { VegasOpportunityGrid } from "@/components/vegas/VegasOpportunityGrid";
 import { VegasCuisineSignals } from "@/components/vegas/VegasCuisineSignals";
 import { VegasCustomerMatrix } from "@/components/vegas/VegasCustomerMatrix";
@@ -144,6 +145,9 @@ export default function VegasIntelPage() {
 
           {/* Row 2: Event Timeline */}
           <VegasEventSurge events={data.eventSurge} />
+
+          {/* Row 2b: AI Sales Intelligence cards (Glide-driven snapshot) */}
+          <VegasAiCards cards={data.cards} ai={data.ai} />
 
           <div className="grid gap-6 xl:grid-cols-[1fr_400px]">
             <div className="space-y-6">

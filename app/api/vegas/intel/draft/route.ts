@@ -7,6 +7,7 @@ import {
   type VegasIntelReportInput,
 } from "@/lib/server/openrouter";
 import { createServerDataClient } from "@/lib/server/server-data-client";
+import { estimateOilLbsPerWeek, serviceChangesPerWeek } from "@/lib/vegas/normalizeVegasIntel";
 
 type RestaurantRow = {
   id: number;
@@ -30,12 +31,6 @@ type EventRow = {
 type CasinoRow = {
   id: number;
   casino_name: string;
-  metadata: unknown;
-};
-
-type EventImpactRow = {
-  event_id: number | null;
-  impact_score: number | null;
   metadata: unknown;
 };
 
@@ -203,8 +198,6 @@ export async function GET(request: Request) {
 
     const [
       { data: fryerRowsRaw, error: fryerError },
-      { data: scoreRowRaw, error: scoreError },
-      { data: impactRowsRaw, error: impactError },
       { data: casinoRowsRaw, error: casinoError },
     ] = await Promise.all([
       supabase
@@ -215,41 +208,20 @@ export async function GET(request: Request) {
         .limit(200),
       supabase
         .schema("vegas")
-        .from("customer_scores")
-        .select("score")
-        .eq("restaurant_id", restaurantId)
-        .order("score_date", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .schema("vegas")
-        .from("event_impact")
-        .select("event_id, impact_score, metadata")
-        .eq("restaurant_id", restaurantId)
-        .order("impact_score", { ascending: false })
-        .limit(20),
-      supabase
-        .schema("vegas")
         .from("casinos")
         .select("id, casino_name, metadata")
         .limit(200),
     ]);
 
-    const firstError = fryerError ?? scoreError ?? impactError ?? casinoError;
+    const firstError = fryerError ?? casinoError;
     if (firstError) {
       return NextResponse.json({ ok: false, error: firstError.message }, { status: 500 });
     }
 
     const fryerRows = (fryerRowsRaw ?? []) as FryerRow[];
-    const impactRows = (impactRowsRaw ?? []) as EventImpactRow[];
     const casinoRows = (casinoRowsRaw ?? []) as CasinoRow[];
 
-    let selectedEventId: number | null = requestedEventId;
-    if (selectedEventId === null) {
-      const topImpact = impactRows.find((row) => row.event_id !== null) ?? null;
-      selectedEventId = topImpact?.event_id ?? null;
-    }
-
+    const selectedEventId: number | null = requestedEventId;
     let selectedEvent: EventRow | null = null;
     if (selectedEventId !== null) {
       const { data: eventRaw, error: eventError } = await supabase
@@ -288,11 +260,20 @@ export async function GET(request: Request) {
     }
 
     const casinoNameMap = new Map<string, string>();
+    const casinoAddressMap = new Map<string, string>();
     for (const row of casinoRows) {
       const casinoMeta = asObject(row.metadata);
+      const casinoGlideData = asObject(casinoMeta.glide_data);
+      const address =
+        pickString(casinoMeta, ["address", "L9K9x"]) ??
+        pickString(casinoGlideData, ["address", "L9K9x"]);
       casinoNameMap.set(String(row.id), row.casino_name);
+      if (address) casinoAddressMap.set(String(row.id), address);
       const glideRowId = pickString(casinoMeta, ["glide_row_id", "row_id", "rowId", "glideRowId"]);
-      if (glideRowId) casinoNameMap.set(glideRowId, row.casino_name);
+      if (glideRowId) {
+        casinoNameMap.set(glideRowId, row.casino_name);
+        if (address) casinoAddressMap.set(glideRowId, address);
+      }
     }
 
     const casinoLink =
@@ -300,6 +281,7 @@ export async function GET(request: Request) {
       pickString(glideData, ["casino", "casino_name", "property", "2Ca0T", "casino_id"]) ??
       pickString(meta, ["casino_glide_row_id"]);
     const casinoName = casinoLink ? casinoNameMap.get(casinoLink) ?? casinoLink : null;
+    const location = casinoLink ? casinoAddressMap.get(casinoLink) ?? null : null;
 
     const serviceCadence =
       pickString(meta, ["service_frequency", "serviceFrequency", "Po4Zg"]) ??
@@ -323,6 +305,9 @@ export async function GET(request: Request) {
     const contact =
       pickString(meta, ["contact_person", "primary_contact", "doeXs"]) ??
       pickString(glideData, ["doeXs", "primary_contact", "Ie35Z", "a3ffP", "maCR5"]);
+    const contactEmail =
+      pickString(meta, ["contact_email", "contactEmail", "a3ffP", "maCR5"]) ??
+      pickString(glideData, ["a3ffP", "maCR5", "contact_email", "contactEmail"]);
 
     const fryerCount = fryerRows.reduce((sum, row) => sum + (row.fryer_count ?? 0), 0);
     const totalCapacityLbs = fryerRows.reduce((sum, row) => {
@@ -330,6 +315,9 @@ export async function GET(request: Request) {
       const capacity = pickNumber(fryerMeta, ["total_capacity_lbs", "capacity_lbs", "xhrM0"]) ?? 0;
       return sum + capacity;
     }, 0);
+    const normalizedCapacity = totalCapacityLbs > 0 ? totalCapacityLbs : null;
+    const changesPerWeek = serviceChangesPerWeek(serviceCadence, serviceDays);
+    const estimatedOilLbsPerWeek = estimateOilLbsPerWeek(normalizedCapacity, changesPerWeek);
 
     const selectedEventMeta = selectedEvent ? asObject(selectedEvent.metadata) : {};
     const eventCategory = normalizeEventCategory(
@@ -340,15 +328,6 @@ export async function GET(request: Request) {
       pickNumber(selectedEventMeta, ["attendance", "rank", "predicted_attendance"]) ?? null;
     const daysUntil = selectedEvent ? toDaysUntil(new Date(), selectedEvent.event_date) : null;
 
-    const topImpactRow = impactRows.find((row) =>
-      selectedEvent ? row.event_id === selectedEvent.id : row.event_id !== null,
-    );
-    const hospitalityImpact = topImpactRow?.impact_score ?? null;
-    const opportunityScore =
-      scoreRowRaw && "score" in scoreRowRaw && scoreRowRaw.score !== null
-        ? Number(scoreRowRaw.score)
-        : null;
-
     const basePitchAngle = pitchAngleForCategory(eventCategory);
     const pitchAngle = `${basePitchAngle} Cuisine fit: ${cuisineType ?? "missing"} (${cuisineAffinity.score}/100). ${cuisineAffinity.reason}`;
     const missingEvidence: string[] = [];
@@ -357,6 +336,7 @@ export async function GET(request: Request) {
     if (!contact) missingEvidence.push("Contact missing");
     if (!cuisineType) missingEvidence.push("Cuisine type missing");
     if (fryerCount <= 0 || totalCapacityLbs <= 0) missingEvidence.push("Capacity telemetry missing");
+    if (estimatedOilLbsPerWeek === null) missingEvidence.push("Estimated weekly oil usage missing");
 
     const customerStatus = serviceCadence ? "customer" : "prospect";
     const eventName = selectedEvent?.event_name ?? "No linked event window";
@@ -368,12 +348,15 @@ export async function GET(request: Request) {
       `Event category: ${eventCategory}`,
       `Cuisine fit: ${cuisineType ?? "missing"} (${cuisineAffinity.score}/100)`,
       `Cuisine rationale: ${cuisineAffinity.reason}`,
+      `Location: ${location ?? "missing"}`,
+      `Contact: ${contact ?? "missing"}${contactEmail ? ` <${contactEmail}>` : ""}`,
       `Service cadence: ${serviceFrequency ?? "missing"}`,
       `Oil type: ${oilType ?? "missing"}`,
       `Fryer telemetry: ${fryerCount > 0 ? `${fryerCount} fryers` : "missing"}`,
       `Capacity telemetry: ${totalCapacityLbs > 0 ? `${Math.round(totalCapacityLbs)} lbs` : "missing"}`,
-      `Opportunity score: ${opportunityScore !== null ? opportunityScore.toFixed(2) : "missing"}`,
-      `Hospitality impact: ${hospitalityImpact !== null ? Number(hospitalityImpact).toFixed(2) : "missing"}`,
+      `Estimated oil usage: ${
+        estimatedOilLbsPerWeek !== null ? `${estimatedOilLbsPerWeek.toLocaleString()} lbs/week` : "missing"
+      }`,
     ];
 
     const reportInput: VegasIntelReportInput = {
@@ -387,14 +370,17 @@ export async function GET(request: Request) {
       attendance,
       oilType,
       oilForm,
+      location,
+      contactName: contact,
+      contactEmail,
       cuisineType,
       cuisineAffinityScore: cuisineAffinity.score,
       cuisineAffinityReason: cuisineAffinity.reason,
       serviceFrequency,
+      changesPerWeek,
       fryerCount: fryerCount > 0 ? fryerCount : null,
-      totalCapacityLbs: totalCapacityLbs > 0 ? totalCapacityLbs : null,
-      opportunityScore,
-      hospitalityImpact,
+      totalCapacityLbs: normalizedCapacity,
+      estimatedOilLbsPerWeek,
       pitchAngle,
       evidenceBullets,
       missingEvidence,
@@ -417,17 +403,20 @@ export async function GET(request: Request) {
         eventDate,
         daysUntil,
         attendance,
-        hospitalityImpact,
         oilType,
         oilForm,
+        location,
+        contactName: contact,
+        contactEmail,
         cuisineType,
         cuisineAffinityScore: cuisineAffinity.score,
         cuisineAffinityReason: cuisineAffinity.reason,
         serviceFrequency,
+        changesPerWeek,
         fryerCount: fryerCount > 0 ? fryerCount : null,
-        totalCapacityLbs: totalCapacityLbs > 0 ? totalCapacityLbs : null,
+        totalCapacityLbs: normalizedCapacity,
+        estimatedOilLbsPerWeek,
         customerStatus,
-        opportunityScore,
         pitchAngle,
         aiGenerated: aiReport.ok,
         provider: aiReport.ok ? aiReport.provider : "structured-verification",
@@ -447,10 +436,9 @@ export async function GET(request: Request) {
         provenance: {
           sourceFeeds: [
             "vegas.restaurants",
+            "vegas.casinos",
             "vegas.fryers",
             "vegas.events",
-            "vegas.event_impact",
-            "vegas.customer_scores",
           ],
           aiProvider: aiReport.ok ? "openrouter" : "none",
           aiModel: aiReport.model,

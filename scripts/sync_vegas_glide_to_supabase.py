@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -86,6 +87,92 @@ def resolve_glide_token() -> str:
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+WORD_NUMBER_MAP: dict[str, float] = {
+    "one": 1,
+    "once": 1,
+    "two": 2,
+    "twice": 2,
+    "three": 3,
+    "thrice": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+}
+
+DAY_TOKENS: tuple[str, ...] = (
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+    "mon",
+    "tue",
+    "tues",
+    "wed",
+    "thu",
+    "thur",
+    "thurs",
+    "fri",
+    "sat",
+    "sun",
+)
+
+
+def service_changes_per_week(frequency: Any, days: Any) -> float | None:
+    """Deterministic Glide-only oil-change cadence model.
+
+    Mirrors lib/vegas/normalizeVegasIntel.ts so the stored derived value matches
+    the value the API recomputes. Returns None when the schedule is not
+    populated; callers must not guess.
+    """
+    freq = str(frequency).strip().lower() if isinstance(frequency, str) else ""
+    day_text = str(days).strip().lower() if isinstance(days, str) else ""
+
+    if day_text:
+        day_count = sum(
+            len(re.findall(rf"(?<![a-z]){token}(?![a-z])", day_text)) for token in DAY_TOKENS
+        )
+        if day_count > 0:
+            return min(7.0, float(day_count))
+
+    if not freq:
+        return None
+    if "daily" in freq or "every day" in freq:
+        return 7.0
+    if "weekly" in freq or "once" in freq:
+        return 1.0
+    if "biweekly" in freq or "bi-weekly" in freq or "every other week" in freq:
+        return 0.5
+    if "monthly" in freq:
+        return 0.25
+
+    for word, value in WORD_NUMBER_MAP.items():
+        if re.search(rf"(?<![a-z]){word}(?![a-z])", freq):
+            return min(7.0, float(value))
+
+    numeric_match = re.search(r"(\d+(?:\.\d+)?)", freq)
+    if numeric_match:
+        parsed = float(numeric_match.group(1))
+        if parsed > 0:
+            return min(7.0, parsed)
+
+    return None
+
+
+def estimate_oil_lbs_per_week(
+    total_capacity_lbs: float | None, changes_per_week: float | None
+) -> int | None:
+    """Estimated weekly soybean-oil volume from verified Glide fryer capacity and cadence."""
+    if total_capacity_lbs is None or total_capacity_lbs <= 0:
+        return None
+    if changes_per_week is None or changes_per_week <= 0:
+        return None
+    return round(total_capacity_lbs * changes_per_week)
 
 
 def fetch_glide_rows(session: requests.Session, table_id: str) -> list[dict[str, Any]]:
@@ -213,6 +300,7 @@ def sync_casinos(
             "synced_at": synced_at,
             "glide_row_id": glide_row_id,
             "glide_data": row,
+            "address": row.get("L9K9x"),
         }
         records.append((casino_name, Json(metadata)))
     if records:
@@ -252,23 +340,30 @@ def sync_restaurants(
         shift_count = shift_count_by_restaurant.get(glide_row_id, 0)
         fryer_count = fryer_count_by_restaurant.get(glide_row_id)
         total_capacity = capacity_by_restaurant.get(glide_row_id)
+        service_frequency = row.get("Po4Zg")
+        service_days = row.get("lf0gF")
+        changes_per_week = service_changes_per_week(service_frequency, service_days)
+        estimated_oil_lbs_per_week = estimate_oil_lbs_per_week(total_capacity, changes_per_week)
         metadata = {
             "source": "glide",
             "synced_at": synced_at,
             "glide_row_id": glide_row_id,
             "glide_data": row,
             "casino_glide_row_id": row.get("2Ca0T"),
-            "service_frequency": row.get("Po4Zg"),
-            "service_days": row.get("lf0gF"),
+            "service_frequency": service_frequency,
+            "service_days": service_days,
             "oil_type": row.get("U0Jf2"),
+            "oil_form": row.get("0RcWz"),
             "contact_person": row.get("Ie35Z") or row.get("doeXs"),
-            "contact_email": row.get("maCR5"),
+            "contact_email": row.get("maCR5") or row.get("a3ffP"),
             "shift_count": shift_count,
             "assigned_shift_count": shift_count,
             "export_list_count": export_count,
             "exportListed": listed_by_restaurant.get(glide_row_id, bool(row.get("Ny3eQ")) or export_count > 0),
             "fryer_count": fryer_count,
             "total_capacity_lbs": total_capacity,
+            "changes_per_week": changes_per_week,
+            "estimated_oil_lbs_per_week": estimated_oil_lbs_per_week,
         }
         account_status = row.get("s8tNr") if isinstance(row.get("s8tNr"), str) else "Open"
         records.append((restaurant_name, account_status, Json(metadata)))

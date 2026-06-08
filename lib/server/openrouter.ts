@@ -11,14 +11,17 @@ export type VegasIntelReportInput = {
   attendance: number | null;
   oilType: string | null;
   oilForm: string | null;
+  location: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
   cuisineType: string | null;
   cuisineAffinityScore: number;
   cuisineAffinityReason: string;
   serviceFrequency: string | null;
+  changesPerWeek: number | null;
   fryerCount: number | null;
   totalCapacityLbs: number | null;
-  opportunityScore: number | null;
-  hospitalityImpact: number | null;
+  estimatedOilLbsPerWeek: number | null;
   pitchAngle: string;
   evidenceBullets: string[];
   missingEvidence: string[];
@@ -159,6 +162,10 @@ function coerceReport(parsed: Record<string, unknown>, fallback: VegasIntelRepor
 export function fallbackVegasIntelReport(input: VegasIntelReportInput): VegasIntelReport {
   const capacityText =
     input.totalCapacityLbs !== null ? `${Math.round(input.totalCapacityLbs)} lbs` : "missing capacity";
+  const weeklyOilText =
+    input.estimatedOilLbsPerWeek !== null
+      ? `${input.estimatedOilLbsPerWeek.toLocaleString()} lbs/week estimated oil`
+      : "missing weekly oil estimate";
   const fryerText = input.fryerCount !== null ? `${input.fryerCount} fryers` : "missing fryer telemetry";
   const eventText = input.eventDate ? `${input.eventName} on ${input.eventDate}` : input.eventName;
   const missingText =
@@ -171,14 +178,14 @@ export function fallbackVegasIntelReport(input: VegasIntelReportInput): VegasInt
     pitchAngle: input.pitchAngle,
     salesScript:
       `Lead with ${eventText}. Tie the pitch to ${input.cuisineAffinityReason.toLowerCase()} and anchor to ${fryerText}, ${capacityText}, ` +
-      `${input.oilType ?? "missing oil type"}, and ${input.serviceFrequency ?? "missing service cadence"}. If evidence is thin, say it directly.`,
+      `${weeklyOilText}, ${input.oilType ?? "missing oil type"}, and ${input.serviceFrequency ?? "missing service cadence"}. If evidence is thin, say it directly.`,
     emailDraft:
       `Subject: ${input.restaurantName} event-readiness oil plan\n\n` +
       `Quick note on ${eventText}: your current event window lines up with ${input.cuisineAffinityReason.toLowerCase()} ` +
-      `I would like to tighten oil continuity and fryer uptime planning before the rush window so the team is not reacting late.`,
+      `I would like to tighten oil continuity and fryer uptime planning before the rush window so the team is not reacting late. Current Glide-backed usage read: ${weeklyOilText}.`,
     callPlan: [
       `Open with the ${eventText} demand window and expected attendance pressure.`,
-      `Confirm service cadence, oil profile, fryer count, and capacity before making claims.`,
+      `Confirm contact, service cadence, oil profile, fryer count, capacity, and weekly oil estimate before making claims.`,
       `Position ZINC as continuity insurance so operations are proactive instead of improvising.`,
     ],
     objectionHandling: [
