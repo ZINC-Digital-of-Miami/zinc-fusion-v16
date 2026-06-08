@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-05-26T07:02:35-04:00",
-  "model": "gpt-5.5-fast",
+  "generatedAt": "2026-06-01T07:01:20-04:00",
+  "model": "gpt-5.5-heavy",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "posture": {
     "posture": "ACCUMULATE",
-    "rationale": "Buyer posture remains ACCUMULATE because the cross-driver average is 37.0, but energy still leads at 71.7 while crude is down 8.37% over five sessions. That keeps staged coverage ahead of passive waiting without forcing panic fills.",
-    "updatedAt": "2026-05-26T07:02:35-04:00"
+    "rationale": "Buyer posture remains ACCUMULATE because the cross-driver average is 33.4, but energy stress still leads at 51.3. Crude is 90.65 with a -6.16% five-session move, so staged coverage still beats passive waiting.",
+    "updatedAt": "2026-06-01T07:01:20-04:00"
   },
   "cards": {
     "marketPosture": {
       "title": "Market Posture",
-      "body": "ACCUMULATE remains active. Average network pressure is 37.0, but energy stress still leads at 71.7 while crude has already dropped 8.37% over five sessions. That argues for staged coverage, not a heroic all-at-once fill.",
+      "body": "ACCUMULATE remains active. Average network pressure is 33.4, but energy stress still leads at 51.3 while crude sits at 90.65 and OVX at 58.30. That argues for staged coverage, not a heroic all-at-once fill.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Operating Stance",
         "strategicObjective": "State the procurement stance decisively so execution remains disciplined under volatility.",
@@ -36,7 +36,7 @@
       },
       "provenance": {
         "asOf": "2026-05-22",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "analytics.market_posture",
@@ -64,7 +64,7 @@
     },
     "contractImpactCalculator": {
       "title": "Contract Impact Calculator",
-      "body": "Staged coverage still wins. Energy stress 71.7 is 34.7 points above the 37.0 network average, but tariff pressure has cooled to 15.8 and crush stays benign at 14.6. One-shot execution would still be paying for rebound risk that has not fully transferred into soybean-oil replacement cost.",
+      "body": "Staged coverage still wins. energy stress is 51.3, 17.9 points above the 33.4 network average, while tariff pressure is 26.1 and crush stays benign at 14.8. One-shot execution would still be paying for rebound risk that has not fully cleared.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer-Side Contract Window Impact",
         "strategicObjective": "Quantify whether current conditions favor staged coverage, single-window execution, or defensive patience for soybean-oil procurement.",
@@ -91,7 +91,7 @@
       },
       "provenance": {
         "asOf": "2026-05-22",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",
@@ -126,7 +126,7 @@
     },
     "factorWaterfall": {
       "title": "Factor Waterfall",
-      "body": "Pressure stack is energy pass-through (71.7), volatility transmission (43.2), China flow risk (39.5), tariff threat (15.8), then crush pressure (14.6). The stack is concentrated, not broad, so Chris should monitor crude and OVX first and treat the other channels as confirmation rather than the main trigger.",
+      "body": "Pressure stack is energy stress (51.3), china tension (45.7), vix stress (29.2), tariff threat (26.1), crush pressure (14.8). The stack is concentrated, not broad, so Chris should monitor the lead lane first and treat the others as confirmation.",
       "strategicSpecialInstructions": {
         "cardTopic": "Cross-Driver Procurement Pressure Ranking",
         "strategicObjective": "Rank active drivers by marginal buyer impact so monitoring effort stays on the channels that can move replacement cost fastest.",
@@ -153,7 +153,7 @@
       },
       "provenance": {
         "asOf": "2026-05-22",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json"
@@ -174,7 +174,7 @@
     },
     "riskMetrics": {
       "title": "Risk Metrics",
-      "body": "Buyer timing asymmetry is moderate but still energy-led. VIX is 16.76, OVX is 73.54, and managed money stays net long 158,107 contracts, or 22.08% of open interest, so a crude rebound can still move soybean-oil replacement cost faster than the average stack score suggests.",
+      "body": "Buyer timing asymmetry is moderate but still energy-led. Average risk is 33.4, the lead-channel premium is 17.9 points, and regime stays NEUTRAL at confidence 0.90.",
       "strategicSpecialInstructions": {
         "cardTopic": "Buyer Risk Math and Tail Exposure",
         "strategicObjective": "Express near-term soybean-oil procurement risk in explicit asymmetry and latency-risk terms.",
@@ -201,7 +201,7 @@
       },
       "provenance": {
         "asOf": "2026-05-22",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "app/config/dashboard-risk-factors-ai.json",

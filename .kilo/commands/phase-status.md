@@ -1,7 +1,7 @@
 ---
 name: phase-status
 description: "Assess the current execution phase of ZINC Fusion V16 by checking for concrete evidence of each phase's completion (Phases 0–5+). Checks health routes, migration files, page stubs, chart wiring, pg_cron functions, and Python pipeline files. Also verifies gate pass evidence and Checkpoint 10 pre-Phase 2 cleanup items. Outputs a phase table with DONE/PARTIAL/IN PROGRESS status and a single next action."
-model: deepseek/deepseek-v4-pro
+model: openrouter/deepseek/deepseek-v4-flash:free
 agent: plan
 argument-hint: 'Allowed focus: full-status | phase-0 | phase-1 | phase-1.5 | phase-2 | gate-verification | cleanup-readiness'
 ---

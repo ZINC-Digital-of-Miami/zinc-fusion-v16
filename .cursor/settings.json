@@ -1,0 +1,25 @@
+{
+  "plugins": {
+    "cursor-team-kit": {
+      "enabled": true
+    },
+    "superpowers": {
+      "enabled": true
+    },
+    "continual-learning": {
+      "enabled": true
+    },
+    "cli-for-agent": {
+      "enabled": true
+    },
+    "docs-canvas": {
+      "enabled": true
+    },
+    "datarobot-agent-skills": {
+      "enabled": true
+    },
+    "cursor-sdk": {
+      "enabled": true
+    }
+  }
+}

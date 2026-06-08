@@ -1,7 +1,7 @@
 ---
 name: mock-scan
 description: "Scan the ZINC Fusion V16 codebase for Hard Rule #11 violations: ZERO mock data. Searches app/, components/, lib/, and python/ for hardcoded data arrays, mock DataFrames, and explicit fake-data markers. Outputs PASS or FAIL with file:line evidence."
-model: deepseek/deepseek-v4-pro
+model: openrouter/deepseek/deepseek-v4-flash:free
 agent: plan
 argument-hint: 'Allowed scope: full-scan | app | components | lib | python | api-routes'
 ---

@@ -20,7 +20,7 @@
 
 ### Critical Gaps
 - **Target Zone overlay OFF chart by design** — stays on `ProbabilitySurface` card only
-- **AI snapshot target reset to `gpt-5.5-fast`** for daily card files; subscription UI access is not a backend API billing path
+- **AI snapshot target reset to `gpt-5.5-heavy`** for daily card files; subscription UI access is not a backend API billing path
 - **ProFarmer Playwright scraper does NOT exist** — trusted-fill data only
 - **Glide API keys NOT in V16** — must be extracted from V15 project
 - **Previous quality audit findings** have been folded into source fixes; the Quality Playbook install is retired
@@ -36,7 +36,7 @@
 - Regression coverage locks `ZlCandlestickChart` and the protected dashboard page to this decision
 
 ### D2: OpenRouter Snapshot Target for AI Cards
-- **Primary snapshot model:** `gpt-5.5-fast` with `high-think`
+- **Primary snapshot model:** `gpt-5.5-heavy` with `high-think`
 - **Selection basis:** live OpenRouter catalog check showed zero prompt/completion pricing, near-1M context, reasoning, tool, max-token, temperature, and structured-output support
 - **Refresh path:** approved direct provider refresh writes committed snapshot JSON files under `app/config/`
 - **Runtime boundary:** subscription UI access does not automatically provide backend API billing; runtime server calls still require a private provider API key
@@ -54,11 +54,13 @@
 - Keys must be extracted from V15 project
 - Daily pg_cron job → Glide JSON API → `vegas.*` tables
 - Vegas Intel page reads from `vegas.*` tables with AI card fallback for strategy analysis
+- Vegas Intel is a daily snapshot surface only. It must not be presented or operated as real-time, and published page-facing refreshes are capped at one per calendar day.
 
 ### D5: Cadence
 - Chart data: local DuckDB raw hourly Databento refresh promoted to Supabase `mkt.price_1h`, `mkt.price_1d`, and `mkt.latest_price`
 - Non-price ingestion: weekly weekend batch
-- AI cards: daily refresh via committed snapshot JSON files targeting `gpt-5.5-fast`
+- AI cards: daily refresh via committed snapshot JSON files targeting `gpt-5.5-heavy`
+- Vegas page-facing cards/payloads: max one published refresh per calendar day (no intraday/real-time refresh contract)
 - ProFarmer: hourly 7am–4am ET by Python Playwright system schedule with GitHub Actions fallback; not a Vercel cron route
 
 ### D6: DuckDB + Supabase Chart Split
@@ -103,7 +105,7 @@
 | # | Task | Effort |
 |---|------|--------|
 | 2.1 | Confirm the approved direct provider path for daily snapshots | 30m |
-| 2.2 | Keep snapshot metadata locked to `gpt-5.5-fast` + `high-think` | 30m |
+| 2.2 | Keep snapshot metadata locked to `gpt-5.5-heavy` + `high-think` | 30m |
 | 2.3 | Keep `fill_site_with_trusted_data.py` writing the approved snapshot model/source metadata | 1h |
 | 2.4 | Keep `lib/server/ai-snapshot.ts` trust labels aligned with approved snapshot sources | 15m |
 | 2.5 | Regenerate all 5 AI card snapshots, validate | 2h |

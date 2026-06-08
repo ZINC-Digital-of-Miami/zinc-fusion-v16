@@ -24,6 +24,9 @@
     ]
   },
   "snapshot": true,
+  "plugin": [
+    "@kilocode/kilo-indexing"
+  ],
   "share": "disabled",
   "autoupdate": "notify",
   "disabled_providers": [
@@ -34,12 +37,16 @@
     "github-copilot",
     "openrouter"
   ],
+  "indexing": {
+    "enabled": true,
+    "provider": "openrouter",
+    "model": "openai/text-embedding-3-small"
+  },
   "model": "openai/gpt-5.5",
   "small_model": "openai/gpt-5.5-fast",
   "default_agent": "build",
   "agent": {
     "plan": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "description": "Planning-only agent for phase, schema, architecture, and implementation sequencing decisions. It may inspect files and run read-only commands, but must not edit files.",
@@ -51,28 +58,24 @@
       }
     },
     "build": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "description": "Default implementation agent for scoped ZINC Fusion V16 changes after repository reality and phase gates are checked.",
       "steps": 9007199254740991
     },
     "debug": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "description": "Diagnosis agent for reproducing failures, isolating root causes, and applying minimal fixes after evidence points to a specific changed surface.",
       "steps": 9007199254740991
     },
     "orchestrator": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.1,
       "top_p": 0.85,
       "description": "Coordinator agent for multi-step work that needs todo tracking, focused subagents, implementation, and verification in one session.",
       "steps": 9007199254740991
     },
     "ask": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.15,
       "top_p": 0.9,
       "description": "Read-first answer agent for direct questions. It should cite files when discussing repo behavior and avoid making changes unless the user explicitly switches to implementation.",
@@ -83,14 +86,12 @@
       }
     },
     "general": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.15,
       "top_p": 0.9,
       "description": "General-purpose agent for mixed research, implementation, and verification tasks that do not require a narrower audit skill.",
       "steps": 9007199254740991
     },
     "explore": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.05,
       "top_p": 0.8,
       "description": "Read-only codebase exploration agent for locating files, mapping dependencies, and summarizing repo reality before edits.",
@@ -102,7 +103,6 @@
       }
     },
     "title": {
-      "model": "openai/gpt-5.5-fast",
       "temperature": 0.2,
       "description": "Session title generation only. Must not call tools or change files.",
       "steps": 9007199254740991,
@@ -111,7 +111,6 @@
       }
     },
     "summary": {
-      "model": "openai/gpt-5.5-fast",
       "temperature": 0.1,
       "description": "Session summary generation only. Must preserve decisions, blockers, changed files, and verification status without inventing facts.",
       "steps": 9007199254740991,
@@ -120,7 +119,6 @@
       }
     },
     "compaction": {
-      "model": "openai/gpt-5.5-fast",
       "temperature": 0.05,
       "description": "Context compaction only. Must preserve project hard rules, active phase, user approvals, changed files, and verification state.",
       "steps": 9007199254740991,
@@ -129,7 +127,6 @@
       }
     },
     "scout": {
-      "model": "openai/gpt-5.5",
       "temperature": 0.05,
       "top_p": 0.8,
       "description": "Fast read-only search agent for finding exact code, docs, migrations, and config surfaces without modifying the workspace.",
@@ -138,6 +135,12 @@
         "edit": "deny",
         "bash": "ask",
         "task": "deny"
+      }
+    },
+    "openai": {
+      "options": {
+        "timeout": false,
+        "chunkTimeout": 9007199254740991
       }
     }
   },
@@ -152,12 +155,6 @@
         "openrouter/openai/gpt-oss-120b:free",
         "openrouter/z-ai/glm-4.5-air:free"
       ],
-      "options": {
-        "timeout": false,
-        "chunkTimeout": 9007199254740991
-      }
-    },
-    "openai": {
       "options": {
         "timeout": false,
         "chunkTimeout": 9007199254740991
@@ -206,16 +203,8 @@
     "reserved": 9007199254740991
   },
   "experimental": {
-    "codebase_search": false,
+    "codebase_search": true,
     "semantic_indexing": true,
     "openTelemetry": false
-  },
-  "indexing": {
-    "enabled": true,
-    "provider": "openrouter",
-    "model": "qwen/qwen3-embedding-4b:free"
-  },
-  "plugin": [
-    "@kilocode/kilo-indexing"
-  ]
+  }
 }

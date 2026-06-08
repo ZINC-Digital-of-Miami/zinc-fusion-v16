@@ -189,7 +189,7 @@ Format:
 
 Rules:
 
-- Every command in this repository must use `model: deepseek/deepseek-v4-pro` unless the user explicitly approves a model change in the same workstream.
+- Every command in this repository must use `model: openrouter/deepseek/deepseek-v4-flash:free` unless the user explicitly approves a model change in the same workstream.
 - Command text must name the exact authority docs, skills, workflows, directories, and approval gates it depends on.
 - Do not use catch-all prompts such as `all`, `as needed`, or `if possible` without defining the exact behavior they trigger.
 - Commands may route to skills or workflows, but they must not duplicate or weaken skill approval gates.

@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-05-26T07:02:35-04:00",
-  "model": "gpt-5.5-fast",
+  "generatedAt": "2026-06-01T07:01:20-04:00",
+  "model": "gpt-5.5-heavy",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "The screened policy book still holds 5 visible agriculture-and-trade items: 4 Federal Register rows plus the Farm, Food, and National Security Act anchor from Congress.gov. Breadth is enough for a watchlist, but not enough to justify rule-shock language.",
+      "body": "Policy breadth is still narrow. The refresh screened 21 public-policy rows, but only 1 survived the soy/procurement relevance filter, with the visible anchor coming from Commerce Department.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Operational Impact Briefing",
         "strategicObjective": "Translate current legislation flow into procurement, pricing, compliance, and sourcing impact for rapid buyer decisions.",
@@ -31,7 +31,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -72,7 +72,7 @@
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Source breadth is still narrow. Federal Register supplies 4 of the 5 visible items and Congress.gov supplies the remaining anchor, so corroboration is adequate for watch status but still too concentrated for high-conviction shock framing.",
+      "body": "Source breadth is concentrated. Commerce Department supplies 1 of the 1 visible items, so corroboration is adequate for watch status but still too narrow for high-conviction shock framing.",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Reliability and Concentration Risk",
         "strategicObjective": "Assess whether source concentration supports confidence or increases interpretation risk for procurement decisions.",
@@ -96,7 +96,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -124,7 +124,7 @@
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "Policy-theme pressure still clusters in agriculture, trade, and macro-administration lanes rather than a direct soybean-oil mandate. Keep the watchlist on import/export friction, compliance workload, and biofuel-policy second-order effects.",
+      "body": "Policy-theme pressure currently clusters in palm, policy, tariff, which points more to trade and compliance monitoring than to an immediate soybean-oil rule shock.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify policy themes most likely to propagate into procurement pressure and compliance workload.",
@@ -148,7 +148,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23",
-        "generatedAt": "2026-05-26T07:02:35-04:00",
+        "generatedAt": "2026-06-01T07:01:20-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -177,50 +177,13 @@
   },
   "items": [
     {
-      "source": "Agriculture Department",
-      "title": "Request for Information on Modified Organisms Subject to the Plant Protection Act",
-      "publishedAt": "2026-05-15T00:00:00+00:00",
-      "tags": [
-        "policy",
-        "agriculture"
-      ]
-    },
-    {
       "source": "Commerce Department",
       "title": "Foreign-Trade Zone 102; Application for Subzone; BASF Agricultural Solutions US LLC; Fenton and Palmyra, Missouri",
-      "publishedAt": "2026-05-14T00:00:00+00:00",
+      "publishedAt": "2026-05-14T00:00:00Z",
       "tags": [
+        "palm",
         "policy",
-        "trade",
-        "agriculture"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
-      "title": "Codex Alimentarius Commission: Meeting of the Codex Alimentarius Commission",
-      "publishedAt": "2026-05-13T00:00:00+00:00",
-      "tags": [
-        "policy",
-        "agriculture"
-      ]
-    },
-    {
-      "source": "Agriculture Department",
-      "title": "Updated Staple Food Stocking Standards for Retailers in the Supplemental Nutrition Assistance Program",
-      "publishedAt": "2026-05-08T00:00:00+00:00",
-      "tags": [
-        "macro",
-        "policy",
-        "agriculture"
-      ]
-    },
-    {
-      "source": "Congress.gov",
-      "title": "H.R.7567 (119th) - Farm, Food, and National Security Act of 2026",
-      "publishedAt": "2026-05-07T17:39:50+00:00",
-      "tags": [
-        "macro",
-        "policy"
+        "tariff"
       ]
     }
   ]

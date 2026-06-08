@@ -16,6 +16,6 @@
 - Forecast writes must include model version and feature snapshot metadata.
 
 ## Security Baselines
-- `SUPABASE_SERVICE_ROLE_KEY` is server-only.
+- `SUPABASE_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are server-only.
 - No Vercel cron/API cron route class is part of V16.
 - RLS is mandatory for all schemas from initial migration.

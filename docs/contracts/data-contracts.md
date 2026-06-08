@@ -81,12 +81,13 @@
 - Generic instruction text is not allowed for AI card instruction payloads.
 - AI narrative content is sourced from `app/config/dashboard-risk-factors-ai.json` (no request-time OpenAI API key path).
 - Snapshot metadata must include `model`, `reasoningEffort`, `source`, `generatedAt`, and daily `refreshScheduleEt`.
-- Current locked snapshot target: `gpt-5.5-fast` with `high-think`, refreshed daily at `07:00 America/New_York`.
+- Current locked snapshot target: `gpt-5.5-heavy` with `high-think`, refreshed daily at `07:00 America/New_York`.
 
 ## AI Daily Card Pull Contract (All Pages)
 - Daily AI pull is the default source for card content on all primary pages.
+- AI card refresh cadence is bounded to at most one committed refresh per calendar day per page surface. No intraday/real-time card refresh claims are allowed.
 - AI pulls must use direct provider account paths (`ai-daily-refresh` or `openrouter-daily-refresh`) and must not use Vercel AI Gateway, Vercel OIDC model routing, or `AI_GATEWAY_API_KEY`.
-- When the direct provider path is selected, committed snapshot metadata must identify the model as `gpt-5.5-fast`; runtime server calls still require `OPENROUTER_API_KEY`.
+- When the direct provider path is selected, committed snapshot metadata must identify the model as `gpt-5.5-heavy`; runtime server calls still require `OPENROUTER_API_KEY`.
 - Snapshot files are committed in-repo under `app/config/` and must be refreshed daily:
   - `dashboard-risk-factors-ai.json`
   - `strategy-posture-ai.json`

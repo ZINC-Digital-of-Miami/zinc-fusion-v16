@@ -1,7 +1,7 @@
 ---
 name: session-start
 description: "Read-only project orientation for ZINC Fusion V16. Use at session start to produce a briefing with memory status, authority-doc status, current phase, recent git activity, open decisions, risk flags, and one recommended next action. Never edits, creates, or deletes files."
-model: deepseek/deepseek-v4-pro
+model: openrouter/deepseek/deepseek-v4-flash:free
 agent: plan
 argument-hint: 'Allowed focus: full-briefing | phase-status | risk-flags | git-activity | decisions'
 ---

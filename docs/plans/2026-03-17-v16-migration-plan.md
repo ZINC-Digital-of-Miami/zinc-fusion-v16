@@ -92,7 +92,7 @@
 | Regime state              | Dashboard regime chip                 | Daily                 |
 | Legislation events        | Legislation page                      | Daily                 |
 | News/sentiment            | Sentiment page                        | Daily                 |
-| Vegas operations          | Vegas Intel page                      | Event-driven          |
+| Vegas operations          | Vegas Intel page                      | Daily snapshot (max one published refresh per calendar day; not real-time) |
 
 ### What Dies (legacy baseline baggage that does NOT cross)
 
@@ -438,11 +438,11 @@ Most non-chart ingestion runs inside Supabase Postgres via pg_cron + http extens
 | ----------------- | ---------------------------------------------------------------- | ------------------- | ------------------------------ | ------------ |
 | `restaurants`     | Restaurant accounts                                              | Manual / Glide sync | Vegas Intel page               | Event-driven |
 | `casinos`         | Casino properties                                                | Manual              | Vegas Intel page               | Static       |
-| `events`          | Vegas events (CES, SEMA, March Madness) — **this is everything** | Manual / pg_cron    | Vegas Intel page, event impact | Event-driven |
+| `events`          | Vegas events (CES, SEMA, March Madness) — **this is everything** | Manual / pg_cron    | Vegas Intel page, event impact | Daily snapshot (max one published refresh per calendar day) |
 | `venues`          | Event venue mapping                                              | Manual              | Vegas Intel page               | Static       |
 | `fryers`          | Fryer equipment tracking                                         | Manual / Glide sync | Vegas Intel page               | Event-driven |
-| `customer_scores` | Restaurant scoring/priority                                      | Derived             | Vegas Intel page               | Periodic     |
-| `event_impact`    | Event -> oil demand impact                                       | Derived             | Vegas Intel page               | Event-driven |
+| `customer_scores` | Restaurant scoring/priority                                      | Derived             | Vegas Intel page               | Daily snapshot (max one published refresh per calendar day) |
+| `event_impact`    | Event -> oil demand impact                                       | Derived             | Vegas Intel page               | Daily snapshot (max one published refresh per calendar day) |
 
 **Consolidated from legacy baseline's 17 tables.** V16 drops over-normalized structure (`shifts`, `shift_casinos`, `shift_restaurants`, `cuisine_affinity`, `cuisine_match`, `event_labels`, `event_entities`, `event_profiles`, `daily_spend`) and uses fewer tables with richer JSON columns where appropriate.
 

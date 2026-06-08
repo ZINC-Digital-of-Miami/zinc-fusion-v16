@@ -1,7 +1,7 @@
 ---
 name: pipeline-phase-gate
 description: "Sequential gate verification skill for ZINC Fusion V16 execution phases. Use when: declaring a phase done, verifying Gates 1-6 have passing evidence, auditing phase hand-off readiness, checking that evaluation criteria are met before starting the next phase. Runs pre-checks, per-gate sequential loop, commit after each gate passes, and a full re-run loop before final sign-off. Never skips gates or phases."
-model: deepseek/deepseek-v4-pro
+model: openrouter/deepseek/deepseek-v4-flash:free
 agent: plan
 argument-hint: 'Allowed focus: gate-1 | gate-2 | gate-3 | gate-4 | gate-5 | gate-6 | phase-readiness | full-gate-audit'
 ---
