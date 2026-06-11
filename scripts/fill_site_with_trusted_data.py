@@ -254,22 +254,41 @@ def fetch_yahoo_series(symbol: str) -> YahooSeries:
 
 
 def fetch_fred_latest(series_id: str) -> tuple[float | None, datetime | None, list[tuple[date, float]]]:
-    url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
-    text = request_text(url)
+    # Prefer the official API host: fred.stlouisfed.org page/CSV endpoints sit
+    # behind Akamai and reset TLS streams from non-browser clients, while
+    # api.stlouisfed.org serves the same series with a free key.
+    load_local_env(ROOT / ".env.local")
+    api_key = os.getenv("FRED_API_KEY")
     rows: list[tuple[date, float]] = []
-    for line in text.strip().splitlines()[1:]:
-        parts = line.split(",", 1)
-        if len(parts) != 2:
-            continue
-        d, v = parts[0].strip(), parts[1].strip()
-        if not d or not v or v == ".":
-            continue
-        try:
-            parsed_date = datetime.strptime(d, "%Y-%m-%d").date()
-            parsed_value = float(v)
-        except Exception:  # noqa: BLE001
-            continue
-        rows.append((parsed_date, parsed_value))
+    if api_key:
+        url = (
+            "https://api.stlouisfed.org/fred/series/observations"
+            f"?series_id={series_id}&api_key={api_key}&file_type=json"
+        )
+        payload = request_json(url)
+        observations = payload.get("observations", []) if isinstance(payload, dict) else []
+        for obs in observations:
+            d, v = str(obs.get("date", "")).strip(), str(obs.get("value", "")).strip()
+            if not d or not v or v == ".":
+                continue
+            try:
+                rows.append((datetime.strptime(d, "%Y-%m-%d").date(), float(v)))
+            except Exception:  # noqa: BLE001
+                continue
+    else:
+        url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
+        text = request_text(url)
+        for line in text.strip().splitlines()[1:]:
+            parts = line.split(",", 1)
+            if len(parts) != 2:
+                continue
+            d, v = parts[0].strip(), parts[1].strip()
+            if not d or not v or v == ".":
+                continue
+            try:
+                rows.append((datetime.strptime(d, "%Y-%m-%d").date(), float(v)))
+            except Exception:  # noqa: BLE001
+                continue
     if not rows:
         return None, None, []
     latest_date, latest_value = rows[-1]
@@ -1741,7 +1760,7 @@ def main() -> None:
             SELECT
               COUNT(*) AS total_restaurants,
               COUNT(*) FILTER (WHERE COALESCE(metadata->>'service_frequency', '') <> '') AS customer_count,
-              COUNT(*) FILTER (WHERE (metadata->>'estimated_oil_lbs_per_week') ~ '^[0-9]') AS oil_known_count,
+              COUNT(*) FILTER (WHERE (metadata->>'estimated_oil_lbs_per_week') ~ '^[0-9.]+$') AS oil_known_count,
               COALESCE(
                 SUM(
                   CASE

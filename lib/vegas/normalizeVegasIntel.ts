@@ -148,11 +148,6 @@ export function resolveCuisineAffinity(category: string, cuisineType: string | n
   return categoryMap[cuisineType] ?? { score: 30, reason: "General dining option." };
 }
 
-export function toPhqMultiplier(attendance: number): number {
-  const attendanceScore = Math.min(100000, Math.max(0, attendance || 5000)) / 100000;
-  return 0.5 + attendanceScore * 1.5;
-}
-
 const WORD_NUMBER_MAP: Record<string, number> = {
   one: 1,
   once: 1,
@@ -186,9 +181,27 @@ const DAY_TOKENS = [
   "sun",
 ];
 
+function matchWordNumber(text: string): number | null {
+  for (const [word, value] of Object.entries(WORD_NUMBER_MAP)) {
+    if (new RegExp(`(?<![a-z])${word}(?![a-z])`).test(text)) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function matchNumeric(text: string): number | null {
+  const numericMatch = text.match(/(\d+(?:\.\d+)?)/);
+  if (!numericMatch) return null;
+  const parsed = Number(numericMatch[1]);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 // Deterministic Glide-only oil-change cadence model. Maps the restaurant service
 // schedule (Po4Zg frequency text + lf0gF day list) to oil changes per week.
+// Month-based cadences use a 4-week month (N per month = N * 0.25 per week).
 // Returns null when the schedule is not populated; callers must not guess.
+// Mirrored exactly by service_changes_per_week in scripts/sync_vegas_glide_to_supabase.py.
 export function serviceChangesPerWeek(
   frequency: string | null,
   days: string | null,
@@ -206,23 +219,34 @@ export function serviceChangesPerWeek(
 
   if (!freq) return null;
   if (freq.includes("daily") || freq.includes("every day")) return 7;
-  if (freq.includes("weekly") || freq.includes("once")) return 1;
+
+  // Multi-week intervals must resolve before the generic weekly check because
+  // "biweekly"/"bi-weekly" contain the substring "weekly".
   if (freq.includes("biweekly") || freq.includes("bi-weekly") || freq.includes("every other week")) {
     return 0.5;
   }
-  if (freq.includes("monthly")) return 0.25;
-
-  for (const [word, value] of Object.entries(WORD_NUMBER_MAP)) {
-    if (new RegExp(`(?<![a-z])${word}(?![a-z])`).test(freq)) {
-      return Math.min(7, value);
-    }
+  const everyNWeeks = freq.match(
+    /every\s+(\d+(?:\.\d+)?|two|three|four|five|six|seven)\s+weeks?/,
+  );
+  if (everyNWeeks) {
+    const interval = WORD_NUMBER_MAP[everyNWeeks[1]] ?? Number(everyNWeeks[1]);
+    if (Number.isFinite(interval) && interval > 0) return Math.min(7, 1 / interval);
   }
 
-  const numericMatch = freq.match(/(\d+(?:\.\d+)?)/);
-  if (numericMatch) {
-    const parsed = Number(numericMatch[1]);
-    if (Number.isFinite(parsed) && parsed > 0) return Math.min(7, parsed);
+  // Month-based cadences must resolve before "once"/word-number checks so
+  // "once a month" and "twice a month" stay monthly, not weekly.
+  if (freq.includes("month")) {
+    const perMonth = matchWordNumber(freq) ?? matchNumeric(freq) ?? 1;
+    return Math.min(7, perMonth * 0.25);
   }
+
+  if (freq.includes("weekly") || freq.includes("every week") || freq.includes("once")) return 1;
+
+  const wordValue = matchWordNumber(freq);
+  if (wordValue !== null) return Math.min(7, wordValue);
+
+  const numericValue = matchNumeric(freq);
+  if (numericValue !== null) return Math.min(7, numericValue);
 
   return null;
 }

@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-01T07:01:20-04:00",
+  "generatedAt": "2026-06-11T16:33:48-04:00",
   "model": "gpt-5.5-heavy",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "snapshot": {
-    "activeEvents": 11,
-    "highPriorityAccounts": 0,
-    "updatedAt": "2026-06-01T07:01:20-04:00"
+    "activeEvents": 10,
+    "highPriorityAccounts": 124,
+    "updatedAt": "2026-06-11T16:33:48-04:00"
   },
   "cards": {
     "upcomingEvents": {
       "title": "Upcoming Events",
-      "body": "The Vegas calendar is in reload mode: 11 future events remain, 2 sits inside the next 14 days, and 4 fall inside the next 30 days. The next named demand pulse is America250 Summer Fireworks on 2026-06-06 at Las Vegas Strip.",
+      "body": "The Vegas calendar is in reload mode: 10 future events remain, 2 sits inside the next 14 days, and 5 fall inside the next 30 days. The next named demand pulse is America250 Summer Fireworks on 2026-06-13 at Las Vegas Strip.",
       "strategicSpecialInstructions": {
         "cardTopic": "Event-Window Compression and Reload Timing",
         "strategicObjective": "Translate the handoff between a just-finished event spike and the next named Vegas demand window into the right outreach and service cadence.",
@@ -36,7 +36,7 @@
       },
       "provenance": {
         "asOf": "2026-05-28T07:01:20-04:00",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.events",
@@ -64,7 +64,7 @@
     },
     "aiSalesStrategy": {
       "title": "AI Sales Strategy",
-      "body": "Sales sequencing is driven by real Glide signals: active service customers and their estimated weekly oil usage (fryer capacity x service cadence). Kevin should lead with the highest-volume customers nearest the next event window, then work prospects and incomplete-telemetry accounts.",
+      "body": "Across 151 Glide accounts, 151 are active service customers and 124 have a computed weekly oil estimate (fryer capacity x service cadence), totaling about 132,369 lbs/week. Kevin should lead with the highest-volume customers nearest the next event window, then work prospects and incomplete-telemetry accounts.",
       "strategicSpecialInstructions": {
         "cardTopic": "Volume-And-Event-Driven Sales Sequencing",
         "strategicObjective": "Turn verified Glide oil-usage estimates and the next event window into a concrete outreach order, with no synthetic scoring.",
@@ -88,7 +88,7 @@
       },
       "provenance": {
         "asOf": "2026-05-28T07:01:20-04:00",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -123,7 +123,7 @@
     },
     "restaurantAccounts": {
       "title": "Restaurant Accounts",
-      "body": "Restaurant rows are synced from Glide with service schedule, oil type/form, contact, and casino location. Accounts that carry a service schedule are active customers; those with enough fryer telemetry get a computed weekly oil estimate. Accounts without a computed volume are surfaced as incomplete telemetry rather than ranked on a synthetic score.",
+      "body": "151 restaurant rows are synced from Glide; 151 carry a service schedule and 124 have enough fryer telemetry to estimate weekly oil usage. Accounts without a computed volume are surfaced honestly as incomplete telemetry rather than ranked on a synthetic score.",
       "strategicSpecialInstructions": {
         "cardTopic": "Account Coverage Versus Telemetry Completeness",
         "strategicObjective": "Separate total Glide account coverage from the subset that has enough telemetry to estimate weekly oil usage, so the field team works real volume instead of an invented ladder.",
@@ -147,7 +147,7 @@
       },
       "provenance": {
         "asOf": "2026-05-28T07:01:20-04:00",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.restaurants",
@@ -175,7 +175,7 @@
     },
     "fryerTracking": {
       "title": "Fryer Equipment Tracking",
-      "body": "Fryer telemetry is materially populated now: 160 fryer rows exist and 150 carry positive capacity data. That is enough to support service-load planning, but direct fryer-count telemetry is still incomplete for precision scheduling.",
+      "body": "Fryer telemetry is materially populated now: 150 fryer rows exist and 150 carry positive capacity data. That is enough to support service-load planning, but direct fryer-count telemetry is still incomplete for precision scheduling.",
       "strategicSpecialInstructions": {
         "cardTopic": "Fryer Lifecycle and Service Risk",
         "strategicObjective": "Separate account-coverage completeness from equipment-telemetry completeness so service teams do not overstate readiness.",
@@ -199,7 +199,7 @@
       },
       "provenance": {
         "asOf": "2026-05-28T07:01:20-04:00",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "vegas.fryers",

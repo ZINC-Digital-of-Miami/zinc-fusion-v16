@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-01T07:01:20-04:00",
+  "generatedAt": "2026-06-11T16:33:48-04:00",
   "model": "gpt-5.5-heavy",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
@@ -7,7 +7,7 @@
   "cards": {
     "feedSummary": {
       "title": "Live Policy Feed",
-      "body": "Policy breadth is still narrow. The refresh screened 21 public-policy rows, but only 1 survived the soy/procurement relevance filter, with the visible anchor coming from Commerce Department.",
+      "body": "Policy breadth is still narrow. The refresh screened 20 public-policy rows, but only 0 survived the soy/procurement relevance filter, with the visible anchor coming from n/a.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Feed Operational Impact Briefing",
         "strategicObjective": "Translate current legislation flow into procurement, pricing, compliance, and sourcing impact for rapid buyer decisions.",
@@ -31,7 +31,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -72,7 +72,7 @@
     },
     "sourcePressure": {
       "title": "Source Activity",
-      "body": "Source breadth is concentrated. Commerce Department supplies 1 of the 1 visible items, so corroboration is adequate for watch status but still too narrow for high-conviction shock framing.",
+      "body": "Source breadth is concentrated. none supplies 0 of the 0 visible items, so corroboration is adequate for watch status but still too narrow for high-conviction shock framing.",
       "strategicSpecialInstructions": {
         "cardTopic": "Source Reliability and Concentration Risk",
         "strategicObjective": "Assess whether source concentration supports confidence or increases interpretation risk for procurement decisions.",
@@ -96,7 +96,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -124,7 +124,7 @@
     },
     "tagPressure": {
       "title": "Policy Tag Pressure",
-      "body": "Policy-theme pressure currently clusters in palm, policy, tariff, which points more to trade and compliance monitoring than to an immediate soybean-oil rule shock.",
+      "body": "Policy-theme pressure currently clusters in no active tags, which points more to trade and compliance monitoring than to an immediate soybean-oil rule shock.",
       "strategicSpecialInstructions": {
         "cardTopic": "Policy Theme Pressure Ranking",
         "strategicObjective": "Identify policy themes most likely to propagate into procurement pressure and compliance workload.",
@@ -148,7 +148,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
@@ -175,16 +175,5 @@
       }
     }
   },
-  "items": [
-    {
-      "source": "Commerce Department",
-      "title": "Foreign-Trade Zone 102; Application for Subzone; BASF Agricultural Solutions US LLC; Fenton and Palmyra, Missouri",
-      "publishedAt": "2026-05-14T00:00:00Z",
-      "tags": [
-        "palm",
-        "policy",
-        "tariff"
-      ]
-    }
-  ]
+  "items": []
 }

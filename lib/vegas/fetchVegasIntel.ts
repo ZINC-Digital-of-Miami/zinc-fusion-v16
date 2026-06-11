@@ -78,14 +78,6 @@ const GLIDE_COVERAGE_COUNT_QUERIES: Record<keyof GlideCoverageCounts, CoverageCo
   ],
 };
 
-function isMissingRelationError(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const errorRecord = error as { code?: unknown; message?: unknown };
-  const maybeCode = typeof errorRecord.code === "string" ? errorRecord.code : "";
-  const maybeMessage = typeof errorRecord.message === "string" ? errorRecord.message : "";
-  return maybeCode === "PGRST205" || maybeMessage.toLowerCase().includes("does not exist");
-}
-
 async function readCoverageCount(
   supabase: Awaited<ReturnType<typeof createServerDataClient>>,
   candidates: CoverageCountQuery[],
@@ -96,8 +88,8 @@ async function readCoverageCount(
       .from(candidate.table)
       .select("*", { count: "exact", head: true });
     if (!error) return count ?? 0;
-    if (isMissingRelationError(error)) continue;
-    continue;
+    // Any failure (missing relation or transient) falls through to the next
+    // candidate table; coverage is reported null only when none are readable.
   }
   return null;
 }

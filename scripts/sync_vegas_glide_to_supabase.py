@@ -123,12 +123,28 @@ DAY_TOKENS: tuple[str, ...] = (
 )
 
 
+def _match_word_number(text: str) -> float | None:
+    for word, value in WORD_NUMBER_MAP.items():
+        if re.search(rf"(?<![a-z]){word}(?![a-z])", text):
+            return float(value)
+    return None
+
+
+def _match_numeric(text: str) -> float | None:
+    numeric_match = re.search(r"(\d+(?:\.\d+)?)", text)
+    if not numeric_match:
+        return None
+    parsed = float(numeric_match.group(1))
+    return parsed if parsed > 0 else None
+
+
 def service_changes_per_week(frequency: Any, days: Any) -> float | None:
     """Deterministic Glide-only oil-change cadence model.
 
-    Mirrors lib/vegas/normalizeVegasIntel.ts so the stored derived value matches
-    the value the API recomputes. Returns None when the schedule is not
-    populated; callers must not guess.
+    Mirrors serviceChangesPerWeek in lib/vegas/normalizeVegasIntel.ts so the
+    stored derived value matches the value the API recomputes. Month-based
+    cadences use a 4-week month (N per month = N * 0.25 per week). Returns
+    None when the schedule is not populated; callers must not guess.
     """
     freq = str(frequency).strip().lower() if isinstance(frequency, str) else ""
     day_text = str(days).strip().lower() if isinstance(days, str) else ""
@@ -144,22 +160,45 @@ def service_changes_per_week(frequency: Any, days: Any) -> float | None:
         return None
     if "daily" in freq or "every day" in freq:
         return 7.0
-    if "weekly" in freq or "once" in freq:
-        return 1.0
+
+    # Multi-week intervals must resolve before the generic weekly check because
+    # "biweekly"/"bi-weekly" contain the substring "weekly".
     if "biweekly" in freq or "bi-weekly" in freq or "every other week" in freq:
         return 0.5
-    if "monthly" in freq:
-        return 0.25
+    every_n_weeks = re.search(
+        r"every\s+(\d+(?:\.\d+)?|two|three|four|five|six|seven)\s+weeks?", freq
+    )
+    if every_n_weeks:
+        token = every_n_weeks.group(1)
+        interval = WORD_NUMBER_MAP.get(token, None)
+        if interval is None:
+            try:
+                interval = float(token)
+            except ValueError:
+                interval = None
+        if interval is not None and interval > 0:
+            return min(7.0, 1.0 / float(interval))
 
-    for word, value in WORD_NUMBER_MAP.items():
-        if re.search(rf"(?<![a-z]){word}(?![a-z])", freq):
-            return min(7.0, float(value))
+    # Month-based cadences must resolve before "once"/word-number checks so
+    # "once a month" and "twice a month" stay monthly, not weekly.
+    if "month" in freq:
+        per_month = _match_word_number(freq)
+        if per_month is None:
+            per_month = _match_numeric(freq)
+        if per_month is None:
+            per_month = 1.0
+        return min(7.0, per_month * 0.25)
 
-    numeric_match = re.search(r"(\d+(?:\.\d+)?)", freq)
-    if numeric_match:
-        parsed = float(numeric_match.group(1))
-        if parsed > 0:
-            return min(7.0, parsed)
+    if "weekly" in freq or "every week" in freq or "once" in freq:
+        return 1.0
+
+    word_value = _match_word_number(freq)
+    if word_value is not None:
+        return min(7.0, word_value)
+
+    numeric_value = _match_numeric(freq)
+    if numeric_value is not None:
+        return min(7.0, numeric_value)
 
     return None
 

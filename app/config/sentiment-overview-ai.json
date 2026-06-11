@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-06-01T07:01:20-04:00",
+  "generatedAt": "2026-06-11T16:33:48-04:00",
   "model": "gpt-5.5-heavy",
   "reasoningEffort": "high-think",
   "source": "ai-daily-refresh",
   "refreshScheduleEt": "07:00 America/New_York daily",
   "overview": {
-    "headlineCount": 17,
-    "sentimentScore": 96.1,
+    "headlineCount": 8,
+    "sentimentScore": 95.8,
     "cotBias": "bullish",
-    "updatedAt": "2026-06-01T07:01:20-04:00"
+    "updatedAt": "2026-06-11T16:33:48-04:00"
   },
   "cards": {
     "narratives": [
       {
         "title": "Macro Narrative",
-        "body": "Macro-policy sentiment is active rather than quiet. The seven-day tape carries 14 macro-policy rows, and the uncertainty index printed 232.29, so policy noise is back even though it still trails energy as the lead buyer-risk channel.",
+        "body": "Macro-policy sentiment is active rather than quiet. The seven-day tape carries 3 macro-policy rows, and the uncertainty index printed 244.89, so policy noise is back even though it still trails energy as the lead buyer-risk channel.",
         "strategicSpecialInstructions": {
           "cardTopic": "Macro Sentiment Regime",
           "strategicObjective": "Classify macro sentiment pressure so buyers can judge timing risk before conviction appears in price structure.",
@@ -38,7 +38,7 @@
         },
         "provenance": {
           "asOf": "2026-05-21",
-          "generatedAt": "2026-06-01T07:01:20-04:00",
+          "generatedAt": "2026-06-11T16:33:48-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
@@ -66,7 +66,7 @@
       },
       {
         "title": "Flow Narrative",
-        "body": "Flow is broader than the prior refresh: 17 rows over the last 7 days, with 4 energy-tagged items, 4 tariff-tagged items, and 0 China-tagged soy rows. That keeps the tape signal-rich, but still concentrated enough to inspect manually.",
+        "body": "Flow is broader than the prior refresh: 8 rows over the last 7 days, with 4 energy-tagged items, 3 tariff-tagged items, and 2 China-tagged soy rows. That keeps the tape signal-rich, but still concentrated enough to inspect manually.",
         "strategicSpecialInstructions": {
           "cardTopic": "Narrative Flow and Participation Pressure",
           "strategicObjective": "Determine whether current participation flow is stable, crowded, or fragile for procurement timing decisions.",
@@ -90,7 +90,7 @@
         },
         "provenance": {
           "asOf": "2026-05-23T07:00:00-04:00",
-          "generatedAt": "2026-06-01T07:01:20-04:00",
+          "generatedAt": "2026-06-11T16:33:48-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "alt.news_events"
@@ -111,7 +111,7 @@
       },
       {
         "title": "Procurement Narrative",
-        "body": "Procurement psychology should stay disciplined, not reactive. Managed money is still bullish with net 141,573 contracts, but the live driver stack averages only 33.4, so Chris should keep staged coverage and treat crude rebounds as the re-check trigger.",
+        "body": "Procurement psychology should stay disciplined, not reactive. Managed money is still bullish with net 148,439 contracts, but the live driver stack averages only 36.6, so Chris should keep staged coverage and treat crude rebounds as the re-check trigger.",
         "strategicSpecialInstructions": {
           "cardTopic": "Buyer Procurement Psychology",
           "strategicObjective": "Convert sentiment and positioning conditions into buyer-ready pacing guidance under uncertainty.",
@@ -135,7 +135,7 @@
         },
         "provenance": {
           "asOf": "2026-05-22",
-          "generatedAt": "2026-06-01T07:01:20-04:00",
+          "generatedAt": "2026-06-11T16:33:48-04:00",
           "method": "ai-daily-refresh",
           "sourceFeeds": [
             "https://publicreporting.cftc.gov",
@@ -164,7 +164,7 @@
     ],
     "positioningFlow": {
       "title": "Managed Money Positioning",
-      "body": "Managed-money positioning is still bullish, with a 141,573-contract net and 19.72% of open interest. That is enough length to accelerate upside buyer pain if energy rebounds, but it is still a weekly context signal, not intraday truth.",
+      "body": "Managed-money positioning is still bullish, with a 148,439-contract net and 20.26% of open interest. That is enough length to accelerate upside buyer pain if energy rebounds, but it is still a weekly context signal, not intraday truth.",
       "strategicSpecialInstructions": {
         "cardTopic": "Managed Money Bias Regime",
         "strategicObjective": "Determine whether managed-money positioning is stabilizing or destabilizing soybean-oil procurement expectations.",
@@ -188,7 +188,7 @@
       },
       "provenance": {
         "asOf": "2026-05-19",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://publicreporting.cftc.gov"
@@ -209,7 +209,7 @@
     },
     "headlineFlow": {
       "title": "Headline Flow",
-      "body": "Headline velocity still matters because the tape is large enough to move but still small enough to audit: 17 active rows, 4 tariff-tagged items, 4 energy-tagged items, and no China-tagged soy rows. That is signal, not noise, but it is still too concentrated to support a broad-based panic narrative.",
+      "body": "Headline velocity still matters because the tape is large enough to move but still small enough to audit: 8 active rows, 3 tariff-tagged items, 4 energy-tagged items, and no China-tagged soy rows. That is signal, not noise, but it is still too concentrated to support a broad-based panic narrative.",
       "strategicSpecialInstructions": {
         "cardTopic": "Headline Velocity and Regime Coherence",
         "strategicObjective": "Assess whether headline stream is producing actionable signal or noise for procurement decisions.",
@@ -233,7 +233,7 @@
       },
       "provenance": {
         "asOf": "2026-05-23T07:00:00-04:00",
-        "generatedAt": "2026-06-01T07:01:20-04:00",
+        "generatedAt": "2026-06-11T16:33:48-04:00",
         "method": "ai-daily-refresh",
         "sourceFeeds": [
           "https://www.federalregister.gov",
