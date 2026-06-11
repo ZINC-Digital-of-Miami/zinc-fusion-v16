@@ -9,3 +9,10 @@
 node_modules/
 *.sql
 *.sql.gz
+.venv-ag311/
+.next-local/
+.kilo/
+models/
+logs/
+/data/
+memory/

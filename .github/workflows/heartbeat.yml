@@ -1,0 +1,46 @@
+name: Production heartbeat
+
+# Daily probe of the live site. Catches the two failure modes that went
+# silent for 10-16 days in June 2026: a paused Supabase project and a dead
+# deploy pipeline. A failing run emails the workflow author via GitHub's
+# built-in scheduled-workflow failure notification. The daily API reads also
+# generate Supabase activity, which helps keep a free-tier project from
+# auto-pausing (not a guarantee — see CP-1 in the 2026-06-11 pivot plan).
+
+on:
+  schedule:
+    - cron: "23 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health route (DB reachability)
+        run: |
+          body=$(curl -fsS --max-time 30 "https://zinc-fusion-v16.vercel.app/api/health")
+          echo "$body"
+          echo "$body" | jq -e '.ok == true and .dbReachable == true' > /dev/null
+
+      - name: Vegas Intel API returns data
+        run: |
+          body=$(curl -fsS --max-time 30 "https://zinc-fusion-v16.vercel.app/api/vegas/intel")
+          echo "$body" | head -c 300
+          echo "$body" | jq -e '.ok == true' > /dev/null
+
+      - name: Dashboard metrics freshness (hard fail > 8 days)
+        run: |
+          body=$(curl -fsS --max-time 30 "https://zinc-fusion-v16.vercel.app/api/dashboard/risk-factors")
+          as_of=$(echo "$body" | jq -r '.as_of_date // empty')
+          echo "as_of_date: $as_of"
+          test -n "$as_of"
+          age_days=$(( ( $(date +%s) - $(date -d "$as_of" +%s) ) / 86400 ))
+          echo "age: ${age_days}d (limit 8 — weekly cron cadence + slack)"
+          test "$age_days" -le 8
+
+      - name: Chart bar freshness (warning only until the Phase 3 backbone lands)
+        run: |
+          body=$(curl -fsS --max-time 30 "https://zinc-fusion-v16.vercel.app/api/zl/price-1d") || { echo "::warning::price-1d route unreachable"; exit 0; }
+          newest=$(echo "$body" | jq -r '[.data[]?.time // empty] | max // empty' 2>/dev/null)
+          echo "newest daily bar: $newest"
+          echo "::notice::Chart freshness is informational until the financialdata.net/Yahoo daily ingestion (pivot plan Phase 3) replaces the manual DuckDB promote."
