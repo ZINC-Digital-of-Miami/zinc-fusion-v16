@@ -38,9 +38,12 @@ jobs:
           echo "age: ${age_days}d (limit 8 — weekly cron cadence + slack)"
           test "$age_days" -le 8
 
-      - name: Chart bar freshness (warning only until the Phase 3 backbone lands)
+      - name: Chart bar freshness (hard fail > 5 days)
         run: |
-          body=$(curl -fsS --max-time 30 "https://zinc-fusion-v16.vercel.app/api/zl/price-1d") || { echo "::warning::price-1d route unreachable"; exit 0; }
-          newest=$(echo "$body" | jq -r '[.data[]?.time // empty] | max // empty' 2>/dev/null)
+          body=$(curl -fsS --max-time 30 "https://zinc-fusion-v16.vercel.app/api/zl/price-1d")
+          newest=$(echo "$body" | jq -r '[.data[]?.tradeDate // empty] | max // empty' | cut -c1-10)
           echo "newest daily bar: $newest"
-          echo "::notice::Chart freshness is informational until the financialdata.net/Yahoo daily ingestion (pivot plan Phase 3) replaces the manual DuckDB promote."
+          test -n "$newest"
+          age_days=$(( ( $(date +%s) - $(date -d "$newest" +%s) ) / 86400 ))
+          echo "age: ${age_days}d (limit 5 — hourly market_eod_fill cron + weekend/holiday slack)"
+          test "$age_days" -le 5

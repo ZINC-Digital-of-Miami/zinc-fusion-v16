@@ -45,7 +45,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 2. **Target = future PRICE LEVEL** (`close.shift(-horizon)`), columns named `target_price_{h}d`. Never returns.
 3. **Target Zones = horizontal lines** at price levels. NEVER say: cones, bands, funnels, confidence intervals.
 4. **Probability language:** "ZL has an X% chance of hitting XX.XX by [date]" — derived from Monte Carlo (10k runs) + pinball loss + MAE/accuracy %.
-5. **No Inngest. No Vercel Cron.** Default scheduling is Supabase pg_cron + `http` extension. Vercel is frontend hosting ONLY. Locked 2026-05-18 exception: ZL Databento raw chart data is refreshed into local DuckDB in the project folder and promoted to Supabase serving tables by Python; this exception does not authorize Vercel cron or local Supabase.
+5. **No Inngest. No Vercel Cron.** Default scheduling is Supabase pg_cron + `http` extension. Vercel is frontend hosting ONLY. Updated 2026-06-11 (pivot plan, locked decisions L1/L2): ZL serving bars and price-derived card metrics refresh hourly inside Supabase via `ops.ingest_market_eod()` (pg_cron + http, financialdata.net + FRED, Vault keys); CFTC COT refreshes weekly via `ops.ingest_cftc_cot()`. The 2026-05-18 Databento/DuckDB lane is FROZEN as a training/archive asset — no new Databento pulls, and chart freshness no longer depends on any workstation.
 6. **9 schemas:** mkt, econ, alt, supply, training, forecasts, analytics, ops, vegas. No others.
 7. **ProFarmer is mandatory** ($500/month). Rebuilt as Python Playwright scraper, not Node.js Puppeteer.
 8. **Training gate:** NEVER start model training without explicit user approval.
@@ -59,7 +59,7 @@ Commodity procurement forecasting system for ZL (soybean oil futures). Clean-roo
 16. **Locked page authority map (2026-05-07):** Strategy=V16, Vegas Intel=V16, Dashboard=V15, Legislation=V15, Sentiment=V15.
 17. **Global layout lock:** Full-width geometry is mandatory on ALL V16 pages. Do not keep narrow/containerized widths.
 18. **Pixel parity lock:** Typography, spacing, shadows, border/radius, gradients, hex colors, and all interaction states must match locked source exactly.
-19. **Cadence pivot lock:** Most non-price data moves to weekly batch ingest and weekly retraining; hourly chart freshness remains.
+19. **Cadence pivot lock:** Most non-price data moves to weekly batch ingest and weekly retraining; hourly chart freshness remains — delivered since 2026-06-11 by the hourly `market_eod_fill` pg_cron job (financialdata.net daily settles, current-day bar updates intraday), not by local promotion.
 20. **LLM content lock:** Sentiment and Legislation pipelines are model-driven from approved source feeds with traceable provenance.
 21. **AI-first cards lock (2026-05-08):** Dashboard/strategy/sentiment/legislation/vegas cards are primarily AI snapshot driven; avoid request-time external data pulls in API handlers.
 22. **Weekly pull lock (2026-05-08):** Non-price card refresh jobs run weekly cadence by default; AG training runs by manual batch trigger only unless explicitly changed.
