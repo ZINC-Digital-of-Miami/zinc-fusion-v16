@@ -37,6 +37,19 @@ export type RawFryerRow = {
   ingested_at: string;
 };
 
+export type RawCustomerScoreRow = {
+  restaurant_id: number | null;
+  score_date: string;
+  score: number | null;
+};
+
+export type RawEventImpactRow = {
+  event_id: number | null;
+  restaurant_id: number | null;
+  impact_score: number | null;
+  metadata: unknown;
+};
+
 export type GlideCoverageCounts = {
   exportList: number | null;
   shifts: number | null;
@@ -117,6 +130,8 @@ export async function fetchVegasData(supabase: Awaited<ReturnType<typeof createS
     { data: restaurantRowsRaw, error: restaurantError },
     { data: casinoRowsRaw, error: casinoError },
     { data: fryerRowsRaw, error: fryerError },
+    { data: scoreRowsRaw, error: scoreError },
+    { data: impactRowsRaw, error: impactError },
   ] = await Promise.all([
     fetchGlideCoverageCounts(supabase),
     supabase
@@ -146,6 +161,18 @@ export async function fetchVegasData(supabase: Awaited<ReturnType<typeof createS
       .from("fryers")
       .select("restaurant_id, fryer_count, metadata, ingested_at")
       .limit(5000),
+    supabase
+      .schema("vegas")
+      .from("customer_scores")
+      .select("restaurant_id, score_date, score")
+      .order("score_date", { ascending: false })
+      .limit(5000),
+    supabase
+      .schema("vegas")
+      .from("event_impact")
+      .select("event_id, restaurant_id, impact_score, metadata")
+      .order("impact_score", { ascending: false })
+      .limit(10000),
   ]);
 
   const firstError =
@@ -153,7 +180,9 @@ export async function fetchVegasData(supabase: Awaited<ReturnType<typeof createS
     venueError ??
     restaurantError ??
     casinoError ??
-    fryerError;
+    fryerError ??
+    scoreError ??
+    impactError;
 
   if (firstError) {
     throw new Error(firstError.message);
@@ -166,5 +195,7 @@ export async function fetchVegasData(supabase: Awaited<ReturnType<typeof createS
     restaurants: (restaurantRowsRaw ?? []) as RawRestaurantRow[],
     casinos: (casinoRowsRaw ?? []) as RawCasinoRow[],
     fryers: (fryerRowsRaw ?? []) as RawFryerRow[],
+    customerScores: (scoreRowsRaw ?? []) as RawCustomerScoreRow[],
+    eventImpacts: (impactRowsRaw ?? []) as RawEventImpactRow[],
   };
 }

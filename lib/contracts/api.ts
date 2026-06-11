@@ -137,49 +137,28 @@ export interface VegasOpportunityRow {
   eventDaysUntil: number | null;
   cuisineAffinityScore: number | null;
   cuisineAffinityReason: string | null;
+  // Verified-only modeled signals: populated from real vegas.customer_scores /
+  // vegas.event_impact rows when present, explicit null otherwise. No synthetic
+  // score is ever computed for missing rows.
+  opportunityScore: number | null;
+  eventPressure: number | null;
+  expectedSpend: number | null;
+  hospitalityImpact: number | null;
+  phqMultiplier: number | null;
+  zfusionScore: number | null;
   shiftCount: number | null;
   scheduledReportCount: number | null;
   exportListed: boolean | null;
   metadata: Record<string, unknown>;
 }
 
-export interface VegasDemandSignal {
-  category: string;
-  demandScore: number;
-  trendDirection: "up" | "down" | "flat";
-  oilRelevance: string[];
-  evidence: string[];
-  salesNote: string;
-}
-
-export interface VegasAlert {
-  alertId: string;
-  severity: "high" | "medium" | "low";
-  category: "freight" | "weather" | "tourism" | "route" | "supply" | "fryer_risk";
-  message: string;
-  affectedAccounts: string[];
-  recommendedAction: string;
-}
-
-export interface VegasCustomerMatrixBucket {
-  bucket: string;
-  accounts: VegasOpportunityRow[];
-  estimatedOilLbsPerWeek: number | null;
-  suggestedAction: string;
-}
-
-export interface VegasOutreachDraft {
-  subject: string;
-  emailBody: string;
-  callScript: string;
-  shortText: string;
-  internalNote: string;
-}
-
-export interface VegasSourceHealth {
-  source: string;
-  lastUpdated: string | null;
-  status: "fresh" | "stale" | "missing";
-  severity: "ok" | "warn" | "fail";
-  message: string;
+export interface VegasGlideTableCounts {
+  restaurants: number | null;
+  casinos: number | null;
+  fryers: number | null;
+  exportList: number | null;
+  scheduledReports: number | null;
+  shifts: number | null;
+  shiftCasinos: number | null;
+  shiftRestaurants: number | null;
 }
