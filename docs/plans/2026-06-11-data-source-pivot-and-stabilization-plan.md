@@ -57,6 +57,7 @@
 4. **CP-3:** chart freshness — (a) EOD-only via pg_cron (no workstation in serving path; amend AGENTS rule 19), or (b) + Yahoo 1h top-ups into `mkt.price_1h` via pg_cron for intraday candles. Either way **the chart no longer depends on the Mac**; DuckDB becomes training/archive-only (rephrase rule 13/25 accordingly).
 5. Decommission Databento references from live paths (keep `zl_duckdb_pipeline` for training reads; remove its promote from the freshness story).
 **Gate:** fresh-run `dashboard_metrics` has zero carried-forward values; chart current without any local script.
+**GATE PASSED 2026-06-11 22:20 UTC:** first scheduled `market_eod_fill` tick (22:11) SUCCESS with 27 records; all price-derived metrics live-pulled (board crush 3.6694 computed fresh); chart newest bar = same-day; heartbeat with blocking chart-freshness probe green; CI green on `ed9e2c7fa`. News counts remain weekly-Python-lane by design (CP-6).
 
 ### Phase 4 — Card rework: data-driven, honest provenance (L3)
 1. Delete `fetchTrustedMarketSnapshot()` request-time pulls from strategy/sentiment/legislation routes — read DB metrics only (restores lock #21).
