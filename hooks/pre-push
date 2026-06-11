@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Tracked hook (enable with: git config core.hooksPath hooks)
+set -euo pipefail
+expected="https://github.com/ZINC-Digital-of-Miami/zinc-fusion-v16.git"
+actual="$(git remote get-url origin 2>/dev/null || true)"
+if [ "$actual" != "$expected" ]; then
+  echo "[BLOCKED] wrong origin for V16 repo" >&2
+  echo "expected: $expected" >&2
+  echo "actual:   $actual" >&2
+  exit 1
+fi

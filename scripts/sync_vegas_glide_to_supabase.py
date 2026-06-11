@@ -27,7 +27,6 @@ GLIDE_APP_ID = "6262JQJdNjhra79M25e4"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_ENV_PATH = REPO_ROOT / ".env.local"
-V15_TOKEN_FALLBACK = Path("/Volumes/Satechi Hub/ZINC-FUSION-V15/frontend/.env.production")
 
 
 @dataclass(frozen=True)
@@ -79,10 +78,7 @@ def resolve_glide_token() -> str:
     file_env = read_env_file(DEFAULT_ENV_PATH)
     if file_env.get("GLIDE_BEARER_TOKEN"):
         return file_env["GLIDE_BEARER_TOKEN"]
-    fallback_env = read_env_file(V15_TOKEN_FALLBACK)
-    if fallback_env.get("GLIDE_BEARER_TOKEN"):
-        return fallback_env["GLIDE_BEARER_TOKEN"]
-    raise RuntimeError("Missing GLIDE_BEARER_TOKEN in environment and fallback env files.")
+    raise RuntimeError("Missing GLIDE_BEARER_TOKEN in environment and .env.local.")
 
 
 def now_iso() -> str:
