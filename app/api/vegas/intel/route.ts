@@ -472,10 +472,9 @@ export async function GET() {
             : resolveCuisineAffinity(linkedEvent.category, cuisineType);
         const phqMultiplier = linkedEvent ? toPhqMultiplier(linkedEvent.attendance) : null;
         const hospitalityImpact = topImpact?.impactScore ?? eventPressure;
-        const expectedSpend =
-          topImpact?.expectedSpend ??
-          pickNumber(meta, ["expected_spend", "expectedSpend", "hospitality_spend"]) ??
-          pickNumber(glideData, ["expected_spend", "expectedSpend", "hospitality_spend"]);
+        // Spend is a modeled signal: only verified event-impact metadata may
+        // populate it. Restaurant/Glide metadata is not a verified spend source.
+        const expectedSpend = topImpact?.expectedSpend ?? null;
         const zfusionScore =
           affinity === null || hospitalityImpact === null || phqMultiplier === null
             ? null
