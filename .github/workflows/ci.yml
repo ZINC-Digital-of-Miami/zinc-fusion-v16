@@ -35,15 +35,5 @@ jobs:
 
       - name: Guard and contract tests (stdlib-only suite)
         run: |
-          modules=$(ls scripts/tests/test_*.py \
-            | grep -v test_vegas_intel_completeness_sort_contract \
-            | sed 's|/|.|g; s|\.py$||')
+          modules=$(ls scripts/tests/test_*.py | sed 's|/|.|g; s|\.py$||')
           python3 -m unittest -v $modules
-
-      # The Vegas V15-parity contract is a KNOWN-PENDING failure: the features
-      # it asserts (segment tabs, Glide coverage copy, completeness sort) were
-      # built and then stripped in commit b7622633f (2026-05-26). It runs
-      # non-blocking so the regression stays visible until Wave 5 restores it.
-      - name: Vegas V15-parity contract (known-pending, non-blocking)
-        continue-on-error: true
-        run: python3 -m unittest -v scripts.tests.test_vegas_intel_completeness_sort_contract
